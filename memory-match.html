@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Match — PIXELZONE</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#05050f;color:#e0e8ff;font-family:'Rajdhani',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(to bottom,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);pointer-events:none;z-index:10}
+a.back{position:fixed;top:16px;left:16px;font-family:'Press Start 2P',monospace;font-size:0.45rem;color:rgba(255,0,136,0.5);text-decoration:none;letter-spacing:0.1em;z-index:100;transition:color .2s}
+a.back:hover{color:#ff0088}
+.coin-display{position:fixed;top:16px;right:16px;font-family:'Press Start 2P',monospace;font-size:0.55rem;color:#ffee00;z-index:100}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.screen.hidden{display:none}
+.btn{font-family:'Press Start 2P',monospace;font-size:0.58rem;letter-spacing:0.1em;padding:13px 26px;border:1px solid;border-radius:3px;cursor:pointer;transition:all .2s;background:transparent;width:210px;text-align:center}
+.btn-magenta{color:#ff0088;border-color:rgba(255,0,136,0.4)}
+.btn-magenta:hover{background:rgba(255,0,136,0.1);box-shadow:0 0 16px rgba(255,0,136,0.25)}
+.btn-cyan{color:#00f5ff;border-color:rgba(0,245,255,0.4)}
+.btn-cyan:hover{background:rgba(0,245,255,0.1)}
+.btn-yellow{color:#ffee00;border-color:rgba(255,238,0,0.4)}
+.btn-yellow:hover{background:rgba(255,238,0,0.1)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+/* TITLE */
+#title-screen .logo{font-family:'Press Start 2P',monospace;font-size:clamp(0.9rem,2.5vw,1.8rem);color:#ff0088;text-shadow:0 0 20px #ff0088,0 0 40px #ff0088;margin-bottom:6px;text-align:center}
+#title-screen .sub{font-family:'Press Start 2P',monospace;font-size:0.48rem;color:rgba(255,0,136,0.4);letter-spacing:0.15em;margin-bottom:32px}
+
+/* GAME */
+#game-screen{justify-content:flex-start;padding-top:70px}
+.game-hud{display:flex;gap:28px;margin-bottom:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.hud-item{text-align:center}
+.hud-label{font-family:'Press Start 2P',monospace;font-size:0.35rem;color:rgba(224,232,255,0.35);margin-bottom:3px}
+.hud-val{font-family:'Press Start 2P',monospace;font-size:0.68rem}
+.hud-score{color:#ff0088}
+.hud-level{color:#00f5ff}
+.hud-coins{color:#ffee00}
+.hud-streak{color:#00ff88}
+.timer-wrap{width:min(480px,90vw);height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;margin-bottom:12px}
+.timer-bar{height:100%;background:linear-gradient(to right,#ff0088,#ff6688);border-radius:4px;transition:width .1s linear;box-shadow:0 0 8px rgba(255,0,136,0.4)}
+#combo-text{font-family:'Press Start 2P',monospace;font-size:0.8rem;color:#ffee00;text-shadow:0 0 16px #ffee00;min-height:28px;text-align:center;margin-bottom:6px}
+#card-grid{display:grid;gap:8px;justify-content:center}
+
+/* CARDS */
+.card{width:70px;height:70px;cursor:pointer;perspective:600px;position:relative}
+.card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.card.flipped .card-inner,.card.matched .card-inner{transform:rotateY(180deg)}
+.card-front,.card-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:5px;display:flex;align-items:center;justify-content:center}
+.card-back{background:rgba(255,0,136,0.08);border:1px solid rgba(255,0,136,0.25);font-size:1.4rem}
+.card-back::after{content:'?';font-family:'Press Start 2P',monospace;font-size:0.7rem;color:rgba(255,0,136,0.4)}
+.card-front{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);transform:rotateY(180deg);font-size:2rem}
+.card.matched .card-front{border-color:rgba(255,0,136,0.6);box-shadow:0 0 14px rgba(255,0,136,0.35);background:rgba(255,0,136,0.08)}
+.card.wrong .card-inner{animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:rotateY(180deg) translateX(0)}25%{transform:rotateY(180deg) translateX(-6px)}75%{transform:rotateY(180deg) translateX(6px)}}
+
+/* LEVEL COMPLETE */
+#level-complete{position:fixed;inset:0;background:rgba(5,5,15,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:50}
+#level-complete.hidden{display:none}
+#level-complete .lc-title{font-family:'Press Start 2P',monospace;font-size:1rem;color:#ffee00;text-shadow:0 0 20px #ffee00}
+#level-complete .lc-sub{font-family:'Press Start 2P',monospace;font-size:0.5rem;color:rgba(224,232,255,0.5);letter-spacing:0.1em}
+
+/* GAMEOVER */
+#gameover-screen .go-title{font-family:'Press Start 2P',monospace;font-size:1rem;color:#ff0088;text-shadow:0 0 20px #ff0088;margin-bottom:8px}
+.result-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,0,136,0.15);padding:18px 36px;border-radius:4px;margin-bottom:14px}
+.result-row{display:flex;justify-content:space-between;gap:36px;margin-bottom:6px}
+.rl{font-size:0.85rem;font-weight:700;color:rgba(224,232,255,0.45);letter-spacing:0.08em}
+.rv{font-family:'Press Start 2P',monospace;font-size:0.6rem;color:#ff0088}
+.name-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:14px}
+.name-label{font-family:'Press Start 2P',monospace;font-size:0.42rem;color:#00f5ff;letter-spacing:0.1em}
+input.name-inp{background:rgba(255,0,136,0.05);border:1px solid rgba(255,0,136,0.3);color:#ff0088;font-family:'Press Start 2P',monospace;font-size:0.58rem;padding:9px 14px;border-radius:3px;text-align:center;width:190px;outline:none;text-transform:uppercase}
+input.name-inp:focus{border-color:#ff0088}
+
+/* LB */
+#lb-screen .lb-title{font-family:'Press Start 2P',monospace;font-size:0.85rem;color:#ff0088;margin-bottom:22px;text-shadow:0 0 10px #ff0088}
+.lb-table{width:330px;border-collapse:collapse}
+.lb-table th{font-family:'Press Start 2P',monospace;font-size:0.38rem;color:rgba(224,232,255,0.35);padding:7px;border-bottom:1px solid rgba(255,0,136,0.12);text-align:left}
+.lb-table td{font-size:0.9rem;font-weight:700;padding:7px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.lb-rank{color:rgba(224,232,255,0.35);width:28px}.lb-rank.gold{color:#ffd700}.lb-rank.silver{color:#c0c0c0}.lb-rank.bronze{color:#cd7f32}
+.lb-name{color:#e0e8ff}.lb-score{color:#ff0088;text-align:right}
+.lb-loading{font-family:'Press Start 2P',monospace;font-size:0.48rem;color:rgba(255,0,136,0.4)}
+
+/* SHOP */
+#shop-screen .shop-title{font-family:'Press Start 2P',monospace;font-size:0.8rem;color:#ffee00;text-shadow:0 0 10px #ffee00;margin-bottom:6px}
+.shop-coins{font-family:'Press Start 2P',monospace;font-size:0.48rem;color:#ffee00;margin-bottom:18px}
+.themes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.theme-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s}
+.theme-card.selected{border-color:#ffee00;box-shadow:0 0 12px rgba(255,238,0,0.25)}
+.theme-card.locked{opacity:0.5}
+.theme-preview{font-size:1.1rem;margin-bottom:8px}
+.theme-name{font-family:'Press Start 2P',monospace;font-size:0.35rem;color:#e0e8ff;margin-bottom:5px;line-height:1.6}
+.theme-price{font-family:'Press Start 2P',monospace;font-size:0.35rem}
+.theme-price.owned{color:#00ff88}.theme-price.cost{color:#ffee00}
+</style>
+</head>
+<body>
+<a href="index.html" class="back">← PIXELZONE</a>
+<div class="coin-display">🪙 <span id="coin-total">0</span></div>
+
+<div class="screen" id="title-screen">
+  <div class="logo">MEMORY<br>MATCH</div>
+  <div class="sub">// PIXELZONE ARCADE</div>
+  <button class="btn btn-magenta" onclick="startGame()">▶ SPIELEN</button>
+  <button class="btn btn-cyan" onclick="showLB()">RANGLISTE</button>
+  <button class="btn btn-yellow" onclick="showShop()">SHOP</button>
+</div>
+
+<div class="screen hidden" id="game-screen">
+  <div class="game-hud">
+    <div class="hud-item"><div class="hud-label">PUNKTE</div><div class="hud-val hud-score" id="hud-score">0</div></div>
+    <div class="hud-item"><div class="hud-label">LEVEL</div><div class="hud-val hud-level" id="hud-level">1</div></div>
+    <div class="hud-item"><div class="hud-label">MÜNZEN</div><div class="hud-val hud-coins" id="hud-coins">0</div></div>
+    <div class="hud-item"><div class="hud-label">STREAK</div><div class="hud-val hud-streak" id="hud-streak">x1</div></div>
+  </div>
+  <div class="timer-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+  <div id="combo-text"></div>
+  <div id="card-grid"></div>
+</div>
+
+<div id="level-complete" class="hidden">
+  <div class="lc-title">LEVEL KLAR! 🎉</div>
+  <div class="lc-sub" id="lc-bonus">ZEITBONUS: +0</div>
+</div>
+
+<div class="screen hidden" id="gameover-screen">
+  <div class="go-title">ZEIT ABGELAUFEN!</div>
+  <div class="result-box">
+    <div class="result-row"><span class="rl">PUNKTE</span><span class="rv" id="res-score">0</span></div>
+    <div class="result-row"><span class="rl">LEVEL ERREICHT</span><span class="rv" id="res-level">1</span></div>
+    <div class="result-row"><span class="rl">MÜNZEN</span><span class="rv" id="res-coins">0</span></div>
+  </div>
+  <div class="name-wrap" id="name-wrap">
+    <div class="name-label">NAME FÜR RANGLISTE</div>
+    <input class="name-inp" id="name-inp" maxlength="12" placeholder="DEIN NAME"/>
+    <button class="btn btn-magenta" onclick="submitScore()">EINTRAGEN</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-magenta" onclick="startGame()">NOCHMAL</button>
+    <button class="btn btn-cyan" onclick="showLB()">RANGLISTE</button>
+    <button class="btn btn-yellow" onclick="showShop()">SHOP</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="lb-screen">
+  <div class="lb-title">🏆 RANGLISTE</div>
+  <div id="lb-content"><div class="lb-loading">LADE...</div></div>
+  <button class="btn btn-cyan" style="margin-top:18px" onclick="showScreen('title-screen')">← ZURÜCK</button>
+</div>
+
+<div class="screen hidden" id="shop-screen">
+  <div class="shop-title">SHOP</div>
+  <div class="shop-coins">🪙 <span id="shop-coins">0</span> MÜNZEN</div>
+  <div class="themes-grid" id="themes-grid"></div>
+  <button class="btn btn-cyan" onclick="showScreen('title-screen')">← ZURÜCK</button>
+</div>
+
+<script>
+var BIN_ID='69c8fa755fdde574550e49c0';
+var BIN_KEY='$2a$10$xwN4exdBlvLZoIzDDvZClewvqjRkJpa7/onN2TbkOAOXoRWqdg0yu';
+var BIN_URL='https://api.jsonbin.io/v3/b/'+BIN_ID;
+
+function loadData(){try{return JSON.parse(localStorage.getItem('memory_data')||'null')||{coins:0,owned:[0],sel:0};}catch(e){return{coins:0,owned:[0],sel:0};}}
+function saveData(d){try{localStorage.setItem('memory_data',JSON.stringify(d));}catch(e){}}
+function loadLBLocal(){try{return JSON.parse(localStorage.getItem('memory_lb')||'[]');}catch(e){return[];}}
+function saveLBLocal(d){try{localStorage.setItem('memory_lb',JSON.stringify(d));}catch(e){}}
+function withTO(p,ms){return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('to')),ms))]);}
+function fetchLB(){
+  return withTO(fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':BIN_KEY}}).then(r=>r.json()).then(d=>{var lb=d.record;if(!Array.isArray(lb))lb=[];saveLBLocal(lb);return lb;}),4000).catch(()=>loadLBLocal());
+}
+function saveLBEntry(name,score){
+  var lb=loadLBLocal();
+  lb.push({name:name.toUpperCase().slice(0,12),score});
+  lb.sort((a,b)=>b.score-a.score);lb=lb.slice(0,10);
+  saveLBLocal(lb);
+  withTO(fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':BIN_KEY},body:JSON.stringify(lb)}),4000).catch(()=>{});
+}
+
+var THEMES=[
+  {name:'NEON',price:0,emojis:['🎮','🕹️','🎯','💎','⭐','🔥','🌙','🚀']},
+  {name:'PIXEL',price:35,emojis:['👾','🤖','🛸','👻','🎃','💀','🔮','⚡']},
+  {name:'SPACE',price:45,emojis:['🌍','🌙','⭐','☄️','🚀','🪐','🌟','🛸']},
+  {name:'NATURE',price:30,emojis:['🌸','🌿','🦋','🍀','🌈','🌺','🦄','🌴']},
+  {name:'RETRO',price:55,emojis:['🏆','🎲','🎪','🎭','🎸','🎺','🎻','🎨']},
+];
+
+// LEVEL CONFIG
+var LEVELS=[
+  {cols:4,rows:4,pairs:8,time:60},
+  {cols:4,rows:5,pairs:10,time:70},
+  {cols:5,rows:6,pairs:15,time:90},
+  {cols:6,rows:6,pairs:18,time:100},
+  {cols:6,rows:6,pairs:18,time:90},
+  {cols:6,rows:6,pairs:18,time:80},
+  {cols:6,rows:6,pairs:18,time:70},
+];
+
+var pdata=loadData();
+var cards=[],flipped=[],matched=0,canFlip=true;
+var score,level,streak,gameCoins,totalTime,timeLeft,timerInterval;
+var running=false;
+
+function updateCoinDisplay(){document.getElementById('coin-total').textContent=pdata.coins;}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');}
+function showLB(){showScreen('lb-screen');fetchLB().then(renderLB);}
+function showShop(){showScreen('shop-screen');renderShopUI();}
+
+function getCardSize(){
+  var lv=LEVELS[Math.min(level-1,LEVELS.length-1)];
+  var maxW=Math.min(window.innerWidth-40,520);
+  var maxH=window.innerHeight-200;
+  var sz=Math.min(Math.floor((maxW-lv.cols*8)/lv.cols),Math.floor((maxH-lv.rows*8)/lv.rows),80);
+  return Math.max(sz,48);
+}
+
+function startGame(){
+  score=0;level=1;streak=0;gameCoins=0;running=true;
+  showScreen('game-screen');
+  startLevel();
+}
+
+function startLevel(){
+  flipped=[];matched=0;canFlip=true;
+  var lv=LEVELS[Math.min(level-1,LEVELS.length-1)];
+  totalTime=lv.time;timeLeft=lv.time;
+  updateHUD();
+  buildGrid(lv);
+  startTimer();
+}
+
+function buildGrid(lv){
+  var theme=THEMES[pdata.sel];
+  var pool=theme.emojis.slice(0,lv.pairs);
+  // if not enough unique emojis, repeat
+  while(pool.length<lv.pairs)pool.push(theme.emojis[pool.length%theme.emojis.length]+'​');
+  pool=pool.slice(0,lv.pairs);
+  var arr=[...pool,...pool];
+  // shuffle
+  for(var i=arr.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  cards=arr;
+  var grid=document.getElementById('card-grid');
+  var sz=getCardSize();
+  grid.style.gridTemplateColumns='repeat('+lv.cols+','+sz+'px)';
+  grid.innerHTML='';
+  arr.forEach(function(emoji,i){
+    var el=document.createElement('div');
+    el.className='card';
+    el.style.width=sz+'px';el.style.height=sz+'px';
+    el.innerHTML='<div class="card-inner"><div class="card-back"></div><div class="card-front" style="font-size:'+Math.floor(sz*0.45)+'px">'+emoji+'</div></div>';
+    el.dataset.idx=i;el.dataset.emoji=emoji;
+    el.addEventListener('click',function(){flipCard(this);});
+    grid.appendChild(el);
+  });
+}
+
+function flipCard(el){
+  if(!canFlip||!running)return;
+  if(el.classList.contains('flipped')||el.classList.contains('matched'))return;
+  if(flipped.length>=2)return;
+  el.classList.add('flipped');
+  flipped.push(el);
+  if(flipped.length===2)checkMatch();
+}
+
+function checkMatch(){
+  canFlip=false;
+  var a=flipped[0],b=flipped[1];
+  if(a.dataset.emoji===b.dataset.emoji){
+    // match!
+    setTimeout(()=>{
+      a.classList.add('matched');b.classList.add('matched');
+      streak++;
+      var mult=Math.min(streak,4);
+      var pts=100*mult;
+      score+=pts;
+      gameCoins=Math.floor(score/200);
+      showCombo(mult);
+      matched+=2;
+      flipped=[];canFlip=true;
+      updateHUD();
+      if(matched>=cards.length)levelComplete();
+    },300);
+  } else {
+    streak=0;
+    setTimeout(()=>{
+      a.classList.remove('flipped');b.classList.remove('flipped');
+      a.classList.add('wrong');b.classList.add('wrong');
+      setTimeout(()=>{a.classList.remove('wrong');b.classList.remove('wrong');},300);
+      flipped=[];canFlip=true;
+      updateHUD();
+    },700);
+  }
+}
+
+var comboTO=null;
+function showCombo(mult){
+  if(mult<=1)return;
+  var el=document.getElementById('combo-text');
+  el.textContent='COMBO x'+mult+'! +'+100*mult;
+  if(comboTO)clearTimeout(comboTO);
+  comboTO=setTimeout(()=>{el.textContent='';},1000);
+}
+
+function startTimer(){
+  if(timerInterval)clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    if(!running)return;
+    timeLeft--;
+    var pct=Math.max(0,(timeLeft/totalTime)*100);
+    document.getElementById('timer-bar').style.width=pct+'%';
+    if(timeLeft<=0){clearInterval(timerInterval);endGame();}
+  },1000);
+}
+
+function levelComplete(){
+  clearInterval(timerInterval);running=false;
+  var bonus=timeLeft*10;
+  score+=bonus;
+  gameCoins=Math.floor(score/200);
+  document.getElementById('lc-bonus').textContent='ZEITBONUS: +'+bonus;
+  document.getElementById('level-complete').classList.remove('hidden');
+  setTimeout(()=>{
+    document.getElementById('level-complete').classList.add('hidden');
+    level++;running=true;
+    startLevel();
+  },2000);
+}
+
+function updateHUD(){
+  document.getElementById('hud-score').textContent=score;
+  document.getElementById('hud-level').textContent=level;
+  document.getElementById('hud-coins').textContent=gameCoins;
+  document.getElementById('hud-streak').textContent='x'+Math.min(streak+1,4);
+}
+
+function endGame(){
+  running=false;
+  pdata.coins+=gameCoins;saveData(pdata);updateCoinDisplay();
+  document.getElementById('res-score').textContent=score;
+  document.getElementById('res-level').textContent=level;
+  document.getElementById('res-coins').textContent=gameCoins;
+  var lb=loadLBLocal();
+  var top10=lb.length<10||score>(lb[lb.length-1]||{score:0}).score;
+  document.getElementById('name-wrap').style.display=top10&&score>0?'flex':'none';
+  showScreen('gameover-screen');
+}
+
+function submitScore(){
+  var name=document.getElementById('name-inp').value.trim()||'AAA';
+  saveLBEntry(name,score);
+  document.getElementById('name-wrap').style.display='none';
+}
+
+function renderLB(lb){
+  var m=['🥇','🥈','🥉'];
+  var h='<table class="lb-table"><thead><tr><th>#</th><th>NAME</th><th>PUNKTE</th></tr></thead><tbody>';
+  if(!lb.length)h+='<tr><td colspan="3" style="text-align:center;padding:16px;color:rgba(224,232,255,0.3);font-family:\'Press Start 2P\',monospace;font-size:0.38rem">NOCH KEINE EINTRÄGE</td></tr>';
+  lb.forEach((e,i)=>{h+='<tr><td class="lb-rank '+(i<3?['gold','silver','bronze'][i]:'')+'">'+(m[i]||i+1)+'</td><td class="lb-name">'+e.name+'</td><td class="lb-score">'+e.score+'</td></tr>';});
+  h+='</tbody></table>';
+  document.getElementById('lb-content').innerHTML=h;
+}
+
+function renderShopUI(){
+  document.getElementById('shop-coins').textContent=pdata.coins;
+  var h='';
+  THEMES.forEach(function(t,i){
+    var owned=pdata.owned.includes(i),sel=pdata.sel===i;
+    h+='<div class="theme-card'+(sel?' selected':'')+(owned?'':' locked')+'" onclick="buyTheme('+i+')">';
+    h+='<div class="theme-preview">'+t.emojis.slice(0,4).join('')+'</div>';
+    h+='<div class="theme-name">'+t.name+'</div>';
+    h+='<div class="theme-price '+(sel?'owned':owned?'owned':'cost')+'">'+(sel?'AKTIV':owned?'✓ WÄHLEN':'🪙 '+t.price)+'</div>';
+    h+='</div>';
+  });
+  document.getElementById('themes-grid').innerHTML=h;
+}
+
+function buyTheme(i){
+  var t=THEMES[i];
+  if(pdata.owned.includes(i)){pdata.sel=i;saveData(pdata);renderShopUI();return;}
+  if(pdata.coins>=t.price){pdata.coins-=t.price;pdata.owned.push(i);pdata.sel=i;saveData(pdata);renderShopUI();updateCoinDisplay();}
+}
+
+updateCoinDisplay();
+</script>
+</body>
+</html>

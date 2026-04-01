@@ -30,7 +30,7 @@
     <div class="games-grid">
 
       <!-- Pixel Jump — Featured (große Karte) -->
-      <div class="game-card" onclick="openGame('games/pixel-jump/','Pixel Jump')">
+      <div class="game-card" onclick="window.location.href='games/pixel-jump/'">
         <div class="card-thumb t-pixel">
           <div class="card-overlay">
             <div class="play-circle">
@@ -50,7 +50,7 @@
       </div>
 
       <!-- Space Blaster -->
-      <div class="game-card" onclick="openGame('games/space-blaster/','Space Blaster')">
+      <div class="game-card" onclick="window.location.href='games/space-blaster/'">
         <div class="card-thumb t-space">
           <div class="card-overlay">
             <div class="play-circle">
@@ -70,7 +70,7 @@
       </div>
 
       <!-- Blockfall -->
-      <div class="game-card" onclick="openGame('games/blockfall/','Blockfall')">
+      <div class="game-card" onclick="window.location.href='games/blockfall/'">
         <div class="card-thumb t-block">
           <div class="card-overlay">
             <div class="play-circle">
@@ -90,7 +90,7 @@
       </div>
 
       <!-- Memory Match -->
-      <div class="game-card" onclick="openGame('games/memory-match/','Memory Match')">
+      <div class="game-card" onclick="window.location.href='games/memory-match/'">
         <div class="card-thumb t-memory">
           <div class="card-overlay">
             <div class="play-circle">
@@ -110,7 +110,7 @@
       </div>
 
       <!-- Arkanoid X -->
-      <div class="game-card" onclick="openGame('games/arkanoid/','Arkanoid X')">
+      <div class="game-card" onclick="window.location.href='games/arkanoid/'">
         <div class="card-thumb t-arkanoid">
           <div class="card-overlay">
             <div class="play-circle">
@@ -130,7 +130,7 @@
       </div>
 
       <!-- Neon Runner -->
-      <div class="game-card" onclick="openGame('games/neon-runner/','Neon Runner')">
+      <div class="game-card" onclick="window.location.href='games/neon-runner/'">
         <div class="card-thumb t-runner">
           <div class="card-overlay">
             <div class="play-circle">
@@ -162,43 +162,6 @@
   <div class="footer-text">6 Spiele · Kostenlos · Im Browser spielbar · 2026</div>
 </footer>
 
-<!-- MODAL: Vollbild-Spieler -->
-<div class="modal" id="modal">
-  <div class="modal-bar">
-    <div class="modal-left">
-      <span class="modal-logo">PIXELZONE</span>
-      <div class="modal-sep"></div>
-      <span class="modal-game" id="modalGame">Spiel</span>
-    </div>
-    <button class="btn-close" onclick="closeGame()">
-      <svg width="12" height="12" fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M1 1l10 10M11 1L1 11"/>
-      </svg>
-      Schließen [ESC]
-    </button>
-  </div>
-  <iframe class="modal-frame" id="gameFrame" src="" allowfullscreen></iframe>
-</div>
-
-<script>
-// Spiel im Modal öffnen
-function openGame(src, name) {
-  document.getElementById('gameFrame').src = src;
-  document.getElementById('modalGame').textContent = name;
-  document.getElementById('modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-// Modal schließen
-function closeGame() {
-  document.getElementById('modal').classList.remove('open');
-  document.getElementById('gameFrame').src = '';
-  document.body.style.overflow = '';
-}
-
-// ESC-Taste schließt Modal
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGame(); });
-</script>
 
 <!-- Supabase + Auth -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>

@@ -12,13 +12,21 @@
 - **Task 6: Alte flache .html-Dateien gelöscht** (doodle-jump.html, blockfall.html, arkanoid.html, space-blaster.html, neon-runner.html, memory-match.html)
 - Commit `152c4dc` gepusht
 
+### Startseiten-Redesign (2026-04-01, zweite Runde)
+- Hero-Bereich, Suchleiste, Kategorie-Filter und Statistik-Leiste entfernt
+- Header zeigt nur noch Logo + orangener „Anmelden"-Button
+- Spielegrid folgt direkt nach dem Header
+- Thumbnail-Hintergründe: dunkel → helle Pastellfarben
+- style.css: alle ungenutzten Sektionen bereinigt (~340 Zeilen entfernt)
+- Commit `1d6d59a` gepusht
+
 ### Was als nächstes zu tun ist
 - Spieldateien in `index.html` + `game.js` + `style.css` aufteilen (ausstehendes CLAUDE.md-Ziel)
 - Neues Spiel hinzufügen (Snake steht noch aus)
 
 ### Veränderte Dateien
-- `index.html` — komplett neu
-- `style.css` — neu erstellt
+- `index.html` — komplett neu (zweimal: erst Hellblau-Redesign, dann Vereinfachung)
+- `style.css` — neu erstellt, dann bereinigt
 - `NOTES.md` — neu erstellt
 - `.gitignore` — neu erstellt
 - `games/doodle-jump/index.html` — neu (verschoben)

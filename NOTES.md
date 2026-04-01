@@ -61,14 +61,10 @@
   - Feedback in neuer Supabase-Tabelle `feedback`
   - Erfolgsbestätigung + Auto-Close nach 2 Sekunden
 
-### ⚠️ Supabase-Migration manuell anwenden
-Die Datei `supabase/migrations/20260402000001_feedback.sql` muss noch im Supabase Dashboard ausgeführt werden:
-1. Supabase Dashboard öffnen → SQL-Editor
-2. Inhalt der Datei einfügen und ausführen
-3. Danach auch den Storage-Bucket `feedback-screenshots` prüfen (wird durch die Migration angelegt)
+- Screenshot-Upload im Feedback-Modal für alle Kategorien verfügbar gemacht (nicht mehr nur Bug/Verbesserung)
+- Supabase-Migration `20260402000001_feedback.sql` erfolgreich im Dashboard ausgeführt ✅
 
 ### Was als nächstes zu tun ist
-- Supabase-Migration `20260402000001_feedback.sql` manuell anwenden (SQL-Editor im Dashboard)
 - Neues Spiel hinzufügen (nach Bedarf)
 
 ### Veränderte Dateien (2026-04-02)

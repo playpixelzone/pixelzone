@@ -9,6 +9,8 @@
 - Startseite komplett neu gestaltet: Hellblau-Theme statt Dark-Theme
 - CSS in externe `style.css` ausgelagert
 - `.gitignore` angelegt
+- **Task 6: Alte flache .html-Dateien gelöscht** (doodle-jump.html, blockfall.html, arkanoid.html, space-blaster.html, neon-runner.html, memory-match.html)
+- Commit `152c4dc` gepusht
 
 ### Was als nächstes zu tun ist
 - Spieldateien in `index.html` + `game.js` + `style.css` aufteilen (ausstehendes CLAUDE.md-Ziel)

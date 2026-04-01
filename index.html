@@ -222,7 +222,7 @@
       </div>
 
       <!-- Screenshot-Upload (Bug + Verbesserung, optional) -->
-      <div class="fb-field" id="fbScreenshotWrap" style="display:none">
+      <div class="fb-field" id="fbScreenshotWrap">
         <label>Screenshot <span class="fb-optional">(optional · JPG/PNG · max. 1 Bild)</span></label>
         <div class="fb-upload" id="fbUploadArea" onclick="document.getElementById('fbFileInput').click()">
           <input type="file" id="fbFileInput" accept=".jpg,.jpeg,.png" style="display:none"
@@ -302,7 +302,7 @@ document.addEventListener('keydown', e => {
 function fbKatChange() {
   const kat = document.getElementById('fbKategorie').value;
   document.getElementById('fbSpielWrap').style.display      = kat === 'bug' ? 'block' : 'none';
-  document.getElementById('fbScreenshotWrap').style.display = (kat === 'bug' || kat === 'verbesserung') ? 'block' : 'none';
+  document.getElementById('fbScreenshotWrap').style.display = 'block';
   // Spiel-Auswahl zurücksetzen wenn ausgeblendet
   if (kat !== 'bug') document.getElementById('fbSpiel').value = '';
 }

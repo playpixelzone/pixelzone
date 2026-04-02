@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wordle – PIXELZONE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<header>
+  <a href="../../index.html" class="logo">
+    <div class="logo-mark">🕹</div>
+    <span class="logo-name">PIXELZONE</span>
+  </a>
+  <div id="navAuth"></div>
+</header>
+
+<main>
+  <h1 class="spiel-titel">Wordle</h1>
+
+  <!-- Fehlermeldung / Hinweis -->
+  <div id="meldung"></div>
+
+  <!-- 6 × 5 Spielfeld (wird per JS befüllt) -->
+  <div id="spielfeld"></div>
+
+  <!-- Virtuelle Tastatur (wird per JS befüllt) -->
+  <div id="tastatur"></div>
+</main>
+
+<!-- ── ENDSCREEN-MODAL ─────────────────────── -->
+<div id="endscreen" class="versteckt">
+  <div id="endscreen-karte">
+
+    <div id="endscreen-titel"></div>
+    <div id="endscreen-untertitel"></div>
+
+    <!-- Statistiken -->
+    <div id="endscreen-stats"></div>
+
+    <!-- Rangliste -->
+    <div id="endscreen-rangliste"></div>
+
+    <!-- Login-Hinweis für Gäste -->
+    <div id="endscreen-login" class="login-hinweis" style="display:none">
+      <a href="../../login.html">Anmelden</a> um Statistiken zu speichern
+    </div>
+
+    <button id="naechstes-btn">Nächstes Wort ▶</button>
+
+  </div>
+</div>
+
+<!-- Supabase + Auth -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../auth.js"></script>
+<script src="game.js"></script>
+
+</body>
+</html>

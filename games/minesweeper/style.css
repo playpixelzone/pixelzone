@@ -4,17 +4,17 @@
 ══════════════════════════════════════════════ */
 
 :root {
-  --gruen-hell:        #4caf50;
-  --gruen-dunkel:      #388e3c;
-  --beige-hell:        #e8d5a3;
-  --beige-dunkel:      #d4ba7a;
-  --hud-bg:            #2e7d32;
+  --gruen-hell:        #7ec942;
+  --gruen-dunkel:      #5aad28;
+  --beige-hell:        #e8c99a;
+  --beige-dunkel:      #ceaa72;
+  --hud-bg:            #3d6b1a;
   --hud-text:          #fff;
   --text:              #1a1a2e;
   --primary:           #3a86ff;
   --danger-bg:         #fee;
   --danger-text:       #c0392b;
-  --zell-groesse:      32px;
+  --zell-groesse:      26px;
   --zahl-1:            #1565c0;
   --zahl-2:            #2e7d32;
   --zahl-3:            #c62828;
@@ -43,8 +43,8 @@ header {
   justify-content: space-between;
   padding: 0 1.25rem;
   height: 56px;
-  background: var(--gruen-hell);
-  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+  background: var(--hud-bg);
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -64,7 +64,7 @@ header {
 .nav-login-btn {
   padding: .45rem 1rem;
   background: #fff;
-  color: var(--gruen-dunkel);
+  color: var(--hud-bg);
   border-radius: 8px;
   text-decoration: none;
   font-weight: 700;
@@ -160,8 +160,9 @@ main {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 1.25rem .5rem 2rem;
+  padding: 1rem .25rem 2rem;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 #spielfeld-wrap {
@@ -318,9 +319,17 @@ main {
 
 /* ── Responsive ──────────────────────────────── */
 @media (max-width: 400px) {
+  :root { --zell-groesse: 20px; }
+}
+
+@media (min-width: 480px) {
   :root { --zell-groesse: 26px; }
 }
 
-@media (min-width: 600px) {
-  :root { --zell-groesse: 36px; }
+@media (min-width: 700px) {
+  :root { --zell-groesse: 30px; }
+}
+
+@media (min-width: 1024px) {
+  :root { --zell-groesse: 34px; }
 }

@@ -4,7 +4,7 @@
 const SCHWIERIGKEIT = {
   einfach:  { spalten: 9,  reihen: 9,  minen: 10 },
   mittel:   { spalten: 16, reihen: 16, minen: 40 },
-  schwierig:{ spalten: 30, reihen: 16, minen: 99 },
+  schwierig:{ spalten: 22, reihen: 20, minen: 99 },
 };
 
 // ── Spielzustand ───────────────────────────────────────────────────────────────

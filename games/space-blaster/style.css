@@ -1,69 +1,272 @@
-:root{--bg:#0c0c0f;--s1:#131316;--s2:#1a1a1f;--s3:#222228;--s4:#2c2c34;--border:rgba(255,255,255,0.07);--accent:#e85d04;--accent-h:#fb8c3a;--text:#f0f0f4;--text2:#9090a8;--text3:#52525e;--r:10px}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Figtree',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;user-select:none}
-a.back{position:fixed;top:14px;left:14px;font-family:'Figtree',sans-serif;font-weight:600;font-size:0.8rem;color:var(--text3);text-decoration:none;z-index:100;transition:color .15s}
-a.back:hover{color:var(--text)}
-.coins-hud{position:fixed;top:14px;right:14px;font-family:'Figtree',sans-serif;font-weight:700;font-size:0.85rem;color:var(--text2);z-index:100}
+/* ══════════════════════════════════════════
+   SPACE BLASTER — Style
+   Dunkel, Weltraum-Ästhetik, HUD overlay
+══════════════════════════════════════════ */
+:root {
+  --bg:        #05050f;
+  --hud-bg:    rgba(0,0,0,.75);
+  --accent:    #3af;
+  --accent2:   #f3a;
+  --text:      #e8eaf6;
+  --text2:     #90a4ae;
+  --btn-prime: #3a86ff;
+  --btn-sec:   rgba(255,255,255,.1);
+  --coin:      #ffd600;
+}
 
-.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-.screen.hidden{display:none}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* BUTTONS */
-.btn{font-family:'Figtree',sans-serif;font-weight:700;font-size:0.9rem;padding:12px 0;border-radius:8px;cursor:pointer;transition:all .15s;width:200px;text-align:center;border:none;letter-spacing:0.02em}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{background:var(--accent-h);transform:translateY(-1px)}
-.btn-secondary{background:var(--s2);color:var(--text2);border:1px solid var(--border)}
-.btn-secondary:hover{background:var(--s3);color:var(--text)}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  overflow: hidden;
+  touch-action: none;
+}
 
-/* TITLE */
-#title .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2rem,5vw,3rem);color:var(--text);letter-spacing:-0.02em;margin-bottom:4px}
-#title .sub{font-family:'Figtree',sans-serif;font-size:0.8rem;font-weight:600;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:36px}
+/* ── Screens ─────────────────────────────── */
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1rem;
+}
+.screen.hidden { display: none; }
 
-/* GAME */
-#game-screen{flex-direction:column}
-.g-hud{display:flex;gap:32px;margin-bottom:10px;align-items:center}
-.g-hud-item{text-align:center}
-.g-hud-label{font-family:'Figtree',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:2px}
-.g-hud-val{font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;color:var(--text)}
-.g-hud-val.orange{color:var(--accent-h)}
-.lives{display:flex;gap:4px;justify-content:center}
-.life{width:10px;height:10px;background:var(--accent);border-radius:50%}
-.life.lost{background:var(--s3)}
-.pw-bar{font-family:'Figtree',sans-serif;font-size:0.72rem;font-weight:700;color:var(--accent-h);min-height:18px;letter-spacing:0.04em;margin-bottom:4px;text-align:center}
-canvas#c{display:block;border:1px solid var(--border);border-radius:6px}
+/* ── Back-Button (absolut oben links) ───── */
+.back-btn {
+  position: absolute; top: 1rem; left: 1rem;
+  background: var(--btn-sec);
+  border: 1px solid rgba(255,255,255,.15);
+  color: var(--text2);
+  padding: .4rem .9rem;
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .85rem; font-weight: 700;
+  cursor: pointer; text-decoration: none;
+}
 
-/* GAMEOVER */
-#gameover .go-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.8rem;color:var(--accent);letter-spacing:-0.02em;margin-bottom:6px}
-#gameover .wave-reached{font-family:'Figtree',sans-serif;font-weight:600;font-size:0.85rem;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:20px}
-.result-box{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:20px 40px;margin-bottom:14px;min-width:280px}
-.result-row{display:flex;justify-content:space-between;gap:40px;margin-bottom:8px;align-items:center}
-.result-row:last-child{margin-bottom:0}
-.rl{font-size:0.85rem;font-weight:600;color:var(--text2)}
-.rv{font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;color:var(--text)}
-.name-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:14px}
-.name-label{font-family:'Figtree',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3)}
-input.name-inp{background:var(--s2);border:1px solid var(--border);color:var(--text);font-family:'Figtree',sans-serif;font-size:0.9rem;font-weight:600;padding:10px 16px;border-radius:8px;text-align:center;width:200px;outline:none;text-transform:uppercase;transition:border-color .15s}
-input.name-inp:focus{border-color:var(--accent)}
+/* ── Back-Button inline (im Shop-Header) ── */
+.back-btn-inline {
+  background: var(--btn-sec);
+  border: 1px solid rgba(255,255,255,.15);
+  color: var(--text2);
+  padding: .4rem .8rem;
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .85rem; font-weight: 700;
+  cursor: pointer;
+}
 
-/* LB */
-#lb-screen .lb-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.2rem;color:var(--text);margin-bottom:20px}
-.lb-table{width:320px;border-collapse:collapse}
-.lb-table th{font-family:'Figtree',sans-serif;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);padding:8px;border-bottom:1px solid var(--border);text-align:left}
-.lb-table td{font-family:'Figtree',sans-serif;font-size:0.9rem;font-weight:600;padding:8px;border-bottom:1px solid rgba(255,255,255,0.04)}
-.lb-rank{color:var(--text3);width:32px}.lb-rank.g{color:#f0a500}.lb-rank.s{color:#a0a0b8}.lb-rank.b{color:#9a6a3a}
-.lb-name{color:var(--text)}.lb-score{color:var(--accent-h);text-align:right;font-family:'Syne',sans-serif}
-.lb-empty{text-align:center;padding:20px;color:var(--text3);font-size:0.8rem}
+/* ── Title Screen ────────────────────────── */
+.title-logo {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(2.4rem, 8vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.05;
+  text-align: center;
+  background: linear-gradient(135deg, #3af 0%, #f3a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.title-sub {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .75rem; letter-spacing: .3em;
+  color: var(--text2); margin-top: -.5rem;
+}
+.title-coins {
+  font-size: 1.1rem; font-weight: 800;
+  color: var(--coin);
+}
+.title-btns { display: flex; flex-direction: column; gap: .6rem; width: min(280px, 80vw); }
 
-/* SHOP */
-#shop-screen .shop-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.2rem;color:var(--text);margin-bottom:4px}
-.shop-balance{font-family:'Figtree',sans-serif;font-size:0.8rem;font-weight:600;color:var(--text3);margin-bottom:20px}
-.ships-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
-.ship-card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s}
-.ship-card:hover{border-color:rgba(255,255,255,0.14)}
-.ship-card.sel{border-color:rgba(232,93,4,0.5);background:rgba(232,93,4,0.05)}
-.ship-card.locked{opacity:0.45}
-.ship-preview{width:44px;height:44px;margin:0 auto 10px;position:relative}
-.ship-name{font-family:'Figtree',sans-serif;font-size:0.72rem;font-weight:700;color:var(--text);margin-bottom:5px}
-.ship-price{font-family:'Figtree',sans-serif;font-size:0.72rem;font-weight:600}
-.ship-price.owned{color:#4ade80}.ship-price.cost{color:var(--text2)}
+/* ── Buttons ─────────────────────────────── */
+.btn {
+  padding: .8rem 1.5rem;
+  border: none; border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem; font-weight: 800;
+  cursor: pointer; transition: opacity .15s, transform .1s;
+  text-align: center;
+}
+.btn:hover   { opacity: .88; }
+.btn:active  { transform: scale(.97); }
+.btn-primary  { background: var(--btn-prime); color: #fff; }
+.btn-secondary { background: var(--btn-sec); color: var(--text); border: 1px solid rgba(255,255,255,.15); }
+
+/* ── HUD (über dem Canvas) ───────────────── */
+#hud {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center;
+  gap: .5rem; padding: .4rem .75rem;
+  background: var(--hud-bg);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  height: 48px;
+}
+.hud-item {
+  display: flex; flex-direction: column;
+  align-items: center;
+  flex: 1; min-width: 0;
+}
+.hud-label {
+  font-size: .62rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text2);
+}
+.hud-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: .9rem; font-weight: 700;
+  color: var(--text);
+}
+.hud-lives { flex: 1.5; }
+#hud-lives-icons { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; margin-top: 1px; }
+.life-icon { width: 14px; height: 14px; }
+
+/* ── Power-Up Timer Leisten ──────────────── */
+#pw-timers {
+  position: absolute; top: 48px; left: 0; right: 0;
+  display: flex; gap: .3rem; padding: .3rem .5rem;
+  z-index: 10; pointer-events: none;
+  flex-wrap: wrap;
+}
+.pw-timer-item {
+  display: flex; align-items: center; gap: .3rem;
+  background: rgba(0,0,0,.6);
+  border-radius: 6px; padding: .2rem .5rem;
+  font-size: .72rem; font-weight: 800;
+  border: 1px solid rgba(255,255,255,.1);
+  min-width: 80px;
+}
+.pw-timer-label { color: var(--text); white-space: nowrap; }
+.pw-timer-bar-wrap {
+  flex: 1; height: 4px;
+  background: rgba(255,255,255,.15);
+  border-radius: 2px; overflow: hidden;
+}
+.pw-timer-bar { height: 100%; border-radius: 2px; }
+
+/* ── Canvas ──────────────────────────────── */
+#c {
+  position: absolute; top: 0; left: 0;
+  display: block;
+}
+#screen-game { overflow: hidden; }
+
+/* ── Game Over ───────────────────────────── */
+.go-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  font-weight: 900;
+  color: var(--accent2);
+}
+.go-wave { font-size: 1rem; color: var(--text2); }
+.result-box {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  width: min(320px, 88vw);
+  display: flex; flex-direction: column; gap: .5rem;
+}
+.result-row {
+  display: flex; justify-content: space-between;
+  font-size: .95rem;
+}
+.result-row span:last-child { font-weight: 800; color: var(--accent); }
+.login-hint { font-size: .8rem; color: var(--text2); text-align: center; }
+.login-hint a { color: var(--accent); font-weight: 700; text-decoration: none; }
+.go-btns { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; width: min(320px, 88vw); }
+.go-btns .btn { flex: 1; min-width: 100px; }
+
+/* ── Shop ────────────────────────────────── */
+.shop-header {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; gap: .75rem;
+  padding: .75rem 1rem;
+  background: var(--hud-bg);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.shop-title {
+  flex: 1; text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem; font-weight: 700;
+}
+.shop-balance { font-size: .95rem; font-weight: 800; color: var(--coin); }
+#screen-shop {
+  justify-content: flex-start;
+  padding-top: 70px;
+  overflow-y: auto;
+  gap: .5rem;
+  align-items: stretch;
+}
+.shop-section-title {
+  font-size: .75rem; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--text2);
+  padding: .5rem .75rem 0;
+  align-self: flex-start;
+  width: min(420px, 94vw);
+}
+.shop-grid {
+  display: flex; flex-direction: column; gap: .5rem;
+  width: min(420px, 94vw); padding: 0 .5rem;
+}
+.shop-card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  display: flex; align-items: center; gap: .75rem;
+}
+.shop-card.owned { border-color: rgba(58,170,255,.35); background: rgba(58,170,255,.06); }
+.shop-card.locked { opacity: .45; }
+.shop-card-icon { font-size: 1.4rem; flex-shrink: 0; }
+.shop-card-info { flex: 1; min-width: 0; }
+.shop-card-name { font-weight: 800; font-size: .9rem; }
+.shop-card-desc { font-size: .75rem; color: var(--text2); margin-top: 2px; }
+.shop-card-btn {
+  padding: .4rem .85rem;
+  border-radius: 8px; border: none;
+  font-family: 'Nunito', sans-serif;
+  font-size: .85rem; font-weight: 800;
+  cursor: pointer; transition: opacity .15s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.shop-card-btn:hover { opacity: .8; }
+.shop-card-btn.buy  { background: var(--btn-prime); color: #fff; }
+.shop-card-btn.done { background: rgba(255,255,255,.1); color: var(--text2); cursor: default; }
+
+/* ── Rangliste ───────────────────────────── */
+#screen-lb {
+  justify-content: flex-start;
+  padding-top: 4rem; padding-bottom: 2rem;
+  overflow-y: auto; gap: .75rem;
+}
+.lb-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.3rem; font-weight: 700; text-align: center;
+}
+#lb-content { width: min(440px, 94vw); }
+.lb-table { width: 100%; border-collapse: collapse; }
+.lb-table th {
+  font-size: .7rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text2);
+  padding: .4rem .5rem; text-align: left;
+}
+.lb-table td { padding: .45rem .5rem; font-size: .88rem; border-top: 1px solid rgba(255,255,255,.05); }
+.lb-rank  { font-weight: 900; width: 36px; }
+.lb-rank.g { color: #ffd600; }
+.lb-rank.s { color: #b0bec5; }
+.lb-rank.b { color: #ff8a65; }
+.lb-name  { font-weight: 700; }
+.lb-score { font-weight: 800; color: var(--accent); text-align: right; }
+.lb-wave  { font-weight: 700; color: var(--text2); text-align: right; font-size: .8rem; }
+.lb-empty { text-align: center; color: var(--text2); padding: 1.5rem; font-size: .85rem; }
+
+/* ── Responsive ──────────────────────────── */
+@media (max-height: 600px) {
+  #hud { padding: .25rem .5rem; height: 40px; }
+  .hud-val { font-size: .78rem; }
+}

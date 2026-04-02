@@ -1,65 +1,76 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Space Blaster — PIXELZONE</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Blaster — PIXELZONE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<a href="../../index.html" class="back">← PIXELZONE</a>
-<div class="coins-hud">🪙 <span id="coin-total">0</span></div>
 
-<div class="screen" id="title">
-  <div class="logo">Space Blaster</div>
-  <div class="sub">// Pixelzone Arcade</div>
-  <button class="btn btn-primary" onclick="startGame()">▶ Spielen</button>
-  <button class="btn btn-secondary" onclick="showLB()">Rangliste</button>
-  <button class="btn btn-secondary" onclick="showShop()">Shop</button>
+<!-- ── TITLE SCREEN ─────────────────────────── -->
+<div class="screen" id="screen-title">
+  <a href="../../index.html" class="back-btn">← PIXELZONE</a>
+  <div class="title-logo">SPACE<br>BLASTER</div>
+  <div class="title-sub">PIXELZONE ARCADE</div>
+  <div class="title-coins">🪙 <span id="title-coins">0</span></div>
+  <div class="title-btns">
+    <button class="btn btn-primary" id="btn-play">▶ Spielen</button>
+    <button class="btn btn-secondary" id="btn-lb">🏆 Rangliste</button>
+    <button class="btn btn-secondary" id="btn-shop-title">🛒 Shop</button>
+  </div>
 </div>
 
-<div class="screen hidden" id="game-screen">
-  <div class="g-hud">
-    <div class="g-hud-item"><div class="g-hud-label">Punkte</div><div class="g-hud-val orange" id="hud-score">0</div></div>
-    <div class="g-hud-item"><div class="g-hud-label">Welle</div><div class="g-hud-val" id="hud-wave">1</div></div>
-    <div class="g-hud-item"><div class="g-hud-label">Leben</div><div class="lives" id="hud-lives"></div></div>
-    <div class="g-hud-item"><div class="g-hud-label">Münzen</div><div class="g-hud-val" id="hud-coins">0</div></div>
+<!-- ── GAME SCREEN ──────────────────────────── -->
+<div class="screen hidden" id="screen-game">
+  <div id="hud">
+    <div class="hud-item"><span class="hud-label">Punkte</span><span class="hud-val" id="hud-score">0</span></div>
+    <div class="hud-item"><span class="hud-label">Welle</span><span class="hud-val" id="hud-wave">1</span></div>
+    <div class="hud-item hud-lives"><span class="hud-label">Leben</span><div id="hud-lives-icons"></div></div>
+    <div class="hud-item"><span class="hud-label">Münzen</span><span class="hud-val" id="hud-coins">0</span></div>
   </div>
-  <div class="pw-bar" id="pw-bar"></div>
+  <div id="pw-timers"></div>
   <canvas id="c"></canvas>
 </div>
 
-<div class="screen hidden" id="gameover">
-  <div class="go-title">Game Over</div>
-  <div class="wave-reached" id="wave-reached">Welle 1 erreicht</div>
+<!-- ── GAME OVER ─────────────────────────────── -->
+<div class="screen hidden" id="screen-gameover">
+  <div class="go-title">GAME OVER</div>
+  <div class="go-wave" id="go-wave">Welle 1 erreicht</div>
   <div class="result-box">
-    <div class="result-row"><span class="rl">Punkte</span><span class="rv" id="res-score">0</span></div>
-    <div class="result-row"><span class="rl">Welle</span><span class="rv" id="res-wave">1</span></div>
-    <div class="result-row"><span class="rl">Münzen verdient</span><span class="rv" id="res-coins">0</span></div>
+    <div class="result-row"><span>Punkte</span><span id="res-score">0</span></div>
+    <div class="result-row"><span>Höchste Welle</span><span id="res-wave">1</span></div>
+    <div class="result-row"><span>Münzen verdient</span><span id="res-coins">0</span></div>
   </div>
-  <div id="login-hint" style="display:none;flex-direction:column;align-items:center;gap:8px;margin-bottom:14px;">
-    <div style="font-size:0.78rem;font-weight:700;color:var(--text3);">Score wird nicht gespeichert</div>
-    <a href="../../login.html" class="btn btn-secondary" style="text-decoration:none;">🔒 Anmelden um Score zu speichern</a>
+  <div id="go-login-hint" class="login-hint" style="display:none">
+    <a href="../../login.html">Anmelden</a> um Score zu speichern
   </div>
-  <div class="btn-row">
-    <button class="btn btn-primary" onclick="startGame()">Nochmal</button>
-    <button class="btn btn-secondary" onclick="showLB()">Rangliste</button>
-    <button class="btn btn-secondary" onclick="showShop()">Shop</button>
+  <div class="go-btns">
+    <button class="btn btn-primary" id="btn-retry">Nochmal</button>
+    <button class="btn btn-secondary" id="btn-shop-go">🛒 Shop</button>
+    <button class="btn btn-secondary" id="btn-lb-go">🏆 Rangliste</button>
   </div>
 </div>
 
-<div class="screen hidden" id="lb-screen">
-  <div class="lb-title">🏆 Rangliste</div>
+<!-- ── SHOP ──────────────────────────────────── -->
+<div class="screen hidden" id="screen-shop">
+  <div class="shop-header">
+    <button class="back-btn-inline" id="btn-shop-back">←</button>
+    <div class="shop-title">SHOP</div>
+    <div class="shop-balance">🪙 <span id="shop-coins">0</span></div>
+  </div>
+  <div class="shop-section-title">Power-Up Dauer verlängern</div>
+  <div class="shop-grid" id="shop-pw-duration"></div>
+  <div class="shop-section-title">Maximale Leben erhöhen</div>
+  <div class="shop-grid" id="shop-max-lives"></div>
+</div>
+
+<!-- ── RANGLISTE ─────────────────────────────── -->
+<div class="screen hidden" id="screen-lb">
+  <button class="back-btn" id="btn-lb-back">← Zurück</button>
+  <div class="lb-title">🏆 RANGLISTE</div>
   <div id="lb-content"></div>
-  <button class="btn btn-secondary" style="margin-top:18px" onclick="showScreen('title')">← Zurück</button>
-</div>
-
-<div class="screen hidden" id="shop-screen">
-  <div class="shop-title">Shop</div>
-  <div class="shop-balance">🪙 <span id="shop-coins">0</span> Münzen</div>
-  <div class="ships-grid" id="ships-grid"></div>
-  <button class="btn btn-secondary" onclick="showScreen('title')">← Zurück</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>

@@ -206,6 +206,7 @@ main { padding-top: 64px; }
 .t-memory  { background: linear-gradient(145deg, #f0e6ff 0%, #e2d0ff 100%); }
 .t-arkanoid{ background: linear-gradient(145deg, #fff3dc 0%, #ffe8b8 100%); }
 .t-runner  { background: linear-gradient(145deg, #dff8f2 0%, #c4f0e6 100%); }
+.t-wordle  { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
 
 /* Dekorative Elemente auf den Thumbnails */
 .t-pixel::before {

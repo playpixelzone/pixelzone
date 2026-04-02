@@ -13,6 +13,15 @@
 - Commit `bafee7c` gepusht
 - Funktionen `neuesSpiel()`, `tastaturHandler()`, `statsLaden()` werden in Task 4/5 ergänzt
 
+### Task 6: Wordle-Spiel (2026-04-02) ✅
+**Status:** DONE
+- `games/wordle/` angelegt: index.html, game.js, style.css
+- 631 eindeutige deutsche 5-Buchstaben-Wörter (dedupliciert)
+- QWERTZ-Tastatur mit Ä/Ö/Ü, Flip/Bounce/Shake-Animationen
+- Supabase-Statistiken: gespielt, gewonnen, Serien, Versuchsverteilung
+- Rangliste: Top 10 nach Siegen
+- Startseite: Wordle-Karte + Zähler 6→7 Spiele, Feedback-Dropdown aktualisiert
+
 ### Was heute gemacht wurde
 - `doodle-jump` überall in `pixel-jump` umbenannt:
   - Ordner `games/doodle-jump/` → `games/pixel-jump/`

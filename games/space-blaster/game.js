@@ -119,15 +119,38 @@ function update() {
   spielerBewegen();
   schiessenUpdate();
   schuesseUpdate();
+  formationUpdate();
+  gegnerSchiessen();
+  bodenCheck();
+  powerupsUpdate();
+  muenzenUpdate();
+  pwTimerUpdate();
+  partikelUpdate();
+  if (bossWave && boss?.alive) bossUpdate();
+  if (bossDeathAnim > 0) {
+    bossDeathAnim--;
+    if (bossDeathAnim % 8 === 0)
+      partikelSpawnen(
+        boss.x + (Math.random() - 0.5) * boss.w,
+        boss.y + (Math.random() - 0.5) * boss.h,
+        boss.color, 6
+      );
+  }
 }
 
 function draw() {
   ctx.fillStyle = '#05050f';
   ctx.fillRect(0, 0, CW, CH);
   sternZeichnen();
+  partikelZeichnen();
+  muenzenZeichnen();
+  powerupsZeichnen();
   schuesseZeichnen();
   laserZeichnen();
+  gegnerZeichnen();
+  if (bossWave) bossZeichnen();
   spielerZeichnen();
+  bannerZeichnen();
 }
 
 // ── Sternenhintergrund ─────────────────────────────────────────────────────────
@@ -233,14 +256,55 @@ function schussErstellen(x, y, winkel) {
   };
 }
 
-// ── Schüsse bewegen ────────────────────────────────────────────────────────────
+// ── Schüsse bewegen & Kollision ────────────────────────────────────────────────
 function schuesseUpdate() {
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
     b.x += b.dx;
     b.y += b.dy;
+
     if (b.y < -30 || b.y > CH + 30 || b.x < -30 || b.x > CW + 30) {
       bullets.splice(i, 1);
+      continue;
+    }
+
+    if (b.type === 'player') {
+      let getroffen = false;
+
+      // Spielerschuss trifft Gegner
+      for (let j = enemies.length - 1; j >= 0; j--) {
+        const e = enemies[j];
+        if (kollision(b.x, b.y, e.x, e.y, e.w, e.h)) {
+          e.hp--;
+          partikelSpawnen(b.x, b.y, e.color, 5);
+          bullets.splice(i, 1);
+          if (e.hp <= 0) gegnerTod(e, j);
+          getroffen = true;
+          break;
+        }
+      }
+      if (getroffen) continue;
+
+      // Spielerschuss trifft Boss
+      if (!getroffen && bossWave && boss?.alive) {
+        if (kollision(b.x, b.y, boss.x, boss.y, boss.w, boss.h)) {
+          boss.hp--;
+          partikelSpawnen(b.x, b.y, boss.color, 4);
+          bullets.splice(i, 1);
+          if (boss.hp <= 0) bossTod();
+          continue;
+        }
+      }
+    }
+
+    // Gegnerschuss trifft Spieler
+    if (b.type === 'enemy' && player) {
+      if (kollision(b.x, b.y, player.x, player.y, player.w, player.h)) {
+        bullets.splice(i, 1);
+        if (activePw.shield > 0) continue;
+        spielerTreffer();
+        continue;
+      }
     }
   }
 }
@@ -342,8 +406,220 @@ function titelMuenzenZeigen() {
   if (el) el.textContent = pdata.coins;
 }
 
-// Platzhalter-Funktionen (werden in späteren Tasks implementiert)
-function welleSpawnen() {}
+// ── Wellen-Konfiguration ───────────────────────────────────────────────────────
+function welleKonfiguration(w) {
+  const anzahl = Math.min(8 + (w - 1) * 3, 40);
+  const speed  = 0.5 + w * 0.12;
+  const hp     = w >= 10 ? 3 : w >= 6 ? 2 : 1;
+  const punkte = hp * 10;
+  return { anzahl, speed, hp, punkte, istBoss: w % 10 === 0 };
+}
+
+function welleSpawnen() {
+  waveClearing = false;
+  bossWave     = false;
+  boss         = null;
+  enemies      = [];
+
+  const cfg = welleKonfiguration(wave);
+
+  if (cfg.istBoss) {
+    bossWave = true;
+    bossSpawnen();   // in Task 5 implementiert
+    return;
+  }
+
+  const cols   = Math.min(cfg.anzahl, 8);
+  const rows   = Math.ceil(cfg.anzahl / cols);
+  const cellW  = 52;
+  const cellH  = 48;
+  const startX = (CW - cols * cellW) / 2 + cellW / 2;
+  const startY = HUD_H + PW_H + 20;
+  const farben = ['#818cf8', '#38bdf8', '#a78bfa', '#34d399', '#fb923c'];
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (r * cols + c >= cfg.anzahl) break;
+      enemies.push({
+        x: startX + c * cellW,
+        y: startY + r * cellH,
+        w: 28, h: 22,
+        hp: cfg.hp, maxHp: cfg.hp,
+        points: cfg.punkte,
+        color: farben[r % farben.length],
+        canShoot: wave >= 6,
+        shootTimer: Math.floor(Math.random() * 120),
+        shootRate: Math.max(30, 120 - wave * 5),
+      });
+    }
+  }
+
+  formation = {
+    dx: 1, dy: 0,
+    speed: cfg.speed,
+    diagonalDy: wave >= 4 ? 0.3 : 0,
+    enemies,
+  };
+
+  bannerZeigen(`WELLE ${wave}`, 90);
+  hudAktualisieren();
+}
+
+// ── AABB-Kollision ─────────────────────────────────────────────────────────────
+function kollision(x1, y1, x2, y2, w, h) {
+  return Math.abs(x1 - x2) < (w / 2 + 4) && Math.abs(y1 - y2) < (h / 2 + 4);
+}
+
+// ── Formation bewegen (Bounds-Check) ──────────────────────────────────────────
+function formationUpdate() {
+  if (!formation.enemies.length) return;
+
+  let minX = Infinity, maxX = -Infinity;
+  formation.enemies.forEach(e => {
+    if (e.x - e.w / 2 < minX) minX = e.x - e.w / 2;
+    if (e.x + e.w / 2 > maxX) maxX = e.x + e.w / 2;
+  });
+
+  if (maxX >= CW - 4 && formation.dx > 0) {
+    formation.dx = -1;
+    if (wave <= 3) formation.enemies.forEach(e => { e.y += 20; });
+  }
+  if (minX <= 4 && formation.dx < 0) {
+    formation.dx = 1;
+    if (wave <= 3) formation.enemies.forEach(e => { e.y += 20; });
+  }
+
+  const moveX = formation.dx * formation.speed;
+  const moveY = formation.diagonalDy * formation.dx * 0.15;
+
+  formation.enemies.forEach(e => {
+    e.x += moveX;
+    e.y += moveY;
+  });
+}
+
+// ── Gegner schießen (ab Welle 6) ──────────────────────────────────────────────
+function gegnerSchiessen() {
+  if (wave < 6) return;
+  enemies.forEach(e => {
+    e.shootTimer++;
+    if (e.shootTimer >= e.shootRate) {
+      e.shootTimer = 0;
+      bullets.push({
+        x: e.x, y: e.y + e.h / 2,
+        dx: 0, dy: 5 + wave * 0.1,
+        w: 4, h: 10,
+        color: '#f43f5e',
+        type: 'enemy',
+      });
+    }
+  });
+}
+
+// ── Gegner-Tod ─────────────────────────────────────────────────────────────────
+function gegnerTod(e, idx) {
+  partikelSpawnen(e.x, e.y, e.color, 10);
+  enemies.splice(idx, 1);
+  formation.enemies = enemies;
+  muenzenSpawnen(e.x, e.y);
+  if (Math.random() < 0.12) powerupSpawnen(e.x, e.y);
+  welleAbgeschlossenPruefen();
+}
+
+function welleAbgeschlossenPruefen() {
+  if (enemies.length === 0 && !bossWave && !waveClearing) {
+    waveClearing = true;
+    setTimeout(() => { wave++; welleSpawnen(); }, 1800);
+  }
+}
+
+// ── Spieler getroffen ──────────────────────────────────────────────────────────
+function spielerTreffer() {
+  lives--;
+  partikelSpawnen(player.x, player.y, '#e85d04', 14);
+  hudAktualisieren();
+  if (lives <= 0) spielEnde();
+}
+
+// ── Boden-Check ────────────────────────────────────────────────────────────────
+function bodenCheck() {
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    if (enemies[i].y + enemies[i].h / 2 > CH) {
+      enemies.splice(i, 1);
+      formation.enemies = enemies;
+      spielerTreffer();
+    }
+  }
+}
+
+// ── Gegner zeichnen ────────────────────────────────────────────────────────────
+function gegnerZeichnen() {
+  enemies.forEach(e => {
+    ctx.save();
+    ctx.fillStyle   = e.color;
+    ctx.shadowColor = e.color;
+    ctx.shadowBlur  = 8;
+    ctx.beginPath();
+    ctx.moveTo(e.x,             e.y + e.h / 2);
+    ctx.lineTo(e.x + e.w / 2,  e.y - e.h / 2);
+    ctx.lineTo(e.x + e.w * 0.28, e.y - e.h * 0.1);
+    ctx.lineTo(e.x - e.w * 0.28, e.y - e.h * 0.1);
+    ctx.lineTo(e.x - e.w / 2,  e.y - e.h / 2);
+    ctx.closePath();
+    ctx.fill();
+    if (e.maxHp > 1) {
+      const bw = e.w;
+      ctx.fillStyle = 'rgba(0,0,0,.5)';
+      ctx.fillRect(e.x - bw / 2, e.y + e.h / 2 + 3, bw, 3);
+      ctx.fillStyle = e.color;
+      ctx.fillRect(e.x - bw / 2, e.y + e.h / 2 + 3, bw * (e.hp / e.maxHp), 3);
+    }
+    ctx.restore();
+  });
+}
+
+// ── Wellen-Banner ─────────────────────────────────────────────────────────────
+function bannerZeigen(text, frames) {
+  bannerText  = text;
+  bannerTimer = frames;
+}
+
+function bannerZeichnen() {
+  if (bannerTimer <= 0) return;
+  bannerTimer--;
+  const alpha = Math.min(1, bannerTimer / 20);
+  ctx.save();
+  ctx.globalAlpha  = alpha;
+  ctx.fillStyle    = 'rgba(0,0,0,.6)';
+  ctx.fillRect(0, CH / 2 - 28, CW, 56);
+  ctx.fillStyle    = '#3af';
+  ctx.font         = `900 clamp(1.4rem, 4vw, 2rem) Orbitron, sans-serif`;
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor  = '#3af';
+  ctx.shadowBlur   = 16;
+  ctx.fillText(bannerText, CW / 2, CH / 2);
+  ctx.restore();
+}
+
+// Platzhalter für Tasks 5–7 (werden später ersetzt/ergänzt)
+function bossSpawnen()    {}
+function bossUpdate()     {}
+function bossZeichnen()   {}
+function partikelSpawnen(x, y, color, n) {}
+function partikelZeichnen() {}
+function partikelUpdate() {}
+function muenzenSpawnen(x, y) {}
+function muenzenZeichnen()   {}
+function muenzenUpdate()     {}
+function powerupSpawnen(x, y) {}
+function powerupsZeichnen()   {}
+function powerupsUpdate()     {}
+function pwTimerUpdate()       {}
+function pwTimerHudAktualisieren() {}
+function laserTrefferCheck()  {}
+function bossTod()            {}
+
 function hudAktualisieren() {}
 function rangliste_zeigen() { screenZeigen('screen-lb'); }
 function shop_zeigen()      { screenZeigen('screen-shop'); }

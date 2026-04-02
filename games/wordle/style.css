@@ -1,0 +1,376 @@
+/* ══════════════════════════════════════════════
+   PIXELZONE — Wordle
+   Mobile-first, helles Theme, Nunito-Font
+══════════════════════════════════════════════ */
+
+:root {
+  --bg:         #f0f7ff;
+  --primary:    #3a86ff;
+  --correct:    #6aaa64;   /* Grün  */
+  --present:    #c9b458;   /* Gelb  */
+  --absent:     #787c7e;   /* Grau  */
+  --tile-border: #d3d6da;
+  --tile-filled: #878a8c;
+  --key-bg:     #d3d6da;
+  --text:       #1a1a2e;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ─────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  height: 56px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.logo-mark { font-size: 1.4rem; }
+
+.nav-login-btn {
+  padding: .45rem 1rem;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: .9rem;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: .9rem;
+}
+.nav-avatar  { font-size: 1.2rem; }
+.nav-username { font-weight: 700; }
+.nav-logout-btn {
+  padding: .35rem .8rem;
+  background: #fee;
+  color: #c0392b;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: .85rem;
+  cursor: pointer;
+}
+
+/* ── Hauptbereich ───────────────────────────── */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem .5rem 2rem;
+  gap: .75rem;
+}
+
+h1.spiel-titel {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+/* ── Meldungszeile ──────────────────────────── */
+#meldung {
+  min-height: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .9rem;
+  font-weight: 700;
+  background: var(--text);
+  color: #fff;
+  padding: .3rem .9rem;
+  border-radius: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+}
+#meldung.sichtbar { opacity: 1; }
+
+/* ── Spielfeld (6 × 5 Kacheln) ──────────────── */
+#spielfeld {
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  gap: 5px;
+}
+
+.reihe {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+
+.kachel {
+  width: 52px;
+  height: 52px;
+  border: 2px solid var(--tile-border);
+  border-radius: 6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  user-select: none;
+  transition: border-color .1s;
+}
+.kachel.gefuellt { border-color: var(--tile-filled); }
+
+/* Kachel-Farben nach Auswertung */
+.kachel.richtig   { background: var(--correct); color: #fff; border-color: var(--correct); }
+.kachel.vorhanden { background: var(--present); color: #fff; border-color: var(--present); }
+.kachel.abwesend  { background: var(--absent);  color: #fff; border-color: var(--absent);  }
+
+/* Flip-Animation (scaleY: klappt zusammen, Farbe ändert sich, klappt auf) */
+@keyframes flip-kachel {
+  0%   { transform: scaleY(1); }
+  45%  { transform: scaleY(0); }
+  55%  { transform: scaleY(0); }
+  100% { transform: scaleY(1); }
+}
+.kachel.flipt {
+  animation: flip-kachel .5s ease forwards;
+}
+
+/* Wippanimation bei korrekter Eingabe (Sieg) */
+@keyframes bounce-kachel {
+  0%, 100% { transform: translateY(0); }
+  40%       { transform: translateY(-14px); }
+  70%       { transform: translateY(-7px); }
+}
+.kachel.bounced {
+  animation: bounce-kachel .4s ease forwards;
+}
+
+/* Schüttelanimation bei falscher Eingabe */
+@keyframes shake-reihe {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+.reihe.shake {
+  animation: shake-reihe .45s ease;
+}
+
+/* ── Virtuelle Tastatur ──────────────────────── */
+#tastatur {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  max-width: 500px;
+  padding: 0 .25rem;
+}
+
+.taste-reihe {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.taste {
+  height: 52px;
+  min-width: 34px;
+  padding: 0 .3rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--key-bg);
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: .95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  transition: background .15s, color .15s, transform .1s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.taste:active { transform: scale(.93); }
+.taste.breit { min-width: 52px; font-size: .8rem; }
+
+/* Tastatur-Farben */
+.taste.richtig   { background: var(--correct); color: #fff; }
+.taste.vorhanden { background: var(--present); color: #fff; }
+.taste.abwesend  { background: var(--absent);  color: #fff; }
+
+/* ── Endscreen-Modal ─────────────────────────── */
+#endscreen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+}
+#endscreen.versteckt { display: none; }
+
+#endscreen-karte {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+#endscreen-titel {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+#endscreen-untertitel {
+  text-align: center;
+  font-size: .95rem;
+  color: #555;
+  font-weight: 600;
+}
+
+/* Statistik-Kacheln */
+.stats-raster {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+  text-align: center;
+}
+.stat-box {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: .6rem .25rem;
+}
+.stat-zahl  { font-size: 1.6rem; font-weight: 900; }
+.stat-label { font-size: .6rem; font-weight: 700; color: #666; line-height: 1.3; }
+
+/* Versuchsverteilung */
+.verteilung-titel {
+  font-size: .8rem;
+  font-weight: 800;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.verteilung { display: flex; flex-direction: column; gap: 3px; }
+.v-reihe {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .8rem;
+  font-weight: 700;
+}
+.v-label { width: 14px; text-align: right; flex-shrink: 0; }
+.v-balken-wrap { flex: 1; }
+.v-balken {
+  background: var(--absent);
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 3px;
+  min-width: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  transition: width .5s ease;
+}
+.v-balken.aktuell { background: var(--correct); }
+
+/* Rangliste */
+.rangliste-titel {
+  font-size: .85rem;
+  font-weight: 800;
+  color: #333;
+  border-bottom: 2px solid var(--bg);
+  padding-bottom: .4rem;
+}
+.rangliste-liste { display: flex; flex-direction: column; gap: 3px; }
+.rang-eintrag {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .82rem;
+  padding: .3rem .4rem;
+  border-radius: 6px;
+}
+.rang-eintrag:nth-child(odd) { background: var(--bg); }
+.rang-num    { font-weight: 900; width: 18px; text-align: center; color: #999; }
+.rang-name   { flex: 1; font-weight: 700; }
+.rang-punkte { font-weight: 800; color: var(--correct); }
+
+/* Login-Hinweis */
+.login-hinweis {
+  text-align: center;
+  font-size: .82rem;
+  color: #888;
+}
+.login-hinweis a { color: var(--primary); font-weight: 700; text-decoration: none; }
+
+/* Nächstes-Wort-Button */
+#naechstes-btn {
+  width: 100%;
+  padding: .9rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background .2s;
+}
+#naechstes-btn:hover { background: #2a6fd6; }
+
+/* ── Responsive ──────────────────────────────── */
+@media (min-width: 400px) {
+  .kachel { width: 58px; height: 58px; font-size: 1.8rem; }
+  .taste  { min-width: 36px; height: 54px; }
+}
+
+@media (min-width: 520px) {
+  .kachel { width: 64px; height: 64px; font-size: 2rem; }
+  .taste  { min-width: 40px; height: 58px; font-size: 1rem; }
+  .taste.breit { min-width: 60px; }
+}

@@ -107,7 +107,7 @@ const WOERTER = [...new Set([
   'TRAGE','TREFF','TRIFT','TRUHE','TULPE',
   'WACHS','WADEN','WANGE','WÄRME','WARTE',
   'WINDE','WOLKE','ZACKE','ZANKE','ZEILE','ZINSE','ZUCHT',
-]))];
+])];
 
 // ── Spielzustand ─────────────────────────────────────────────────────────────
 let zielwort    = '';   // aktuelles Zielwort (Großbuchstaben)
@@ -127,11 +127,12 @@ let stats = {
 };
 
 // ── Init ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   PZ.updateNavbar();
-  await statsLaden();
   neuesSpiel();
   document.addEventListener('keydown', tastaturHandler);
+  // Stats im Hintergrund laden (blockiert das Spiel nicht)
+  statsLaden();
 });
 
 // ── Neues Spiel ───────────────────────────────────────────────────────────────

@@ -92,18 +92,24 @@ function spielfeldRendern() {
 
       // Long Press für Mobile (Flagge)
       let longPressTimer = null;
-      zelle.addEventListener('touchstart', (e) => {
+      let longPressFired = false;
+
+      zelle.addEventListener('touchstart', () => {
+        longPressFired = false;
         longPressTimer = setTimeout(() => {
-          e.preventDefault();
+          longPressFired = true;
           flaggeToggle(r, s);
         }, 500);
-      }, { passive: false });
+      }, { passive: true });
       zelle.addEventListener('touchend',  () => clearTimeout(longPressTimer));
       zelle.addEventListener('touchmove', () => clearTimeout(longPressTimer));
 
       // Klick und Rechtsklick
-      zelle.addEventListener('click',        () => zelleKlick(r, s));
-      zelle.addEventListener('contextmenu',  (e) => { e.preventDefault(); flaggeToggle(r, s); });
+      zelle.addEventListener('click', () => {
+        if (longPressFired) { longPressFired = false; return; }
+        zelleKlick(r, s);
+      });
+      zelle.addEventListener('contextmenu', (e) => { e.preventDefault(); flaggeToggle(r, s); });
 
       feld.appendChild(zelle);
     }

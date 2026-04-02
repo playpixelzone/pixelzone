@@ -133,3 +133,135 @@ document.addEventListener('DOMContentLoaded', async () => {
   neuesSpiel();
   document.addEventListener('keydown', tastaturHandler);
 });
+
+// ── Neues Spiel ───────────────────────────────────────────────────────────────
+function neuesSpiel() {
+  zielwort    = WOERTER[Math.floor(Math.random() * WOERTER.length)];
+  versuche    = [];
+  eingabe     = '';
+  beendet     = false;
+  animiert    = false;
+  tastaturMap = {};
+
+  document.getElementById('endscreen').classList.add('versteckt');
+  meldungVerstecken();
+  boardRendern();
+  tastaturRendern();
+}
+
+// ── Board rendern ─────────────────────────────────────────────────────────────
+function boardRendern() {
+  const feld = document.getElementById('spielfeld');
+  feld.innerHTML = '';
+
+  for (let r = 0; r < 6; r++) {
+    const reihe = document.createElement('div');
+    reihe.className = 'reihe';
+    reihe.id = `reihe-${r}`;
+
+    for (let k = 0; k < 5; k++) {
+      const kachel = document.createElement('div');
+      kachel.className = 'kachel';
+      kachel.id = `kachel-${r}-${k}`;
+      reihe.appendChild(kachel);
+    }
+    feld.appendChild(reihe);
+  }
+}
+
+// ── Tastatur rendern ──────────────────────────────────────────────────────────
+function tastaturRendern() {
+  const layout = [
+    ['Q','W','E','R','T','Z','U','I','O','P'],
+    ['A','S','D','F','G','H','J','K','L'],
+    ['ENTER','Y','X','C','V','B','N','M','⌫'],
+    ['Ä','Ö','Ü'],
+  ];
+
+  const tastatur = document.getElementById('tastatur');
+  tastatur.innerHTML = '';
+
+  for (const reihe of layout) {
+    const div = document.createElement('div');
+    div.className = 'taste-reihe';
+
+    for (const key of reihe) {
+      const btn = document.createElement('button');
+      const breit = key === 'ENTER' || key === '⌫';
+      btn.className = 'taste' + (breit ? ' breit' : '');
+      btn.textContent = key;
+      btn.dataset.key = key;
+      btn.type = 'button';
+
+      const status = tastaturMap[key];
+      if (status) btn.classList.add(status);
+
+      btn.addEventListener('click', () => tasteTippen(key));
+      div.appendChild(btn);
+    }
+    tastatur.appendChild(div);
+  }
+}
+
+// ── Eingabe ───────────────────────────────────────────────────────────────────
+function tastaturHandler(e) {
+  if (beendet || animiert) return;
+  const key = e.key.toUpperCase();
+  if (key === 'ENTER')     { tasteTippen('ENTER'); return; }
+  if (key === 'BACKSPACE') { tasteTippen('⌫');     return; }
+  if (/^[A-ZÄÖÜ]$/.test(key)) tasteTippen(key);
+}
+
+function tasteTippen(key) {
+  if (beendet || animiert) return;
+
+  if (key === 'ENTER') {
+    bestaetigen();
+  } else if (key === '⌫') {
+    if (eingabe.length > 0) {
+      eingabe = eingabe.slice(0, -1);
+      eingabeAnzeigen();
+    }
+  } else {
+    if (eingabe.length < 5) {
+      eingabe += key;
+      eingabeAnzeigen();
+    }
+  }
+}
+
+// Aktuelle Eingabe ins Board schreiben
+function eingabeAnzeigen() {
+  const reihe = versuche.length;
+  for (let k = 0; k < 5; k++) {
+    const kachel = document.getElementById(`kachel-${reihe}-${k}`);
+    if (!kachel) return;
+    const b = eingabe[k] || '';
+    kachel.textContent = b;
+    kachel.classList.toggle('gefuellt', b !== '');
+  }
+}
+
+// ── Meldungszeile ─────────────────────────────────────────────────────────────
+let meldungTimer = null;
+
+function meldungAnzeigen(text, dauer = 1500) {
+  const el = document.getElementById('meldung');
+  el.textContent = text;
+  el.classList.add('sichtbar');
+  clearTimeout(meldungTimer);
+  meldungTimer = setTimeout(() => el.classList.remove('sichtbar'), dauer);
+}
+
+function meldungVerstecken() {
+  clearTimeout(meldungTimer);
+  document.getElementById('meldung').classList.remove('sichtbar');
+}
+
+// ── Schüttel-Animation ────────────────────────────────────────────────────────
+function reiheSchütteln(reihe) {
+  const el = document.getElementById(`reihe-${reihe}`);
+  if (!el) return;
+  el.classList.add('shake');
+  el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+}

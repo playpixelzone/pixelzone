@@ -969,9 +969,76 @@ function hudAktualisieren() {
     livesEl.innerHTML = html;
   }
 }
-function rangliste_zeigen() { screenZeigen('screen-lb'); }
+// ── Spiel beenden ─────────────────────────────────────────────────────────────
+async function spielEnde() {
+  running = false;
+  if (loopId) cancelAnimationFrame(loopId);
+
+  // Münzen aus dieser Runde permanent addieren
+  pdata.coins += gameCoins;
+
+  // Score + Münzen in Supabase speichern
+  const user = await PZ.getUser().catch(() => null);
+  const loginHint = document.getElementById('go-login-hint');
+  if (user) {
+    if (loginHint) loginHint.style.display = 'none';
+    spielerDatenSpeichern();
+  } else {
+    if (loginHint) loginHint.style.display = 'block';
+  }
+
+  // Titel-Münzanzeige aktualisieren
+  titelMuenzenZeigen();
+
+  // Game-Over-Screen befüllen
+  const resScore = document.getElementById('res-score');
+  const resWave  = document.getElementById('res-wave');
+  const resCoins = document.getElementById('res-coins');
+  const goWave   = document.getElementById('go-wave');
+  if (resScore) resScore.textContent = score;
+  if (resWave)  resWave.textContent  = wave;
+  if (resCoins) resCoins.textContent = gameCoins;
+  if (goWave)   goWave.textContent   = `Welle ${wave} erreicht`;
+
+  screenZeigen('screen-gameover');
+}
+
 function shop_zeigen()      { screenZeigen('screen-shop'); }
-function spielEnde()        { running = false; if (loopId) cancelAnimationFrame(loopId); screenZeigen('screen-gameover'); }
+
+// ── Rangliste ─────────────────────────────────────────────────────────────────
+async function rangliste_zeigen() {
+  screenZeigen('screen-lb');
+  const content = document.getElementById('lb-content');
+  if (content) content.innerHTML = '<p style="text-align:center;color:#90a4ae;padding:1.5rem">Lade…</p>';
+
+  try {
+    const eintraege = await PZ.getLeaderboard('space-blaster', 10);
+    if (content) content.innerHTML = ranglisteHTML(eintraege);
+  } catch (_) {
+    if (content) content.innerHTML = '<p style="text-align:center;color:#90a4ae;padding:1.5rem">Konnte nicht geladen werden.</p>';
+  }
+}
+
+function ranglisteHTML(lb) {
+  if (!lb?.length) return '<p class="lb-empty">Noch keine Einträge</p>';
+  const medalien = ['🥇', '🥈', '🥉'];
+  const klassen  = ['g',  's',  'b'];
+  let h = `<table class="lb-table">
+    <thead><tr><th>#</th><th>Name</th><th>Punkte</th><th>Welle</th></tr></thead>
+    <tbody>`;
+  lb.forEach((e, i) => {
+    const rang = medalien[i] || (i + 1);
+    const cls  = klassen[i]  || '';
+    h += `<tr>
+      <td class="lb-rank ${cls}">${rang}</td>
+      <td class="lb-name">${esc(e.benutzername || '?')}</td>
+      <td class="lb-score">${e.punkte || 0}</td>
+      <td class="lb-wave">W${e.level || 1}</td>
+    </tr>`;
+  });
+  return h + '</tbody></table>';
+}
+
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {

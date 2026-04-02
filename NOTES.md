@@ -96,10 +96,23 @@
 - Screenshot-Upload im Feedback-Modal für alle Kategorien verfügbar gemacht (nicht mehr nur Bug/Verbesserung)
 - Supabase-Migration `20260402000001_feedback.sql` erfolgreich im Dashboard ausgeführt ✅
 
+### Task 8: Space Blaster Game Over + Rangliste (2026-04-02) ✅
+**Status:** DONE
+- `spielEnde()` implementiert:
+  - Münzen aus dieser Runde permanent addieren (pdata.coins += gameCoins)
+  - Score + Münzen in Supabase speichern (spielerDatenSpeichern())
+  - Benutzer-Check: loginHint zeigen wenn nicht angemeldet
+  - Titel-Münzanzeige aktualisieren
+  - Game-Over-Screen mit Punkten, Welle, Münzen befüllen
+- `rangliste_zeigen()` + `ranglisteHTML()` implementiert:
+  - Lädt Top 10 von Supabase via PZ.getLeaderboard('space-blaster', 10)
+  - Medaillentabelle (🥇/🥈/🥉) mit Rang, Name, Punkte, Welle
+  - Fehlerbehandlung bei Laden-Fehler
+- Commit `004fc59` gepusht
+
 ### Was als nächstes zu tun ist
-- Task 4: game.js – Board-Rendering, Tastatur-Input, Versuch-Validierung
-- Task 5: game.js – Auswertung, Flip-Animation, Endscreen, Stats speichern
-- Task 6: Startseite – Wordle-Karte hinzufügen
+- Task 9: Permanenter Upgrade-Shop
+- Task 10: Wellen-Banner, Boden-Check, Mobile-Polish
 
 ### Veränderte Dateien (2026-04-02)
 - `index.html` — Pixel Jump, kein Modal mehr, Feedback-Button + Modal + JS

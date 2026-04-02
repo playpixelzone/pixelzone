@@ -12,7 +12,7 @@
 <!-- NAVIGATION -->
 <header>
   <a href="../../index.html" class="logo">
-    <div class="logo-mark">🕹</div>
+    <span class="logo-mark" aria-hidden="true">🕹</span>
     <span class="logo-name">PIXELZONE</span>
   </a>
   <div id="navAuth"></div>
@@ -32,7 +32,7 @@
 </main>
 
 <!-- ── ENDSCREEN-MODAL ─────────────────────── -->
-<div id="endscreen" class="versteckt">
+<div id="endscreen" class="versteckt" role="dialog" aria-modal="true" aria-labelledby="endscreen-titel">
   <div id="endscreen-karte">
 
     <div id="endscreen-titel"></div>
@@ -49,7 +49,7 @@
       <a href="../../login.html">Anmelden</a> um Statistiken zu speichern
     </div>
 
-    <button id="naechstes-btn">Nächstes Wort ▶</button>
+    <button id="naechstes-btn" type="button">Nächstes Wort ▶</button>
 
   </div>
 </div>

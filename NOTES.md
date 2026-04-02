@@ -2,6 +2,17 @@
 
 ## Heutiger Stand (2026-04-02)
 
+### Task 3: game.js – Wörterliste + Init ✅
+**Status:** DONE
+- `games/wordle/game.js` erstellt mit:
+  - 660 deutsche 5-Buchstaben-Wörter (WOERTER-Array)
+  - Alle Wörter korrekt 5 Zeichen lang
+  - Spielzustand-Variablen (zielwort, versuche, eingabe, beendet, animiert, tastaturMap)
+  - Statistiken-Struktur (gespielt, gewonnen, aktSerie, maxSerie, verteilung)
+  - DOMContentLoaded-Init mit PZ.updateNavbar(), statsLaden(), neuesSpiel(), Tastatur-Listener
+- Commit `bafee7c` gepusht
+- Funktionen `neuesSpiel()`, `tastaturHandler()`, `statsLaden()` werden in Task 4/5 ergänzt
+
 ### Was heute gemacht wurde
 - `doodle-jump` überall in `pixel-jump` umbenannt:
   - Ordner `games/doodle-jump/` → `games/pixel-jump/`
@@ -65,7 +76,9 @@
 - Supabase-Migration `20260402000001_feedback.sql` erfolgreich im Dashboard ausgeführt ✅
 
 ### Was als nächstes zu tun ist
-- Neues Spiel hinzufügen (nach Bedarf)
+- Task 4: game.js – Board-Rendering, Tastatur-Input, Versuch-Validierung
+- Task 5: game.js – Auswertung, Flip-Animation, Endscreen, Stats speichern
+- Task 6: Startseite – Wordle-Karte hinzufügen
 
 ### Veränderte Dateien (2026-04-02)
 - `index.html` — Pixel Jump, kein Modal mehr, Feedback-Button + Modal + JS

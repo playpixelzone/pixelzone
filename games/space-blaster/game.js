@@ -117,12 +117,16 @@ function tick() {
 
 function update() {
   spielerBewegen();
+  schiessenUpdate();
+  schuesseUpdate();
 }
 
 function draw() {
   ctx.fillStyle = '#05050f';
   ctx.fillRect(0, 0, CW, CH);
   sternZeichnen();
+  schuesseZeichnen();
+  laserZeichnen();
   spielerZeichnen();
 }
 
@@ -175,6 +179,99 @@ function spielerZeichnen() {
     ctx.arc(x, y, 28, 0, Math.PI * 2);
     ctx.stroke();
   }
+  ctx.restore();
+}
+
+// ── Schießen (Auto-Fire) ───────────────────────────────────────────────────────
+function schiessenUpdate() {
+  if (!player) return;
+  // Laser-Modus: Treffer direkt in laserTrefferCheck(), keine Einzelschüsse
+  if (activePw.laser > 0) return;
+
+  const rate = activePw.fastFire > 0 ? Math.floor(player.shootRate / 2) : player.shootRate;
+  player.shootTimer++;
+  if (player.shootTimer < rate) return;
+  player.shootTimer = 0;
+
+  const lvl = player.shotLevel;
+  const px  = player.x;
+  const py  = player.y - player.h / 2;
+
+  if (lvl === 1) {
+    bullets.push(schussErstellen(px, py, 0));
+  } else if (lvl === 2) {
+    bullets.push(schussErstellen(px - 8, py, 0));
+    bullets.push(schussErstellen(px + 8, py, 0));
+  } else if (lvl === 3) {
+    bullets.push(schussErstellen(px, py,  0));
+    bullets.push(schussErstellen(px, py, -0.28));
+    bullets.push(schussErstellen(px, py,  0.28));
+  } else if (lvl === 4) {
+    bullets.push(schussErstellen(px - 7, py, 0));
+    bullets.push(schussErstellen(px + 7, py, 0));
+    bullets.push(schussErstellen(px, py, -0.35));
+    bullets.push(schussErstellen(px, py,  0.35));
+  } else {
+    bullets.push(schussErstellen(px, py,  0));
+    bullets.push(schussErstellen(px, py, -0.28));
+    bullets.push(schussErstellen(px, py,  0.28));
+    bullets.push(schussErstellen(px, py, -0.52));
+    bullets.push(schussErstellen(px, py,  0.52));
+  }
+}
+
+// Schuss-Objekt erstellen (winkel in Bogenmass, 0 = gerade nach oben)
+function schussErstellen(x, y, winkel) {
+  const speed = 12;
+  return {
+    x, y,
+    dx: Math.sin(winkel) * speed,
+    dy: -Math.cos(winkel) * speed,
+    w: 4, h: 14,
+    color: '#3af',
+    type: 'player',
+  };
+}
+
+// ── Schüsse bewegen ────────────────────────────────────────────────────────────
+function schuesseUpdate() {
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    b.x += b.dx;
+    b.y += b.dy;
+    if (b.y < -30 || b.y > CH + 30 || b.x < -30 || b.x > CW + 30) {
+      bullets.splice(i, 1);
+    }
+  }
+}
+
+// ── Schüsse zeichnen ───────────────────────────────────────────────────────────
+function schuesseZeichnen() {
+  bullets.forEach(b => {
+    ctx.save();
+    ctx.fillStyle   = b.type === 'player' ? b.color : '#f43f5e';
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.shadowBlur  = 6;
+    ctx.translate(b.x, b.y);
+    ctx.rotate(Math.atan2(b.dx, -b.dy));
+    ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h);
+    ctx.restore();
+  });
+}
+
+// ── Laser zeichnen (wenn Laser-Power-Up aktiv) ─────────────────────────────────
+function laserZeichnen() {
+  if (!player || activePw.laser <= 0) return;
+  ctx.save();
+  ctx.strokeStyle  = '#f3a';
+  ctx.lineWidth    = 4;
+  ctx.shadowColor  = '#f3a';
+  ctx.shadowBlur   = 18;
+  ctx.globalAlpha  = 0.85 + Math.sin(Date.now() * 0.03) * 0.15;
+  ctx.beginPath();
+  ctx.moveTo(player.x, player.y - player.h / 2);
+  ctx.lineTo(player.x, 0);
+  ctx.stroke();
   ctx.restore();
 }
 

@@ -299,9 +299,11 @@ async function bestaetigen() {
   if (gewonnen) {
     await bounceAnimation(reihenIdx);
     await statsSpeichern(true, versuche.length);
+    beendet = true;
     setTimeout(() => endscreenAnzeigen(true), 350);
   } else if (versuche.length === 6) {
     await statsSpeichern(false, 0);
+    beendet = true;
     setTimeout(() => endscreenAnzeigen(false), 350);
   }
 }
@@ -360,6 +362,9 @@ function flipAnimation(reihe, ergebnis) {
 
       }, k * PAUSE_MS);
     });
+
+    // Fallback: falls animationend nicht feuert (z.B. Browser-Bug)
+    setTimeout(resolve, PAUSE_MS * 4 + FLIP_MS + 100);
   });
 }
 
@@ -463,7 +468,7 @@ function statsHTML(gewonnen) {
       <div class="v-reihe">
         <div class="v-label">${i + 1}</div>
         <div class="v-balken-wrap">
-          <div class="v-balken ${aktuell}" style="width:${breite}%">${n}</div>
+          <div class="v-balken ${aktuell}" style="width:${breite}%">${Number(n)}</div>
         </div>
       </div>`;
   }).join('');
@@ -498,9 +503,9 @@ async function ranglisteHTML() {
 
   const zeilen = eintraege.map(e => `
     <div class="rang-eintrag">
-      <span class="rang-num">${e.rang}</span>
+      <span class="rang-num">${Number(e.rang)}</span>
       <span class="rang-name">${esc(e.benutzername)}</span>
-      <span class="rang-punkte">${e.punkte} ✓</span>
+      <span class="rang-punkte">${Number(e.punkte)} ✓</span>
     </div>`).join('');
 
   return `<div class="rangliste-titel">Top 10 – Meiste Siege</div>

@@ -2,7 +2,7 @@
 
 // ── Wörterliste ──────────────────────────────────────────────────────────────
 // 500+ deutsche 5-Buchstaben-Wörter (Großbuchstaben, keine Eigennamen)
-const WOERTER = [
+const WOERTER = [...new Set([
   'ABEND','ABGAS','ABTEI','ABWEG','ABZUG','ACHSE','ADLER','ADERN',
   'ALLEE','ALPEN','ALTER','AMPEL','AMSEL','ANGEL','ANGST','ANKER',
   'APFEL','ARCHE','ASCHE','ASSEL','ATLAS','ATOLL','AUGEN','AUTOS',
@@ -107,7 +107,7 @@ const WOERTER = [
   'TRAGE','TREFF','TRIFT','TRUHE','TULPE',
   'WACHS','WADEN','WANGE','WÄRME','WARTE',
   'WINDE','WOLKE','ZACKE','ZANKE','ZEILE','ZINSE','ZUCHT',
-];
+]))];
 
 // ── Spielzustand ─────────────────────────────────────────────────────────────
 let zielwort    = '';   // aktuelles Zielwort (Großbuchstaben)

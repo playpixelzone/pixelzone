@@ -25,7 +25,8 @@ let running       = false;
 let waveClearing  = false;
 let bossWave      = false;
 let bossDeathAnim = 0;
-let loopId        = null;
+let loopId           = null;
+let vorherigerScreen = 'screen-title'; // Screen vor dem Shop
 let bannerTimer   = 0;
 let bannerText    = '';
 
@@ -389,7 +390,7 @@ function spielStarten() {
 
   if (loopId) cancelAnimationFrame(loopId);
   tick();
-  welleSpawnen();   // wird in Task 4 implementiert
+  welleSpawnen();
 }
 
 // ── Spielerdaten laden (Supabase) ──────────────────────────────────────────────
@@ -1005,6 +1006,8 @@ async function spielEnde() {
 
 // ── Shop ──────────────────────────────────────────────────────────────────────
 function shop_zeigen() {
+  // Vorherigen Screen merken um später zurücknavigieren zu können
+  vorherigerScreen = running ? 'screen-gameover' : 'screen-title';
   screenZeigen('screen-shop');
   shopRendern();
 }
@@ -1116,5 +1119,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-lb-back').addEventListener('click', () => screenZeigen('screen-title'));
   document.getElementById('btn-shop-title').addEventListener('click', shop_zeigen);
   document.getElementById('btn-shop-go').addEventListener('click', shop_zeigen);
-  document.getElementById('btn-shop-back').addEventListener('click', () => screenZeigen('screen-title'));
+  document.getElementById('btn-shop-back').addEventListener('click', () => screenZeigen(vorherigerScreen));
 });

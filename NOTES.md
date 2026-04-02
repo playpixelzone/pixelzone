@@ -110,6 +110,24 @@
   - Fehlerbehandlung bei Laden-Fehler
 - Commit `004fc59` gepusht
 
+### Space Blaster – Vollständiger Rewrite (2026-04-02) ✅
+- Vollbild-Canvas, Raumschiff links/rechts, Auto-Fire
+- 5 Shot-Level (stackend), Laser, Fast-Fire, Schild, Herz
+- Wellen-System: statisch (1), l/r (2-3), diagonal (4-5), Gegner schießen (6+)
+- Boss jede 10. Welle: HP-Balken, Phase 2, Sieg-Animation
+- Münzen-System: Gegner/Boss-Drops, permanent in Supabase
+- Permanente Upgrades: Power-Up-Dauer (3 Stufen), Max-Leben (3 Stufen)
+- Shop nach Game Over, Rangliste mit Platz/Name/Punkte/Welle
+
+### Space Blaster – Integritätsprüfung (2026-04-02) ✅
+- Keine doppelten Funktionsdefinitionen gefunden
+- Keine leeren Platzhalter-Funktionen gefunden
+- Kein `var` gefunden
+- `welleSpawnen()` in `spielStarten()` war vorhanden, veralteten Kommentar entfernt
+- `vorherigerScreen`-Variable hinzugefügt (nach `loopId`)
+- `shop_zeigen()` merkt sich jetzt den vorherigen Screen (game-over oder title)
+- `btn-shop-back` navigiert jetzt korrekt zum vorherigen Screen statt immer zum Title
+
 ### Was als nächstes zu tun ist
 - Task 9: Permanenter Upgrade-Shop
 - Task 10: Wellen-Banner, Boden-Check, Mobile-Polish

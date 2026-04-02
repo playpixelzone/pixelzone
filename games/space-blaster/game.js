@@ -603,9 +603,134 @@ function bannerZeichnen() {
 }
 
 // Platzhalter für Tasks 5–7 (werden später ersetzt/ergänzt)
-function bossSpawnen()    {}
-function bossUpdate()     {}
-function bossZeichnen()   {}
+function bossSpawnen() {
+  const bossNr = wave / 10;
+  const hp     = 20 + bossNr * 15;
+  boss = {
+    x: CW / 2,
+    y: HUD_H + PW_H + 70,
+    w: 80 + bossNr * 8,
+    h: 60 + bossNr * 5,
+    hp, maxHp: hp,
+    speed: 1.2 + bossNr * 0.4,
+    dx: 1,
+    shootTimer: 0,
+    shootRate: Math.max(30, 90 - bossNr * 10),
+    color: `hsl(${(bossNr * 40 + 10) % 360}, 90%, 55%)`,
+    alive: true,
+    phase: 1,
+  };
+  bannerZeigen(`BOSS — WELLE ${wave}`, 90);
+  hudAktualisieren();
+}
+function bossUpdate() {
+  if (!boss?.alive) return;
+
+  // Bewegung links-rechts
+  boss.x += boss.dx * boss.speed;
+  if (boss.x + boss.w / 2 >= CW - 10) boss.dx = -1;
+  if (boss.x - boss.w / 2 <= 10)      boss.dx =  1;
+
+  // Phase 2 bei 50% HP
+  if (boss.hp <= boss.maxHp / 2 && boss.phase === 1) {
+    boss.phase     = 2;
+    boss.speed    *= 1.5;
+    boss.shootRate = Math.max(20, boss.shootRate - 20);
+  }
+
+  // Schießen
+  boss.shootTimer++;
+  if (boss.shootTimer >= boss.shootRate) {
+    boss.shootTimer = 0;
+    if (boss.phase === 2) {
+      bullets.push({ x: boss.x, y: boss.y + boss.h / 2, dx: -1.5, dy: 5, w: 5, h: 12, color: boss.color, type: 'enemy' });
+      bullets.push({ x: boss.x, y: boss.y + boss.h / 2, dx:  0,   dy: 6, w: 5, h: 12, color: boss.color, type: 'enemy' });
+      bullets.push({ x: boss.x, y: boss.y + boss.h / 2, dx:  1.5, dy: 5, w: 5, h: 12, color: boss.color, type: 'enemy' });
+    } else {
+      bullets.push({ x: boss.x, y: boss.y + boss.h / 2, dx: 0, dy: 6, w: 5, h: 12, color: boss.color, type: 'enemy' });
+    }
+  }
+}
+function bossZeichnen() {
+  if (!boss) return;
+
+  // Sieg-Blinken: Boss blinkt nach Tod
+  if (!boss.alive) {
+    if (bossDeathAnim % 6 < 3) return;
+  }
+
+  const { x, y, w, h, hp, maxHp, color } = boss;
+
+  ctx.save();
+  ctx.fillStyle   = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur  = 22;
+
+  // Boss-Körper: Hexagon
+  ctx.beginPath();
+  ctx.moveTo(x,         y - h / 2);
+  ctx.lineTo(x + w / 2, y - h / 4);
+  ctx.lineTo(x + w / 2, y + h / 4);
+  ctx.lineTo(x,         y + h / 2);
+  ctx.lineTo(x - w / 2, y + h / 4);
+  ctx.lineTo(x - w / 2, y - h / 4);
+  ctx.closePath();
+  ctx.fill();
+
+  // Inneres Auge
+  ctx.fillStyle  = 'rgba(255,255,255,.25)';
+  ctx.shadowBlur = 0;
+  ctx.beginPath();
+  ctx.arc(x, y, w * 0.18, 0, Math.PI * 2);
+  ctx.fill();
+
+  // HP-Balken oben im Spielfeld
+  const barW = CW * 0.6;
+  const barX = (CW - barW) / 2;
+  const barY = HUD_H + PW_H + 5;
+
+  ctx.shadowBlur  = 0;
+  ctx.fillStyle   = 'rgba(0,0,0,.5)';
+  ctx.fillRect(barX, barY, barW, 8);
+  ctx.fillStyle   = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur  = 6;
+  ctx.fillRect(barX, barY, barW * (hp / maxHp), 8);
+
+  ctx.fillStyle    = 'rgba(255,255,255,.8)';
+  ctx.shadowBlur   = 0;
+  ctx.font         = '700 10px Nunito, sans-serif';
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(`BOSS  ${Math.max(0, hp)} / ${maxHp}`, CW / 2, barY - 2);
+
+  ctx.restore();
+}
+function bossTod() {
+  boss.alive    = false;
+  bossDeathAnim = 90;
+  partikelSpawnen(boss.x, boss.y, boss.color, 40);
+  bannerZeigen('BOSS BESIEGT! 🎉', 120);
+
+  // Münzen: 20–40
+  const anzahl = 20 + Math.floor(Math.random() * 21);
+  for (let i = 0; i < anzahl; i++) {
+    coins.push({
+      x: boss.x + (Math.random() - 0.5) * boss.w,
+      y: boss.y + (Math.random() - 0.5) * boss.h,
+      vy: 1 + Math.random() * 1.5,
+      value: 1,
+    });
+  }
+
+  score += 500 + (wave / 10) * 200;
+  hudAktualisieren();
+
+  setTimeout(() => {
+    wave++;
+    welleSpawnen();
+  }, 2200);
+}
 function partikelSpawnen(x, y, color, n) {}
 function partikelZeichnen() {}
 function partikelUpdate() {}
@@ -618,7 +743,6 @@ function powerupsUpdate()     {}
 function pwTimerUpdate()       {}
 function pwTimerHudAktualisieren() {}
 function laserTrefferCheck()  {}
-function bossTod()            {}
 
 function hudAktualisieren() {}
 function rangliste_zeigen() { screenZeigen('screen-lb'); }

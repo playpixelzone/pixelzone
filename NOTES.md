@@ -2,6 +2,18 @@
 
 ## Heutiger Stand (2026-04-02)
 
+### Minesweeper (2026-04-02) ✅
+- `games/minesweeper/` angelegt: index.html, game.js, style.css
+- Chrome-Minesweeper-Design: grünes Schachbrettmuster, beige aufgedeckt
+- 3 Schwierigkeitsgrade: Einfach 9×9/10, Mittel 16×16/40, Schwierig 30×16/99
+- First-click-safe: Minen erst nach erstem Klick platziert
+- Flood-Fill bei leeren Feldern (rekursiver DFS)
+- Long Press Mobile = Flagge setzen
+- Explosion-Animation bei Game Over
+- Supabase-Rangliste: minesweeper-easy / -medium / -hard
+- punkte = -sekunden (schnellste Zeit steht oben)
+- Startseite: 8. Spielekarte hinzugefügt
+
 ### Task 3: game.js – Wörterliste + Init ✅
 **Status:** DONE
 - `games/wordle/game.js` erstellt mit:

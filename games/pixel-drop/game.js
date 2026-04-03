@@ -398,8 +398,70 @@ function nachPhysikPruefen() {
   }
 }
 
-// Platzhalter – wird in Task 7 implementiert
+// ── BFS Verbindungs-Check ─────────────────────────────────────────────────────
+// Gibt true zurück wenn mindestens eine Farbe von links nach rechts verbunden ist
 function verbindungsPruefen() {
+  pruefeGerade     = true;
+  let farbZaehler  = 0;   // Wie viele Farben gleichzeitig verschwinden
+  let totalPixel   = 0;   // Gesamtzahl verschwundener Pixel
+
+  for (const farbe of FARBEN_NAMEN) {
+    const besucht       = Array.from({ length: GRID_HOEHE }, () =>
+      new Array(GRID_BREITE).fill(false));
+    const gruppe        = [];
+    const warteschlange = [];
+
+    // Startpunkte: alle Pixel dieser Farbe in Spalte 0
+    for (let z = 0; z < GRID_HOEHE; z++) {
+      if (gitter[z][0] === farbe) {
+        besucht[z][0] = true;
+        warteschlange.push([z, 0]);
+      }
+    }
+
+    let verbunden = false;
+
+    while (warteschlange.length > 0) {
+      const [z, s] = warteschlange.shift();
+      gruppe.push([z, s]);
+      if (s === GRID_BREITE - 1) verbunden = true;
+
+      // 8 Nachbarn prüfen
+      for (let dz = -1; dz <= 1; dz++) {
+        for (let ds = -1; ds <= 1; ds++) {
+          if (dz === 0 && ds === 0) continue;
+          const nz = z + dz;
+          const ns = s + ds;
+          if (nz < 0 || nz >= GRID_HOEHE || ns < 0 || ns >= GRID_BREITE) continue;
+          if (besucht[nz][ns] || gitter[nz][ns] !== farbe) continue;
+          besucht[nz][ns] = true;
+          warteschlange.push([nz, ns]);
+        }
+      }
+    }
+
+    if (verbunden && gruppe.length > 0) {
+      farbZaehler++;
+      totalPixel += gruppe.length;
+      // Verbundene Pixel entfernen
+      for (const [z, s] of gruppe) gitter[z][s] = null;
+    }
+  }
+
+  pruefeGerade = false;
+
+  if (farbZaehler > 0) {
+    // Punkte berechnen
+    const multi = farbZaehler === 1 ? 1
+                : farbZaehler === 2 ? 1.5
+                : farbZaehler === 3 ? 2.0
+                : 3.0;
+    score += Math.round(totalPixel * 10 * multi);
+    if (score > highscore) highscore = score;
+    hudAktualisieren();
+    return true; // Physik soll erneut laufen
+  }
+
   return false;
 }
 
@@ -567,20 +629,59 @@ function hudAktualisieren() {
   document.getElementById('fortschritt-label').textContent = `${score} / ${naechster}`;
 }
 
-// ── Rangliste (Platzhalter, Task 10 füllt sie aus) ────────────────────────────
+// ── Rangliste ─────────────────────────────────────────────────────────────────
 let lbVorher = 'screen-title';
-function rangliste_zeigen(vorher) {
+async function rangliste_zeigen(vorher) {
   lbVorher = vorher;
   screenZeigen('screen-lb');
-  document.getElementById('lb-content').innerHTML =
-    '<p class="lb-empty">Wird geladen…</p>';
+  const content = document.getElementById('lb-content');
+  content.innerHTML = '<p class="lb-empty">Lade…</p>';
+
+  try {
+    const eintraege = await PZ.getLeaderboard('pixel-drop', 10);
+    content.innerHTML = ranglisteHTML(eintraege);
+  } catch (_) {
+    content.innerHTML = '<p class="lb-empty">Konnte nicht geladen werden.</p>';
+  }
 }
 
-// ── Spiel Ende (Platzhalter, Task 9 füllt aus) ────────────────────────────────
-function spielEnde() {
+function ranglisteHTML(lb) {
+  if (!lb?.length) return '<p class="lb-empty">Noch keine Einträge</p>';
+  const medalien = ['🥇','🥈','🥉'];
+  const klassen  = ['g', 's', 'b'];
+  let h = `<table class="lb-table">
+    <thead><tr><th>#</th><th>Name</th><th>Punkte</th></tr></thead><tbody>`;
+  lb.forEach((e, i) => {
+    const rang = medalien[i] || (i + 1);
+    const cls  = klassen[i]  || '';
+    h += `<tr>
+      <td class="lb-rank ${cls}">${rang}</td>
+      <td class="lb-name">${e.username ?? '—'}</td>
+      <td class="lb-score">${e.score ?? 0}</td>
+    </tr>`;
+  });
+  return h + '</tbody></table>';
+}
+
+// ── Spiel Ende ────────────────────────────────────────────────────────────────
+async function spielEnde() {
   running = false;
   if (loopId) cancelAnimationFrame(loopId);
-  screenZeigen('screen-gameover');
+  drag.aktiv = false;
+
+  if (score > highscore) highscore = score;
+
+  // Supabase speichern
+  const user = await PZ.getUser().catch(() => null);
+  const loginHint = document.getElementById('go-login-hint');
+  if (user) {
+    if (loginHint) loginHint.style.display = 'none';
+    try { await PZ.saveGameData('pixel-drop', score, 1, {}); } catch (_) {}
+  } else {
+    if (loginHint) loginHint.style.display = 'block';
+  }
+
   document.getElementById('res-score').textContent     = score;
-  document.getElementById('res-highscore').textContent = Math.max(score, highscore);
+  document.getElementById('res-highscore').textContent = highscore;
+  screenZeigen('screen-gameover');
 }

@@ -128,6 +128,11 @@
 - `shop_zeigen()` merkt sich jetzt den vorherigen Screen (game-over oder title)
 - `btn-shop-back` navigiert jetzt korrekt zum vorherigen Screen statt immer zum Title
 
+### Space Blaster – Mobile & Balance Fixes (2026-04-03) ✅
+1. **Gegner schießen**: Globaler Cooldown – nur 1 Gegner schießt auf einmal (Welle 6: ~0.8s, höhere Wellen: schneller, min 0.25s)
+2. **Touch-Steuerung**: Schiff folgt direkt dem Finger (player.x = touchX), kein links/rechts mehr
+3. **Blaues Markieren**: user-select:none in style.css, touchstart non-passive + preventDefault, user-scalable=no im Viewport
+
 ### Was als nächstes zu tun ist
 - Task 9: Permanenter Upgrade-Shop
 - Task 10: Wellen-Banner, Boden-Check, Mobile-Polish

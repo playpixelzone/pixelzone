@@ -26,6 +26,7 @@ let waveClearing  = false;
 let bossWave      = false;
 let bossDeathAnim = 0;
 let loopId           = null;
+let gegnerSchiessKooldown = 0; // globaler Cooldown zwischen Gegnerschüssen
 let vorherigerScreen = 'screen-title'; // Screen vor dem Shop
 let bannerTimer   = 0;
 let bannerText    = '';
@@ -61,11 +62,13 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { keys[e.key] = false; });
 
 document.addEventListener('touchstart', e => {
+  e.preventDefault(); // verhindert blaues Markieren und Kontextmenü
   touchX = e.touches[0].clientX;
-}, { passive: true });
+}, { passive: false });
 document.addEventListener('touchmove', e => {
+  e.preventDefault();
   touchX = e.touches[0].clientX;
-}, { passive: true });
+}, { passive: false });
 document.addEventListener('touchend', () => { touchX = null; });
 
 // ── Canvas & Resize ────────────────────────────────────────────────────────────
@@ -102,10 +105,16 @@ function spielerErstellen() {
 
 function spielerBewegen() {
   if (!player) return;
-  const goLeft  = keys['ArrowLeft']  || keys['a'] || (touchX !== null && touchX < CW / 2);
-  const goRight = keys['ArrowRight'] || keys['d'] || (touchX !== null && touchX >= CW / 2);
-  if (goLeft)  player.x = Math.max(player.w / 2,       player.x - player.speed);
-  if (goRight) player.x = Math.min(CW - player.w / 2,  player.x + player.speed);
+
+  if (touchX !== null) {
+    // Wisch-Steuerung: Schiff folgt direkt dem Finger
+    player.x = Math.max(player.w / 2, Math.min(CW - player.w / 2, touchX));
+  } else {
+    const goLeft  = keys['ArrowLeft']  || keys['a'];
+    const goRight = keys['ArrowRight'] || keys['d'];
+    if (goLeft)  player.x = Math.max(player.w / 2,       player.x - player.speed);
+    if (goRight) player.x = Math.min(CW - player.w / 2,  player.x + player.speed);
+  }
 }
 
 // ── Game Loop ──────────────────────────────────────────────────────────────────
@@ -387,6 +396,7 @@ function spielStarten() {
   bossWave     = false;
   bossDeathAnim = 0;
   bannerTimer  = 0;
+  gegnerSchiessKooldown = 0;
 
   if (loopId) cancelAnimationFrame(loopId);
   tick();
@@ -461,8 +471,6 @@ function welleSpawnen() {
         points: cfg.punkte,
         color: farben[r % farben.length],
         canShoot: wave >= 6,
-        shootTimer: Math.floor(Math.random() * 120),
-        shootRate: Math.max(30, 120 - wave * 5),
       });
     }
   }
@@ -511,22 +519,24 @@ function formationUpdate() {
   });
 }
 
-// ── Gegner schießen (ab Welle 6) ──────────────────────────────────────────────
+// ── Gegner schießen (ab Welle 6, globaler Cooldown) ───────────────────────────
 function gegnerSchiessen() {
-  if (wave < 6) return;
-  enemies.forEach(e => {
-    e.shootTimer++;
-    if (e.shootTimer >= e.shootRate) {
-      e.shootTimer = 0;
-      bullets.push({
-        x: e.x, y: e.y + e.h / 2,
-        dx: 0, dy: 5 + wave * 0.1,
-        w: 4, h: 10,
-        color: '#f43f5e',
-        type: 'enemy',
-      });
-    }
+  if (wave < 6 || !enemies.length) return;
+
+  if (gegnerSchiessKooldown > 0) { gegnerSchiessKooldown--; return; }
+
+  // Zufälligen Gegner auswählen – immer nur EINER schießt auf einmal
+  const e = enemies[Math.floor(Math.random() * enemies.length)];
+  bullets.push({
+    x: e.x, y: e.y + e.h / 2,
+    dx: 0, dy: 5 + wave * 0.1,
+    w: 4, h: 10,
+    color: '#f43f5e',
+    type: 'enemy',
   });
+
+  // Cooldown: Welle 6 ≈ 0.8s, steigt mit Welle, Minimum 0.25s (15 Frames)
+  gegnerSchiessKooldown = Math.max(15, 65 - wave * 3);
 }
 
 // ── Gegner-Tod ─────────────────────────────────────────────────────────────────

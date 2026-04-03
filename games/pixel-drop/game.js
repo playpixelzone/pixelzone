@@ -63,7 +63,7 @@ let pruefeGerade  = false;
 let loopId        = null;
 let lastTickTime  = 0;
 let physikAccum   = 0;
-const PHYSIK_MS   = 50;
+const PHYSIK_MS   = 12;
 let physikWarRuhig = false; // verhindert mehrfachen BFS-Aufruf pro Settle-Event
 
 // ── Drag-Zustand ──────────────────────────────────────────────────────────────
@@ -291,22 +291,30 @@ function physikSchritt() {
         continue;
       }
 
-      const linksrei  = s > 0               && !physGitter[z + 1][s - 1];
-      const rechtsrei = s < PHYS_BREITE - 1 && !physGitter[z + 1][s + 1];
+      // Diagonal gleiten: bis zu 3 Zellen weit für natürlichere Sand-Streuung
+      let linksDist = 0, rechtsDist = 0;
+      for (let d = 1; d <= 3; d++) {
+        if (s - d < 0 || physGitter[z + 1][s - d]) break;
+        linksDist = d;
+      }
+      for (let d = 1; d <= 3; d++) {
+        if (s + d >= PHYS_BREITE || physGitter[z + 1][s + d]) break;
+        rechtsDist = d;
+      }
 
-      if (linksrei && rechtsrei) {
-        const richtung = Math.random() < 0.5 ? -1 : 1;
+      if (linksDist > 0 && rechtsDist > 0) {
+        const richtung = Math.random() < 0.5 ? -linksDist : rechtsDist;
         physGitter[z + 1][s + richtung] = farbe;
         physGitter[z][s]               = null;
         bewegung                        = true;
-      } else if (linksrei) {
-        physGitter[z + 1][s - 1] = farbe;
-        physGitter[z][s]         = null;
-        bewegung                  = true;
-      } else if (rechtsrei) {
-        physGitter[z + 1][s + 1] = farbe;
-        physGitter[z][s]         = null;
-        bewegung                  = true;
+      } else if (linksDist > 0) {
+        physGitter[z + 1][s - linksDist] = farbe;
+        physGitter[z][s]                 = null;
+        bewegung                          = true;
+      } else if (rechtsDist > 0) {
+        physGitter[z + 1][s + rechtsDist] = farbe;
+        physGitter[z][s]                  = null;
+        bewegung                           = true;
       }
     }
   }
@@ -320,9 +328,16 @@ function physikLaeuftNoch() {
     for (let s = 0; s < PHYS_BREITE; s++) {
       if (!physGitter[z][s]) continue;
       if (!physGitter[z + 1][s]) return true;
-      const linksrei  = s > 0               && !physGitter[z + 1][s - 1];
-      const rechtsrei = s < PHYS_BREITE - 1 && !physGitter[z + 1][s + 1];
-      if (linksrei || rechtsrei) return true;
+      let linksDist = 0, rechtsDist = 0;
+      for (let d = 1; d <= 3; d++) {
+        if (s - d < 0 || physGitter[z + 1][s - d]) break;
+        linksDist = d;
+      }
+      for (let d = 1; d <= 3; d++) {
+        if (s + d >= PHYS_BREITE || physGitter[z + 1][s + d]) break;
+        rechtsDist = d;
+      }
+      if (linksDist > 0 || rechtsDist > 0) return true;
     }
   }
   return false;
@@ -376,7 +391,7 @@ function tick(timestamp) {
   // Physik zeitbasiert: ein Schritt alle PHYSIK_MS Millisekunden
   // Akkumulator auf max 3 Schritte begrenzen (verhindert Aufholen nach Tab-Wechsel)
   if (!pruefeGerade) {
-    physikAccum = Math.min(physikAccum + delta, PHYSIK_MS * 3);
+    physikAccum = Math.min(physikAccum + delta, PHYSIK_MS * 6);
     let nochBewegung = false;
     while (physikAccum >= PHYSIK_MS) {
       if (physikSchritt()) nochBewegung = true;

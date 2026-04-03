@@ -208,6 +208,7 @@ main { padding-top: 64px; }
 .t-runner  { background: linear-gradient(145deg, #dff8f2 0%, #c4f0e6 100%); }
 .t-wordle  { background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 100%); }
 .t-minesweeper { background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); }
+.t-pixeldrop { background: linear-gradient(135deg, #3b82f6 0%, #f97316 100%); }
 
 /* Dekorative Elemente auf den Thumbnails */
 .t-pixel::before {

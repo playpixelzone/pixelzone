@@ -143,6 +143,15 @@
 - Supabase-Rangliste via PZ.getLeaderboard / PZ.saveGameData
 - Startseite: Pixel-Drop-Karte hinzugefügt (9. Spiel)
 
+### Blockfall – Bug-Fixes (2026-04-03) ✅
+- `var` → `const`/`let` überall (CLAUDE.md-Standard)
+- `setInterval`-Game-Loop → `requestAnimationFrame` mit Delta-Akkumulation
+- Shop-Käufe (`buyTheme()`) jetzt in Supabase synchronisiert (vorher nur localStorage → Themes auf anderen Geräten verloren)
+- `endGame()`: `cancelAnimationFrame` statt `clearInterval`
+- Touch-Steuerung für Mobile hinzugefügt: Wischen links/rechts = bewegen, Tap = rotieren, Wischen runter = Hard Drop
+- Keydown-Handler: `if (!running) return` damit Tasten auf anderen Screens nichts tun
+- `drawAll()` Guard: prüft `cur` auf null bevor Ghost/Piece gezeichnet wird
+
 ### Was als nächstes zu tun ist
 - Weitere Spiele entwickeln oder Bestehende erweitern
 

@@ -152,6 +152,15 @@
 - Keydown-Handler: `if (!running) return` damit Tasten auf anderen Screens nichts tun
 - `drawAll()` Guard: prüft `cur` auf null bevor Ghost/Piece gezeichnet wird
 
+### Pixel Drop – Design & Gameplay Fixes (2026-04-03) ✅
+- Canvas zentriert: `left: 50%; transform: translateX(-50%)` statt `left: 0`
+- Spielscreen-Hintergrund dunkel (#101c30) damit kein Weiß neben dem Canvas sichtbar ist
+- Board-Farbe: `#1a1a2e` → `#101c30` (konsistent mit Screen-Hintergrund)
+- Pixel-Zellgröße: max 40 → 52px (sehen größer/klarer aus auf PC)
+- Physik-Geschwindigkeit: 3 Schritte/Frame (~180/s) → zeitbasiert 1 Schritt/50ms (~20/s)
+- Physik-Akkumulator auf max 3 Schritte begrenzt (kein Aufholen nach Tab-Wechsel)
+- Akkumulator wird nach BFS-Check zurückgesetzt
+
 ### Was als nächstes zu tun ist
 - Weitere Spiele entwickeln oder Bestehende erweitern
 

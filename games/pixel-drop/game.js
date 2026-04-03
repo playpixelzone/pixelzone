@@ -58,6 +58,10 @@ let highscore     = 0;
 let running       = false;
 let pruefeGerade  = false; // true während BFS läuft
 let loopId        = null;
+let physikWarRuhig = false; // verhindert mehrfachen Aufruf von nachPhysikPruefen
+let lastTickTime  = 0;     // für zeitbasierte Physik
+let physikAccum   = 0;     // akkumulierte Zeit in ms
+const PHYSIK_MS   = 50;    // ein Physikschritt alle 50ms (~20 Schritte/Sekunde)
 
 // ── Drag-Zustand ──────────────────────────────────────────────────────────────
 let drag = {
@@ -134,7 +138,7 @@ function layoutBerechnen() {
 
   const ausB = Math.floor(verfBreite / GRID_BREITE);
   const ausH = Math.floor(verfHoehe  / GRID_HOEHE);
-  zellenGr = Math.max(16, Math.min(ausB, ausH, 40));
+  zellenGr = Math.max(18, Math.min(ausB, ausH, 52));
 
   const gitBreitePx = GRID_BREITE * zellenGr;
   const gitHoehePx  = GRID_HOEHE  * zellenGr;
@@ -161,7 +165,7 @@ function spielfeldZeichnen() {
   const gH = GRID_HOEHE  * zellenGr;
 
   // Spielfeld-Hintergrund
-  ctx.fillStyle = '#1a1a2e';
+  ctx.fillStyle = '#101c30';
   ctx.fillRect(gitOffX, gitOffY, gW, gH);
 
   // Gitter-Linien
@@ -358,15 +362,23 @@ function draw() {
 }
 
 // ── Game Loop ─────────────────────────────────────────────────────────────────
-function tick() {
+function tick(timestamp) {
   if (!running) return;
   loopId = requestAnimationFrame(tick);
 
-  // Physik: 3 Durchläufe pro Frame für flüssiges Fallen
+  // Zeitdelta berechnen (erster Frame: delta = 0)
+  if (!timestamp) timestamp = performance.now();
+  const delta = lastTickTime === 0 ? 0 : timestamp - lastTickTime;
+  lastTickTime = timestamp;
+
+  // Physik zeitbasiert: ein Schritt alle PHYSIK_MS Millisekunden
+  // Akkumulator auf max 3 Schritte begrenzen (verhindert Aufholen nach Tab-Wechsel)
   if (!pruefeGerade) {
+    physikAccum = Math.min(physikAccum + delta, PHYSIK_MS * 3);
     let nochBewegung = false;
-    for (let i = 0; i < 3; i++) {
+    while (physikAccum >= PHYSIK_MS) {
       if (physikSchritt()) nochBewegung = true;
+      physikAccum -= PHYSIK_MS;
     }
 
     // Wenn Physik fertig: Gefahren-Check → Verbindungs-Check
@@ -449,6 +461,7 @@ function verbindungsPruefen() {
   }
 
   pruefeGerade = false;
+  physikAccum  = 0; // Rückstände nach BFS verwerfen
 
   if (farbZaehler > 0) {
     // Punkte berechnen
@@ -570,6 +583,8 @@ function spielStarten() {
   pruefeGerade  = false;
   drag.aktiv    = false;
   running       = true;
+  lastTickTime  = 0;
+  physikAccum   = 0;
 
   hudAktualisieren();
   neuesBloeckeGenerieren();

@@ -128,10 +128,16 @@ html, body {
 /* ── Canvas ──────────────────────────────── */
 #c {
   position: absolute;
-  top: var(--hud-h); left: 0;
+  top: var(--hud-h);
+  left: 50%;
+  transform: translateX(-50%);
   display: block;
 }
-#screen-game { overflow: hidden; }
+/* Spielscreen: dunkler Hintergrund damit kein Weiß neben dem Canvas sichtbar ist */
+#screen-game {
+  background: #101c30;
+  overflow: hidden;
+}
 
 /* ── Game Over ───────────────────────────── */
 .go-title {

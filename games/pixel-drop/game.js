@@ -53,7 +53,7 @@ function neuesBloeckeGenerieren() {
 }
 
 // ── Spielzustand ──────────────────────────────────────────────────────────────
-let physGitter = [];      // physGitter[zeile][spalte] = null | farbname  (140×70)
+let physGitter = [];      // physGitter[zeile][spalte] = null | farbname  (70×140)
 let panelBloecke  = [];
 let gesetzteAnzahl = 0;
 let score         = 0;
@@ -64,6 +64,7 @@ let loopId        = null;
 let lastTickTime  = 0;
 let physikAccum   = 0;
 const PHYSIK_MS   = 50;
+let physikWarRuhig = false; // verhindert mehrfachen BFS-Aufruf pro Settle-Event
 
 // ── Drag-Zustand ──────────────────────────────────────────────────────────────
 let drag = {
@@ -383,7 +384,8 @@ function tick(timestamp) {
     }
 
     // Wenn Physik fertig: Gefahren-Check → Verbindungs-Check
-    if (!nochBewegung && !physikLaeuftNoch()) {
+    if (!nochBewegung && !physikLaeuftNoch() && !physikWarRuhig) {
+      physikWarRuhig = true;
       nachPhysikPruefen();
     }
   }
@@ -425,8 +427,9 @@ function verbindungsPruefen() {
     }
 
     let verbunden = false;
-    while (queue.length > 0) {
-      const [z, s] = queue.shift();
+    let head = 0;
+    while (head < queue.length) {
+      const [z, s] = queue[head++];
       gruppe.push([z, s]);
       if (s === PHYS_BREITE - 1) verbunden = true;
 
@@ -506,6 +509,7 @@ function dragEnd(e) {
 
 // ── Block ins Spielfeld setzen ────────────────────────────────────────────────
 function blockPlatzieren(panelIdx, startVisSpalte) {
+  physikWarRuhig = false;
   const block = panelBloecke[panelIdx];
 
   // Jede Block-Zelle [bz, bs] → 7×7 Cluster in physGitter
@@ -576,12 +580,13 @@ function spielStarten() {
   ctx          = canvas.getContext('2d');
   layoutBerechnen();
   gitterInit();
-  score         = 0;
-  pruefeGerade  = false;
-  drag.aktiv    = false;
-  running       = true;
-  lastTickTime  = 0;
-  physikAccum   = 0;
+  score          = 0;
+  pruefeGerade   = false;
+  physikWarRuhig = false;
+  drag.aktiv     = false;
+  running        = true;
+  lastTickTime   = 0;
+  physikAccum    = 0;
 
   hudAktualisieren();
   neuesBloeckeGenerieren();

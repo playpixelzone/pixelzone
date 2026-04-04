@@ -380,3 +380,123 @@ document.addEventListener('visibilitychange', () => {
     if (spielGestartet) loopId = requestAnimationFrame(gameLoop);
   }
 });
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  PIXEL-HAUFEN CANVAS                                    ║
+// ╚══════════════════════════════════════════════════════════╝
+
+const HAUFEN_STUFEN = [
+  { schwelle: 0,          anzahl: 1   },
+  { schwelle: 100,        anzahl: 10  },
+  { schwelle: 1000,       anzahl: 30  },
+  { schwelle: 10000,      anzahl: 60  },
+  { schwelle: 100000,     anzahl: 100 },
+  { schwelle: 1000000,    anzahl: 150 },
+  { schwelle: 1000000000, anzahl: 200 },
+];
+
+let haufenPartikel = [];
+let animationsWinkel = 0;
+
+function haufeInitialisieren() {
+  haufenPartikel = [];
+  const ziel = haufenZielAnzahl();
+  const canvas = document.getElementById('pixelHaufen');
+  const w = canvas.width, h = canvas.height;
+  for (let i = 0; i < ziel; i++) {
+    haufenPartikel.push(zufaelligerHaufenPixel(w, h));
+  }
+}
+
+function haufenZielAnzahl() {
+  const lp = zustand.lifetimePixel;
+  let stufe = HAUFEN_STUFEN[0];
+  for (const s of HAUFEN_STUFEN) {
+    if (lp >= s.schwelle) stufe = s;
+    else break;
+  }
+  return stufe.anzahl;
+}
+
+function zufaelligerHaufenPixel(w, h) {
+  const cx = w / 2, cy = h * 0.58;
+  const rx = w * 0.38, ry = h * 0.28;
+  let x, y;
+  do {
+    x = cx + (Math.random() * 2 - 1) * rx;
+    y = cy + (Math.random() * 2 - 1) * ry;
+  } while (Math.pow((x - cx) / rx, 2) + Math.pow((y - cy) / ry, 2) > 1);
+  const groesse = 4 + Math.random() * 8;
+  return { x, y, groesse, farbIndex: Math.floor(Math.random() * 4), dy: Math.random() * 0.3 - 0.15 };
+}
+
+function renderHaufen() {
+  const canvas = document.getElementById('pixelHaufen');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const skin = SKINS.find(s => s.id === (zustand.skins?.aktiv || 'standard')) || SKINS[0];
+  animationsWinkel += 0.02;
+
+  // Haufen-Partikel auffüllen wenn Schwelle überschritten
+  const ziel = haufenZielAnzahl();
+  while (haufenPartikel.length < ziel) {
+    haufenPartikel.push(zufaelligerHaufenPixel(w, h));
+  }
+
+  // Leichte Bewegung der Partikel
+  for (const p of haufenPartikel) {
+    p.y += p.dy;
+    const cx = w / 2, cy = h * 0.58, rx = w * 0.38, ry = h * 0.28;
+    if (Math.pow((p.x - cx) / rx, 2) + Math.pow((p.y - cy) / ry, 2) > 1.1) {
+      Object.assign(p, zufaelligerHaufenPixel(w, h));
+    }
+  }
+
+  // Pixel zeichnen
+  for (const p of haufenPartikel) {
+    let farbe;
+    if (skin.animiert) {
+      const idx = Math.floor((animationsWinkel + p.x / 30) % skin.farben.length);
+      farbe = skin.farben[Math.abs(idx) % skin.farben.length];
+    } else if (skin.pulsierend) {
+      farbe = skin.farben[p.farbIndex % skin.farben.length];
+      ctx.globalAlpha = 0.7 + 0.3 * Math.sin(animationsWinkel + p.x / 20);
+    } else if (skin.kristall) {
+      farbe = skin.farben[p.farbIndex % skin.farben.length];
+      ctx.globalAlpha = 0.5 + 0.4 * Math.random();
+    } else {
+      farbe = skin.farben[p.farbIndex % skin.farben.length];
+    }
+
+    ctx.fillStyle = farbe;
+    ctx.fillRect(Math.round(p.x - p.groesse / 2), Math.round(p.y - p.groesse / 2), Math.round(p.groesse), Math.round(p.groesse));
+    ctx.globalAlpha = 1;
+
+    // Glitzer-Effekt
+    if (skin.glitzer && Math.random() < 0.002) {
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillRect(Math.round(p.x - 1), Math.round(p.y - 1), 2, 2);
+    }
+  }
+
+  // Rahmen
+  ctx.strokeStyle = 'rgba(148,163,184,0.3)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(2, 2, w - 4, h - 4);
+}
+
+// Klick-Partikel erzeugen
+function partikelErzeugen(x, y, text) {
+  const el = document.createElement('div');
+  el.className = 'partikel';
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.setProperty('--dx', (Math.random() * 60 - 30) + 'px');
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+

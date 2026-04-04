@@ -878,3 +878,51 @@ function ereignisseStarten() {
   goldenTimerId = setTimeout(goldenPixelSpawnen, goldenIntervallMs());
   ereignisTimerId = setTimeout(zufaelligesEreignis, ereignisIntervallMs());
 }
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  ERRUNGENSCHAFTEN + TOAST                               ║
+// ╚══════════════════════════════════════════════════════════╝
+
+function errungenschaftenPruefen() {
+  for (const e of ERRUNGENSCHAFTEN) {
+    if (zustand.errungenschaften.includes(e.id)) continue;
+    try {
+      if (e.pruefe(zustand)) {
+        zustand.errungenschaften.push(e.id);
+        toastZeigen(`${e.icon} Errungenschaft: ${e.name}`);
+      }
+    } catch (_) { /* Prüfung schlägt still fehl */ }
+  }
+}
+
+function toastZeigen(text) {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = text;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function errungenschaftenModalRendern() {
+  const grid = document.getElementById('errungenschaftenGrid');
+  grid.innerHTML = '';
+
+  const gesamt = ERRUNGENSCHAFTEN.length;
+  const erreicht = zustand.errungenschaften.length;
+  const header = document.createElement('div');
+  header.style.cssText = 'grid-column:1/-1;margin-bottom:8px;font-size:0.85rem;color:var(--text-muted)';
+  header.textContent = `${erreicht} / ${gesamt} freigeschaltet`;
+  grid.appendChild(header);
+
+  for (const e of ERRUNGENSCHAFTEN) {
+    const freigeschaltet = zustand.errungenschaften.includes(e.id);
+    const el = document.createElement('div');
+    el.className = `errungenschaft-karte ${freigeschaltet ? 'freigeschaltet' : 'gesperrt'}`;
+    el.innerHTML = `
+      <div class="errungenschaft-icon">${e.icon}</div>
+      <div class="errungenschaft-name">${freigeschaltet ? e.name : '???'}</div>
+      <div class="errungenschaft-text">${freigeschaltet ? e.text : 'Noch nicht erreicht'}</div>`;
+    grid.appendChild(el);
+  }
+}

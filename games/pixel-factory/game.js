@@ -225,3 +225,88 @@ function fmt(n) {
   const nachkomma = wert >= 100 ? 0 : wert >= 10 ? 1 : 2;
   return wert.toFixed(nachkomma).replace('.', ',') + EINHEITEN[exp];
 }
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  BERECHNUNGEN                                           ║
+// ╚══════════════════════════════════════════════════════════╝
+
+function berechnePrestigeMultiplikator() {
+  const p = zustand.prestige;
+  if (p === 0) return 1;
+  let mult = 1 + p * 0.05;
+  if (p >= 25) mult *= Math.pow(p, 0.5);
+  return mult;
+}
+
+function berechnePPS() {
+  let pps = 0;
+
+  for (const g of GEBAEUDE) {
+    const anzahl = zustand.gebaeude[g.id] || 0;
+    if (anzahl === 0) continue;
+
+    let basePPS = g.basisPPS * anzahl;
+    let mult = 1;
+
+    for (const upId of zustand.upgrades) {
+      const up = UPGRADES.find(u => u.id === upId);
+      if (!up) continue;
+      if (up.typ === 'gebaeude_mult' && up.gebaeude === g.id) mult *= up.wert;
+    }
+
+    for (const upId of zustand.upgrades) {
+      const up = UPGRADES.find(u => u.id === upId);
+      if (!up || up.typ !== 'synergie' || up.auf !== g.id) continue;
+      const vonAnzahl = zustand.gebaeude[up.von] || 0;
+      mult += vonAnzahl * up.faktor;
+    }
+
+    pps += basePPS * mult;
+  }
+
+  for (const upId of zustand.prestigeUpgrades) {
+    const up = PRESTIGE_UPGRADES.find(u => u.id === upId);
+    if (up?.typ === 'qp_global_mult') pps *= up.wert;
+  }
+
+  pps *= berechnePrestigeMultiplikator();
+  return pps;
+}
+
+function berechnePPK() {
+  let additiv = 0;
+  let mult = 1;
+
+  for (const upId of zustand.upgrades) {
+    const up = UPGRADES.find(u => u.id === upId);
+    if (!up) continue;
+    if (up.typ === 'klick_add') additiv += up.wert;
+    if (up.typ === 'klick_mult') mult *= up.wert;
+  }
+
+  for (const upId of zustand.prestigeUpgrades) {
+    const up = PRESTIGE_UPGRADES.find(u => u.id === upId);
+    if (up?.typ === 'qp_klick_mult') mult *= up.wert;
+  }
+
+  return (1 + additiv) * mult * berechnePrestigeMultiplikator();
+}
+
+function maxOfflineStunden() {
+  let stunden = 1;
+  for (const upId of zustand.upgrades) {
+    const up = UPGRADES.find(u => u.id === upId);
+    if (up?.typ === 'offline_stunden') stunden = Math.max(stunden, up.stunden);
+  }
+  if (zustand.prestige >= 10) stunden *= 2;
+  return stunden;
+}
+
+function berechneQPGewinn() {
+  return Math.max(1, Math.floor(Math.sqrt(zustand.lifetimePixel / 1e9)) + 1);
+}
+
+function statsNeuBerechnen() {
+  berechneteStats.pps = berechnePPS();
+  berechneteStats.ppk = berechnePPK();
+}

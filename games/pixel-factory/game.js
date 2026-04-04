@@ -181,3 +181,47 @@ const ERRUNGENSCHAFTEN = [
 function gesamtGebaeude(z) {
   return Object.values(z.gebaeude).reduce((s, n) => s + n, 0);
 }
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SPIELZUSTAND                                           ║
+// ╚══════════════════════════════════════════════════════════╝
+
+// Standard-Zustand (wird beim ersten Start verwendet)
+function standardZustand() {
+  return {
+    pixel: 0,
+    lifetimePixel: 0,
+    quantumPixel: 0,
+    prestige: 0,
+    gesamtKlicks: 0,
+    goldenPixelKlicks: 0,
+    letzterBesuch: Date.now(),
+    maxOfflineStunden: 1,
+    gebaeude: Object.fromEntries(GEBAEUDE.map(g => [g.id, 0])),
+    upgrades: [],
+    prestigeUpgrades: [],
+    skins: { freigeschaltet: ['standard'], aktiv: 'standard' },
+    errungenschaften: [],
+    _offlineBonusErhalten: false,
+    _speedrunOk: false,
+    _speedrunStart: Date.now(),
+    _gesamtQP: 0,
+  };
+}
+
+let zustand = standardZustand();
+
+// Abgeleitete Stats (werden laufend neu berechnet)
+let berechneteStats = { pps: 0, ppk: 1 };
+
+// === ZAHLENFORMATIERUNG ===
+const EINHEITEN = ['', 'K', 'M', 'B', 'T', 'Qd', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+
+function fmt(n) {
+  if (n === undefined || n === null || isNaN(n)) return '0';
+  if (n < 1000) return Math.floor(n).toString();
+  const exp = Math.min(Math.floor(Math.log10(n) / 3), EINHEITEN.length - 1);
+  const wert = n / Math.pow(1000, exp);
+  const nachkomma = wert >= 100 ? 0 : wert >= 10 ? 1 : 2;
+  return wert.toFixed(nachkomma).replace('.', ',') + EINHEITEN[exp];
+}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Pixel Factory – PIXELZONE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <a href="../../index.html" class="nav-logo">← PIXELZONE</a>
+  <div id="navAuth"></div>
+</nav>
+
+<!-- Haupt-Layout -->
+<main class="spiel-layout">
+
+  <!-- LINKS: Pixel-Haufen -->
+  <aside class="seite-links">
+    <div class="haufen-wrapper">
+      <canvas id="pixelHaufen" width="220" height="220"></canvas>
+      <button class="skin-btn" id="skinBtn" title="Skin wechseln">🎨</button>
+    </div>
+    <div class="klick-info" id="klickInfo">+1 Pixel</div>
+  </aside>
+
+  <!-- MITTE: Statistiken -->
+  <section class="seite-mitte">
+    <div class="stats-panel">
+      <div class="stat-haupt" id="statPixel">0 Pixel</div>
+      <div class="stat-zeile"><span class="stat-label">pro Sekunde</span><span id="statPPS">0</span></div>
+      <div class="stat-zeile"><span class="stat-label">pro Klick</span><span id="statPPK">1</span></div>
+      <div class="stat-zeile"><span class="stat-label">Quantum-Pixel</span><span id="statQP">0</span></div>
+      <div class="stat-zeile"><span class="stat-label">Prestige</span><span id="statPrestige">0</span></div>
+    </div>
+
+    <div class="aktionen">
+      <button class="btn-prestige" id="prestigeBtn" disabled>
+        ✦ Prestige<br><small id="prestigeInfo">Noch nicht verfügbar</small>
+      </button>
+      <button class="btn-speichern" id="speichernBtn">💾 Speichern</button>
+      <button class="btn-rangliste" id="ranglisteBtn">🏆 Rangliste</button>
+      <button class="btn-errungenschaften" id="errungenschaftenBtn">🎖 Errungenschaften</button>
+    </div>
+
+    <!-- Offline-Bonus Meldung -->
+    <div class="offline-bonus" id="offlineBonus" hidden></div>
+
+    <!-- Ereignis-Anzeige -->
+    <div class="ereignis-banner" id="ereignisBanner" hidden></div>
+  </section>
+
+  <!-- RECHTS: Shop -->
+  <aside class="seite-rechts">
+    <div class="shop-tabs">
+      <button class="shop-tab aktiv" data-tab="gebaeude">Gebäude</button>
+      <button class="shop-tab" data-tab="upgrades">Upgrades</button>
+      <button class="shop-tab" data-tab="prestige">Quantum</button>
+    </div>
+    <div class="shop-inhalt" id="shopGebaeude"></div>
+    <div class="shop-inhalt versteckt" id="shopUpgrades"></div>
+    <div class="shop-inhalt versteckt" id="shopPrestige"></div>
+  </aside>
+
+</main>
+
+<!-- Modals -->
+<div class="modal-hintergrund versteckt" id="ranglisteModal">
+  <div class="modal">
+    <button class="modal-schliessen" id="ranglisteSchliessen">✕</button>
+    <h2>🏆 Rangliste</h2>
+    <div class="rangliste-tabs">
+      <button class="rl-tab aktiv" data-rl="pixel">Meiste Pixel</button>
+      <button class="rl-tab" data-rl="prestige">Prestige</button>
+    </div>
+    <div id="ranglisteInhalt"></div>
+  </div>
+</div>
+
+<div class="modal-hintergrund versteckt" id="errungenschaftenModal">
+  <div class="modal modal-breit">
+    <button class="modal-schliessen" id="errungenschaftenSchliessen">✕</button>
+    <h2>🎖 Errungenschaften</h2>
+    <div id="errungenschaftenGrid"></div>
+  </div>
+</div>
+
+<div class="modal-hintergrund versteckt" id="skinModal">
+  <div class="modal">
+    <button class="modal-schliessen" id="skinSchliessen">✕</button>
+    <h2>🎨 Skins</h2>
+    <div id="skinGrid"></div>
+  </div>
+</div>
+
+<!-- Toast für Errungenschaften -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Goldene Pixel erscheinen hier -->
+<div id="goldenLayer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../auth.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+/* === VARIABLEN === */
+:root {
+  --primary: #3a86ff;
+  --primary-dark: #2563eb;
+  --accent: #ffbe0b;
+  --bg: #f0f7ff;
+  --surface: #ffffff;
+  --surface2: #f8faff;
+  --border: #dde6f5;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --success: #10b981;
+  --prestige: #8b5cf6;
+  --prestige-dark: #7c3aed;
+  --gold: #f59e0b;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 12px rgba(58,134,255,0.10);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }

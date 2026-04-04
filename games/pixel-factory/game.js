@@ -728,3 +728,54 @@ function prestigeDurchfuehren() {
   if (typeof toastZeigen === 'function') toastZeigen(`✦ Prestige ${zustand.prestige}! +${fmt(qpGewinn)} Quantum-Pixel`);
   if (typeof spielstandSpeichern === 'function') spielstandSpeichern();
 }
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SKINS                                                  ║
+// ╚══════════════════════════════════════════════════════════╝
+
+function skinsPruefen() {
+  const p = zustand.prestige;
+  for (const skin of SKINS) {
+    if (p >= skin.minPrestige && !zustand.skins.freigeschaltet.includes(skin.id)) {
+      zustand.skins.freigeschaltet.push(skin.id);
+      if (typeof toastZeigen === 'function') toastZeigen(`🎨 Skin freigeschaltet: ${skin.name}!`);
+    }
+  }
+}
+
+function skinModalRendern() {
+  const grid = document.getElementById('skinGrid');
+  grid.innerHTML = '';
+
+  for (const skin of SKINS) {
+    const freigeschaltet = zustand.skins.freigeschaltet.includes(skin.id);
+    const aktiv = zustand.skins.aktiv === skin.id;
+    const el = document.createElement('div');
+    el.className = `skin-karte${aktiv ? ' aktiv' : ''}${freigeschaltet ? '' : ' gesperrt'}`;
+
+    const vorschau = document.createElement('div');
+    vorschau.className = 'skin-vorschau';
+    if (freigeschaltet) {
+      vorschau.style.background = skin.animiert
+        ? `linear-gradient(135deg, ${skin.farben.join(', ')})`
+        : skin.farben[0];
+    } else {
+      vorschau.style.background = '#e2e8f0';
+    }
+    el.appendChild(vorschau);
+
+    el.innerHTML += `
+      <div class="skin-name">${skin.name}</div>
+      <div class="skin-anforderung">${freigeschaltet ? (aktiv ? '✓ Aktiv' : 'Klicken zum Aktivieren') : `Prestige ${skin.minPrestige}`}</div>`;
+
+    if (freigeschaltet) {
+      el.addEventListener('click', () => {
+        zustand.skins.aktiv = skin.id;
+        skinModalRendern();
+        haufeInitialisieren();
+      });
+    }
+
+    grid.appendChild(el);
+  }
+}

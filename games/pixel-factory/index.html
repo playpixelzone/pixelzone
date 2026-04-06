@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Pixel Factory – PIXELZONE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,59 +15,140 @@
   <div id="navAuth"></div>
 </nav>
 
-<!-- Haupt-Layout -->
+<!-- ── TUTORIAL OVERLAY ──────────────────────────────── -->
+<div class="tutorial-overlay versteckt" id="tutorialOverlay">
+  <div class="tutorial-box">
+    <div class="tutorial-schritt-zeile">
+      <span class="tut-punkt aktiv" data-idx="0"></span>
+      <span class="tut-punkt" data-idx="1"></span>
+      <span class="tut-punkt" data-idx="2"></span>
+      <span class="tut-punkt" data-idx="3"></span>
+    </div>
+    <div class="tutorial-icon" id="tutorialIcon">🏭</div>
+    <div class="tutorial-titel" id="tutorialTitel">Willkommen!</div>
+    <div class="tutorial-text" id="tutorialText"></div>
+    <div class="tutorial-fuss">
+      <button class="tut-btn-skip" id="tutSkip">Überspringen</button>
+      <button class="tut-btn-next" id="tutWeiter">Weiter →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PRESTIGE BESTÄTIGUNG ──────────────────────────── -->
+<div class="modal-hintergrund versteckt" id="prestigeConfirmModal">
+  <div class="modal prestige-confirm-modal">
+    <div class="pc-stern">✦</div>
+    <h2>Prestige machen?</h2>
+    <div class="pc-qp" id="pcQP">+5 Quantum-Pixel</div>
+    <div class="pc-liste">
+      <div class="pc-reset">🔄 Pixel &amp; Gebäude werden zurückgesetzt</div>
+      <div class="pc-behalten">✓ Quantum-Pixel bleiben</div>
+      <div class="pc-behalten">✓ Prestige-Upgrades bleiben</div>
+      <div class="pc-behalten">✓ Skins bleiben</div>
+    </div>
+    <div class="pc-buttons">
+      <button class="pc-btn-nein" id="prestigeConfirmNein">Abbrechen</button>
+      <button class="pc-btn-ja" id="prestigeConfirmJa">✦ Prestige!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PRESTIGE ANIMATION ────────────────────────────── -->
+<div class="prestige-anim-overlay" id="prestigeAnimOverlay" hidden>
+  <canvas class="prestige-partikel-canvas" id="prestigePartikelCanvas"></canvas>
+  <div class="prestige-anim-inhalt">
+    <div class="pa-stern-ring"></div>
+    <div class="pa-titel">✦ PRESTIGE!</div>
+    <div class="pa-qp" id="paQPText">+5 Quantum-Pixel</div>
+    <div class="pa-sub">Stärker als je zuvor!</div>
+  </div>
+</div>
+
+<!-- ── HAUPT-LAYOUT ──────────────────────────────────── -->
 <main class="spiel-layout">
 
-  <!-- LINKS: Pixel-Haufen -->
-  <aside class="seite-links">
-    <div class="haufen-wrapper">
-      <canvas id="pixelHaufen" width="220" height="220"></canvas>
-      <button class="skin-btn" id="skinBtn" title="Skin wechseln">🎨</button>
-    </div>
-    <div class="klick-info" id="klickInfo">+1 Pixel</div>
-  </aside>
+  <!-- LINKS: Stats + Aktionen -->
+  <section class="spiel-links">
 
-  <!-- MITTE: Statistiken -->
-  <section class="seite-mitte">
+    <!-- Statistiken -->
     <div class="stats-panel">
       <div class="stat-haupt" id="statPixel">0 Pixel</div>
-      <div class="stat-zeile"><span class="stat-label">pro Sekunde</span><span id="statPPS">0</span></div>
-      <div class="stat-zeile"><span class="stat-label">pro Klick</span><span id="statPPK">1</span></div>
-      <div class="stat-zeile"><span class="stat-label">Quantum-Pixel</span><span id="statQP">0</span></div>
-      <div class="stat-zeile"><span class="stat-label">Prestige</span><span id="statPrestige">0</span></div>
+      <div class="stats-grid">
+        <div class="stat-karte pps-karte">
+          <div class="stat-k-label">pro Sekunde</div>
+          <div class="stat-k-wert" id="statPPS">0</div>
+        </div>
+        <div class="stat-karte ppk-karte">
+          <div class="stat-k-label">pro Klick</div>
+          <div class="stat-k-wert" id="statPPK">1</div>
+        </div>
+        <div class="stat-karte qp-karte">
+          <div class="stat-k-label">Quantum-Pixel</div>
+          <div class="stat-k-wert" id="statQP">0</div>
+        </div>
+        <div class="stat-karte pre-karte">
+          <div class="stat-k-label">Prestige</div>
+          <div class="stat-k-wert" id="statPrestige">0</div>
+        </div>
+      </div>
     </div>
 
+    <!-- Aktionen -->
     <div class="aktionen">
       <button class="btn-prestige" id="prestigeBtn" disabled>
-        ✦ Prestige<br><small id="prestigeInfo">Noch nicht verfügbar</small>
+        ✦ Prestige
+        <small id="prestigeInfo">Noch nicht verfügbar</small>
       </button>
-      <button class="btn-speichern" id="speichernBtn">💾 Speichern</button>
-      <button class="btn-rangliste" id="ranglisteBtn">🏆 Rangliste</button>
-      <button class="btn-errungenschaften" id="errungenschaftenBtn">🎖 Errungenschaften</button>
+      <div class="aktionen-reihe">
+        <button class="btn-aktion" id="speichernBtn">💾 Speichern</button>
+        <button class="btn-aktion" id="ranglisteBtn">🏆 Rangliste</button>
+        <button class="btn-aktion" id="errungenschaftenBtn">🎖 Erfolge</button>
+      </div>
     </div>
 
-    <!-- Offline-Bonus Meldung -->
-    <div class="offline-bonus" id="offlineBonus" hidden></div>
+  </section>
 
-    <!-- Ereignis-Anzeige -->
+  <!-- MITTE: Canvas -->
+  <section class="spiel-mitte">
+    <div class="klick-sektion">
+      <div class="haufen-wrapper">
+        <canvas id="pixelHaufen" width="300" height="300"></canvas>
+        <div class="klick-ring" id="klickRing"></div>
+        <button class="skin-btn" id="skinBtn" title="Skin wechseln">🎨</button>
+      </div>
+      <div class="klick-label" id="klickInfo">Klicken!</div>
+    </div>
+    <div class="offline-bonus" id="offlineBonus" hidden></div>
     <div class="ereignis-banner" id="ereignisBanner" hidden></div>
   </section>
 
   <!-- RECHTS: Shop -->
-  <aside class="seite-rechts">
-    <div class="shop-tabs">
-      <button class="shop-tab aktiv" data-tab="gebaeude">Gebäude</button>
-      <button class="shop-tab" data-tab="upgrades">Upgrades</button>
-      <button class="shop-tab" data-tab="prestige">Quantum</button>
+  <section class="spiel-rechts">
+
+    <div class="shop-kopf">
+      <div class="shop-tabs">
+        <button class="shop-tab aktiv" data-tab="gebaeude">🏗 Gebäude</button>
+        <button class="shop-tab" data-tab="upgrades">⚡ Upgrades</button>
+        <button class="shop-tab" data-tab="prestige">✦ Quantum</button>
+      </div>
+      <div class="bulk-leiste" id="bulkLeiste">
+        <span class="bulk-label">Kaufen:</span>
+        <button class="bulk-btn aktiv" data-menge="1">×1</button>
+        <button class="bulk-btn" data-menge="10">×10</button>
+        <button class="bulk-btn" data-menge="50">×50</button>
+        <button class="bulk-btn" data-menge="0">Max</button>
+      </div>
     </div>
+
     <div class="shop-inhalt" id="shopGebaeude"></div>
     <div class="shop-inhalt versteckt" id="shopUpgrades"></div>
     <div class="shop-inhalt versteckt" id="shopPrestige"></div>
-  </aside>
+
+  </section>
 
 </main>
 
-<!-- Modals -->
+<!-- ── MODALS ────────────────────────────────────────── -->
 <div class="modal-hintergrund versteckt" id="ranglisteModal">
   <div class="modal">
     <button class="modal-schliessen" id="ranglisteSchliessen">✕</button>
@@ -95,10 +177,8 @@
   </div>
 </div>
 
-<!-- Toast für Errungenschaften -->
+<!-- Toast + Goldene Pixel -->
 <div class="toast-container" id="toastContainer"></div>
-
-<!-- Goldene Pixel erscheinen hier -->
 <div id="goldenLayer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>

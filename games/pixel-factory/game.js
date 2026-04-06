@@ -217,10 +217,8 @@ let tutorialSchritt = 0;
 
 function tutorialZeigen() {
   const overlay = document.getElementById('tutorialOverlay');
-  if (zustand._tutorialGesehen) {
-    overlay.classList.add('versteckt');
-    return;
-  }
+  if (!overlay) return;
+  if (zustand._tutorialGesehen) return; // versteckt bereits per HTML-Klasse
   tutorialSchritt = 0;
   tutorialSchrittRendern();
   overlay.classList.remove('versteckt');
@@ -298,9 +296,9 @@ function gebaeudeMaxMenge(g) {
   let n = 0;
   let tempPixel = zustand.pixel;
   let tempAnzahl = zustand.gebaeude[g.id] || 0;
-  while (true) {
+  while (n < 10000) { // Sicherheitsgrenze gegen Endlosschleife
     const p = gebaeudePreis(g, tempAnzahl + n);
-    if (tempPixel < p) break;
+    if (p <= 0 || tempPixel < p) break;
     tempPixel -= p;
     n++;
   }
@@ -636,7 +634,9 @@ function klickHandler(event) {
 }
 
 function renderStats() {
-  document.getElementById('statPixel').textContent = fmt(zustand.pixel) + ' Pixel';
+  const statPixel = document.getElementById('statPixel');
+  if (!statPixel) return;
+  statPixel.textContent = fmt(zustand.pixel) + ' Pixel';
   document.getElementById('statPPS').textContent = fmt(berechneteStats.pps) + '/s';
   document.getElementById('statPPK').textContent = fmt(berechneteStats.ppk);
   document.getElementById('statQP').textContent = fmt(zustand.quantumPixel) + ' QP';
@@ -662,6 +662,7 @@ function shopTabAktivieren(tabName) {
   document.getElementById('shopGebaeude').classList.toggle('versteckt', tabName !== 'gebaeude');
   document.getElementById('shopUpgrades').classList.toggle('versteckt', tabName !== 'upgrades');
   document.getElementById('shopPrestige').classList.toggle('versteckt', tabName !== 'prestige');
+  document.getElementById('bulkLeiste').classList.toggle('versteckt', tabName !== 'gebaeude');
 }
 
 // ╔══════════════════════════════════════════════════════════╗
@@ -1356,14 +1357,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.classList.add('aktiv');
       bulkMenge = Number(btn.dataset.menge);
       shopGebaeudeRendern();
-    });
-  });
-
-  // Bulk-Leiste nur bei Gebäude-Tab zeigen
-  const bulkLeiste = document.getElementById('bulkLeiste');
-  document.querySelectorAll('.shop-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      bulkLeiste.classList.toggle('versteckt', tab.dataset.tab !== 'gebaeude');
     });
   });
 

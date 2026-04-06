@@ -519,6 +519,14 @@ function klickHandler(event) {
   zustand.lifetimePixel += ppk;
   zustand.gesamtKlicks++;
 
+  // Klick-Ring pulsieren
+  const ring = document.getElementById('klickRing');
+  if (ring) {
+    ring.classList.remove('puls');
+    void ring.offsetWidth; // Reflow um Animation neu zu starten
+    ring.classList.add('puls');
+  }
+
   const rect = event.currentTarget.getBoundingClientRect();
   partikelErzeugen(
     event.clientX || rect.left + rect.width / 2,

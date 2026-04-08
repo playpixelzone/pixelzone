@@ -30,18 +30,36 @@ function gebaeudePreis(g, anzahl) {
 
 // === UPGRADES (Normale Upgrades) ===
 
-// Klick-Upgrades (10 Stück)
+// Klick-Upgrades: additiv 0,5 → 1 → 2 → 4 → 8 → 16 → 32 → 64, dann Multiplikatoren
 const KLICK_UPGRADES = [
-  { id: 'klick_1',  name: 'Verbesserter Klickmechanismus', beschreibung: '+1 Pixel pro Klick',       preis: 100,        typ: 'klick_add',  wert: 1,  bedingung: (z) => z.gesamtKlicks >= 25 },
-  { id: 'klick_2',  name: 'Doppelklick-System',            beschreibung: '+2 Pixel pro Klick',       preis: 500,        typ: 'klick_add',  wert: 2,  bedingung: (z) => z.gesamtKlicks >= 100 },
-  { id: 'klick_3',  name: 'Klick-Turbo',                   beschreibung: '+5 Pixel pro Klick',       preis: 5000,       typ: 'klick_add',  wert: 5,  bedingung: (z) => z.gesamtKlicks >= 1000 },
-  { id: 'klick_4',  name: 'Klick-Verstärker I',            beschreibung: 'Doppelte Klick-Leistung',  preis: 50000,      typ: 'klick_mult', wert: 2,  bedingung: (z) => z.gesamtKlicks >= 5000 },
-  { id: 'klick_5',  name: 'Klick-Verstärker II',           beschreibung: 'Doppelte Klick-Leistung',  preis: 500000,     typ: 'klick_mult', wert: 2,  bedingung: (z) => z.gesamtKlicks >= 25000 },
-  { id: 'klick_6',  name: 'Klick-Verstärker III',          beschreibung: '3× Klick-Leistung',        preis: 5000000,    typ: 'klick_mult', wert: 3,  bedingung: (z) => z.gesamtKlicks >= 100000 },
-  { id: 'klick_7',  name: 'Mega-Klick',                    beschreibung: '5× Klick-Leistung',        preis: 50000000,   typ: 'klick_mult', wert: 5,  bedingung: (z) => z.gesamtKlicks >= 500000 },
-  { id: 'klick_8',  name: 'Hyper-Klick',                   beschreibung: '10× Klick-Leistung',       preis: 500000000,  typ: 'klick_mult', wert: 10, bedingung: (z) => z.gesamtKlicks >= 1000000 },
-  { id: 'klick_9',  name: 'Klick-Singularität',            beschreibung: '20× Klick-Leistung',       preis: 5000000000, typ: 'klick_mult', wert: 20, bedingung: (z) => z.gesamtKlicks >= 5000000 },
-  { id: 'klick_10', name: 'Göttlicher Klick',              beschreibung: '50× Klick-Leistung',       preis: 5e10,       typ: 'klick_mult', wert: 50, bedingung: (z) => z.gesamtKlicks >= 10000000 },
+  { id: 'klick_1',  name: 'Verbesserter Klickmechanismus', beschreibung: '+0,5 Pixel pro Klick',     preis: 50,         typ: 'klick_add',  wert: 0.5, bedingung: (z) => z.gesamtKlicks >= 10 },
+  { id: 'klick_2',  name: 'Doppelklick-System',            beschreibung: '+1 Pixel pro Klick',       preis: 250,        typ: 'klick_add',  wert: 1,   bedingung: (z) => z.gesamtKlicks >= 50 },
+  { id: 'klick_3',  name: 'Klick-Turbo I',                 beschreibung: '+2 Pixel pro Klick',       preis: 1500,       typ: 'klick_add',  wert: 2,   bedingung: (z) => z.gesamtKlicks >= 200 },
+  { id: 'klick_4',  name: 'Klick-Turbo II',                beschreibung: '+4 Pixel pro Klick',       preis: 8000,       typ: 'klick_add',  wert: 4,   bedingung: (z) => z.gesamtKlicks >= 600 },
+  { id: 'klick_5',  name: 'Klick-Turbo III',               beschreibung: '+8 Pixel pro Klick',       preis: 40000,      typ: 'klick_add',  wert: 8,   bedingung: (z) => z.gesamtKlicks >= 2000 },
+  { id: 'klick_6',  name: 'Klick-Turbo IV',                beschreibung: '+16 Pixel pro Klick',      preis: 200000,     typ: 'klick_add',  wert: 16,  bedingung: (z) => z.gesamtKlicks >= 8000 },
+  { id: 'klick_7',  name: 'Klick-Turbo V',                 beschreibung: '+32 Pixel pro Klick',      preis: 1500000,    typ: 'klick_add',  wert: 32,  bedingung: (z) => z.gesamtKlicks >= 25000 },
+  { id: 'klick_8',  name: 'Klick-Turbo VI',                beschreibung: '+64 Pixel pro Klick',      preis: 12000000,   typ: 'klick_add',  wert: 64,  bedingung: (z) => z.gesamtKlicks >= 100000 },
+  { id: 'klick_9',  name: 'Klick-Verstärker I',            beschreibung: '×2 Klick-Leistung',        preis: 100000000,  typ: 'klick_mult', wert: 2,   bedingung: (z) => z.gesamtKlicks >= 500000 },
+  { id: 'klick_10', name: 'Klick-Verstärker II',           beschreibung: '×3 Klick-Leistung',        preis: 1000000000, typ: 'klick_mult', wert: 3,   bedingung: (z) => z.gesamtKlicks >= 2000000 },
+  { id: 'klick_11', name: 'Mega-Klick',                    beschreibung: '×5 Klick-Leistung',        preis: 1e10,       typ: 'klick_mult', wert: 5,   bedingung: (z) => z.gesamtKlicks >= 8000000 },
+  { id: 'klick_12', name: 'Hyper-Klick',                   beschreibung: '×10 Klick-Leistung',       preis: 1e11,       typ: 'klick_mult', wert: 10,  bedingung: (z) => z.gesamtKlicks >= 20000000 },
+  { id: 'klick_13', name: 'Klick-Singularität',            beschreibung: '×25 Klick-Leistung',       preis: 1e12,       typ: 'klick_mult', wert: 25,  bedingung: (z) => z.gesamtKlicks >= 50000000 },
+  { id: 'klick_14', name: 'Göttlicher Klick',              beschreibung: '×100 Klick-Leistung',      preis: 1e14,       typ: 'klick_mult', wert: 100, bedingung: (z) => z.gesamtKlicks >= 100000000 },
+];
+
+// Globale PPS-Upgrades: additiv 0,5 → 1 → 2 → 4 → 8 → 16 → ...
+const PPS_UPGRADES = [
+  { id: 'pps_1',  name: 'Effizienz I',    beschreibung: '+0,5 Pixel/s global',   preis: 100,        typ: 'pps_add', wert: 0.5,  bedingung: (z) => z.lifetimePixel >= 30 },
+  { id: 'pps_2',  name: 'Effizienz II',   beschreibung: '+1 Pixel/s global',     preis: 600,        typ: 'pps_add', wert: 1,    bedingung: (z) => z.lifetimePixel >= 300 },
+  { id: 'pps_3',  name: 'Effizienz III',  beschreibung: '+2 Pixel/s global',     preis: 3000,       typ: 'pps_add', wert: 2,    bedingung: (z) => z.lifetimePixel >= 2000 },
+  { id: 'pps_4',  name: 'Effizienz IV',   beschreibung: '+4 Pixel/s global',     preis: 15000,      typ: 'pps_add', wert: 4,    bedingung: (z) => z.lifetimePixel >= 15000 },
+  { id: 'pps_5',  name: 'Effizienz V',    beschreibung: '+8 Pixel/s global',     preis: 80000,      typ: 'pps_add', wert: 8,    bedingung: (z) => z.lifetimePixel >= 80000 },
+  { id: 'pps_6',  name: 'Effizienz VI',   beschreibung: '+16 Pixel/s global',    preis: 500000,     typ: 'pps_add', wert: 16,   bedingung: (z) => z.lifetimePixel >= 500000 },
+  { id: 'pps_7',  name: 'Effizienz VII',  beschreibung: '+32 Pixel/s global',    preis: 3000000,    typ: 'pps_add', wert: 32,   bedingung: (z) => z.lifetimePixel >= 3000000 },
+  { id: 'pps_8',  name: 'Effizienz VIII', beschreibung: '+64 Pixel/s global',    preis: 20000000,   typ: 'pps_add', wert: 64,   bedingung: (z) => z.lifetimePixel >= 20000000 },
+  { id: 'pps_9',  name: 'Effizienz IX',   beschreibung: '+128 Pixel/s global',   preis: 150000000,  typ: 'pps_add', wert: 128,  bedingung: (z) => z.lifetimePixel >= 150000000 },
+  { id: 'pps_10', name: 'Effizienz X',    beschreibung: '+256 Pixel/s global',   preis: 1500000000, typ: 'pps_add', wert: 256,  bedingung: (z) => z.lifetimePixel >= 1500000000 },
 ];
 
 // Automatisch 3 Upgrades pro Gebäude (nur die 10 Basis-Gebäude, nicht Prestige-exklusive)
@@ -93,9 +111,10 @@ const SYNERGIE_UPGRADES = [
 // Alle normalen Upgrades zusammenführen
 // Typ-Felder Referenz:
 //   klick_add, klick_mult, gebaeude_mult  → wert (Zahl)
+//   pps_add                               → wert (Zahl, globale additive PPS)
 //   offline_stunden                        → stunden (Zahl, kein wert-Feld)
 //   synergie                               → faktor (Zahl, kein wert-Feld)
-const UPGRADES = [...KLICK_UPGRADES, ...GEBAEUDE_UPGRADES, ...OFFLINE_UPGRADES, ...SYNERGIE_UPGRADES];
+const UPGRADES = [...KLICK_UPGRADES, ...PPS_UPGRADES, ...GEBAEUDE_UPGRADES, ...OFFLINE_UPGRADES, ...SYNERGIE_UPGRADES];
 
 // === PRESTIGE-UPGRADES (mit Quantum-Pixel kaufbar) ===
 // Kein 'bedingung'-Feld – sie sind immer sichtbar (nur QP-Preis entscheidet)
@@ -130,6 +149,16 @@ const PRESTIGE_UPGRADES = [
   { id: 'ms_30', name: '✦ Meilenstein: Dekade III',  beschreibung: 'Klick-Leistung ×500 (dauerhaft)', preisQP: 75,  typ: 'qp_klick_mult',  wert: 500, minPrestige: 30, meilenstein: true },
   { id: 'ms_40', name: '✦ Meilenstein: Dekade IV',   beschreibung: 'Alle Produktion ×75 (dauerhaft)', preisQP: 200, typ: 'qp_global_mult', wert: 75,  minPrestige: 40, meilenstein: true },
   { id: 'ms_50', name: '✦ Meilenstein: Dekade V',    beschreibung: 'Alle Produktion ×300 (dauerhaft)',preisQP: 500, typ: 'qp_global_mult', wert: 300, minPrestige: 50, meilenstein: true },
+];
+
+// === QUANTUM-BOOSTS (aktivierbar, wiederholbar) ===
+const QUANTUM_BOOSTS = [
+  { id: 'boost_schauer', name: 'Pixel-Schauer',  icon: '🌧', beschreibung: 'Sofort +5 Min Produktion',          preisQP: 1 },
+  { id: 'boost_golden',  name: 'Goldener Ruf',   icon: '⭐', beschreibung: 'Lässt einen goldenen Pixel spawnen', preisQP: 1 },
+  { id: 'boost_klick',   name: 'Klick-Sturm',    icon: '⚡', beschreibung: '60s lang ×10 Klick-Leistung',       preisQP: 2 },
+  { id: 'boost_kombo',   name: 'Instant-Kombo',  icon: '🔥', beschreibung: 'Kombo sofort auf ×3 setzen',        preisQP: 2 },
+  { id: 'boost_burst',   name: 'Quantum-Burst',  icon: '💥', beschreibung: '5 Min lang ×5 Produktion',          preisQP: 3 },
+  { id: 'boost_stunde',  name: 'Zeitsprung',      icon: '⏩', beschreibung: 'Sofort 1 Stunde Produktion',       preisQP: 5 },
 ];
 
 // === SKINS ===
@@ -184,6 +213,59 @@ const ERRUNGENSCHAFTEN = [
   { id: 'offline',   name: 'Fleißige Fabrik',       icon: '💤', text: 'Offline-Bonus erhalten',               pruefe: (z) => z._offlineBonusErhalten },
   { id: 'speedrun',  name: 'Speedrunner',           icon: '⚡', text: '1.000 Pixel in unter 60 Sekunden',     pruefe: (z) => z._speedrunOk },
   { id: 'reich',     name: 'Wohlstand',             icon: '💰', text: '1.000 Quantum-Pixel gesammelt (gesamt)', pruefe: (z) => z._gesamtQP >= 1000 },
+
+  // PPS-Meilensteine (8)
+  { id: 'pps_01',   name: 'Erste Automatisierung', icon: '⚙️', text: '0,1 Pixel/s erreicht',          pruefe: (z) => (z._maxPPS||0) >= 0.1 },
+  { id: 'pps_1',    name: 'Fabrikant',             icon: '🏭', text: '1 Pixel/s erreicht',            pruefe: (z) => (z._maxPPS||0) >= 1 },
+  { id: 'pps_10',   name: 'Fließbandmeister',      icon: '🔧', text: '10 Pixel/s erreicht',           pruefe: (z) => (z._maxPPS||0) >= 10 },
+  { id: 'pps_100',  name: 'Pixel-Ingenieur',       icon: '🛠️', text: '100 Pixel/s erreicht',          pruefe: (z) => (z._maxPPS||0) >= 100 },
+  { id: 'pps_1k',   name: 'Industrie-König',       icon: '👑', text: '1.000 Pixel/s erreicht',        pruefe: (z) => (z._maxPPS||0) >= 1000 },
+  { id: 'pps_10k',  name: 'Pixel-Imperium',        icon: '🌐', text: '10.000 Pixel/s erreicht',       pruefe: (z) => (z._maxPPS||0) >= 10000 },
+  { id: 'pps_1m',   name: 'Unstoppbar',            icon: '🌌', text: '1 Million Pixel/s erreicht',    pruefe: (z) => (z._maxPPS||0) >= 1000000 },
+  { id: 'pps_1b',   name: 'Gottgleich',            icon: '✨', text: '1 Milliarde Pixel/s erreicht',  pruefe: (z) => (z._maxPPS||0) >= 1000000000 },
+
+  // Mehr Klick-Meilensteine (2)
+  { id: 'kl_1m',    name: 'Klick-Maschine',        icon: '🤖', text: '1 Million Mal geklickt',        pruefe: (z) => z.gesamtKlicks >= 1000000 },
+  { id: 'kl_10m',   name: 'Klick-Gott',            icon: '🌩️', text: '10 Millionen Mal geklickt',     pruefe: (z) => z.gesamtKlicks >= 10000000 },
+
+  // Mehr Gebäude-Meilensteine (5)
+  { id: 'geb_500',  name: 'Fabrik-Imperium',       icon: '🏙️', text: '500 Gebäude insgesamt',         pruefe: (z) => gesamtGebaeude(z) >= 500 },
+  { id: 'geb_1k',   name: 'Mega-Konzern',          icon: '🌆', text: '1.000 Gebäude insgesamt',       pruefe: (z) => gesamtGebaeude(z) >= 1000 },
+  { id: 'geb_10e',  name: 'Serie I',               icon: '🔢', text: '10× eines Gebäudetyps',         pruefe: (z) => Object.values(z.gebaeude).some(n => n >= 10) },
+  { id: 'geb_100e', name: 'Serie II',              icon: '💯', text: '100× eines Gebäudetyps',        pruefe: (z) => Object.values(z.gebaeude).some(n => n >= 100) },
+  { id: 'geb_200e', name: 'Serie III',             icon: '🌟', text: '200× eines Gebäudetyps',        pruefe: (z) => Object.values(z.gebaeude).some(n => n >= 200) },
+
+  // Mehr Prestige (2)
+  { id: 'pre_75',   name: 'Prestige-Unsterblich',  icon: '♾️', text: '75× Prestige gemacht',          pruefe: (z) => z.prestige >= 75 },
+  { id: 'pre_100',  name: 'Prestige-Leere',        icon: '🌀', text: '100× Prestige gemacht',         pruefe: (z) => z.prestige >= 100 },
+
+  // Upgrade-Meilensteine (4)
+  { id: 'upg_1',    name: 'Aufgerüstet',           icon: '🔩', text: 'Erstes Upgrade gekauft',        pruefe: (z) => (z.upgrades||[]).length >= 1 },
+  { id: 'upg_10',   name: 'Upgrade-Sammler',       icon: '🛠️', text: '10 Upgrades gekauft',           pruefe: (z) => (z.upgrades||[]).length >= 10 },
+  { id: 'upg_25',   name: 'Upgrade-Experte',       icon: '⚙️', text: '25 Upgrades gekauft',           pruefe: (z) => (z.upgrades||[]).length >= 25 },
+  { id: 'upg_50',   name: 'Upgrade-Meister',       icon: '🏅', text: '50 Upgrades gekauft',           pruefe: (z) => (z.upgrades||[]).length >= 50 },
+
+  // QP-Meilensteine (4)
+  { id: 'qp_10',    name: 'Quanten-Einsteiger',    icon: '⬡',  text: '10 QP gesammelt (gesamt)',      pruefe: (z) => (z._gesamtQP||0) >= 10 },
+  { id: 'qp_100',   name: 'Quanten-Forscher',      icon: '🔬', text: '100 QP gesammelt (gesamt)',     pruefe: (z) => (z._gesamtQP||0) >= 100 },
+  { id: 'qp_500',   name: 'Quanten-Meister',       icon: '💎', text: '500 QP gesammelt (gesamt)',     pruefe: (z) => (z._gesamtQP||0) >= 500 },
+  { id: 'qp_5k',    name: 'Quanten-Kaiser',        icon: '✦',  text: '5.000 QP gesammelt (gesamt)',   pruefe: (z) => (z._gesamtQP||0) >= 5000 },
+
+  // Kombo-Errungenschaften (2)
+  { id: 'kombo_x2', name: 'Kombo!',                icon: '🔥', text: '×2-Kombo-Multiplikator erreicht', pruefe: (z) => z._komboReached2 },
+  { id: 'kombo_x3', name: 'Mega-Kombo',            icon: '💥', text: '×3-Kombo-Multiplikator erreicht', pruefe: (z) => z._komboReached3 },
+
+  // Quantum-Boosts (2)
+  { id: 'boost_e1', name: 'Schub!',                icon: '⚡', text: 'Ersten Quantum-Boost aktiviert', pruefe: (z) => (z._boostsAktiviert||0) >= 1 },
+  { id: 'boost_e10',name: 'Boost-Süchtig',         icon: '💫', text: '10 Quantum-Boosts aktiviert',   pruefe: (z) => (z._boostsAktiviert||0) >= 10 },
+
+  // Mehr Pixel-Meilensteine (3)
+  { id: 'px_100t',  name: 'Pixel-Titan',           icon: '🌟', text: '100 Billionen Pixel produziert', pruefe: (z) => z.lifetimePixel >= 1e14 },
+  { id: 'px_1pq',   name: 'Pixel-Übermensch',      icon: '🌀', text: '1 Quintillion Pixel produziert', pruefe: (z) => z.lifetimePixel >= 1e18 },
+  { id: 'px_1oc',   name: 'Pixel-Schöpfer',        icon: '∞',  text: '1 Oktillion Pixel produziert',   pruefe: (z) => z.lifetimePixel >= 1e27 },
+
+  // Goldene Pixel (1 mehr)
+  { id: 'gld_1k',   name: 'Goldmeister Pro',       icon: '🌠', text: '1.000 goldene Pixel angeklickt', pruefe: (z) => (z.goldenPixelKlicks||0) >= 1000 },
 ];
 
 // ╔══════════════════════════════════════════════════════════╗
@@ -274,6 +356,10 @@ function standardZustand() {
     _speedrunStart: Date.now(),
     _gesamtQP: 0,
     _tutorialGesehen: false,
+    _maxPPS: 0,
+    _komboReached2: false,
+    _komboReached3: false,
+    _boostsAktiviert: 0,
   };
 }
 
@@ -283,6 +369,17 @@ let zustand = standardZustand();
 let berechneteStats = { pps: 0, ppk: 1 };
 
 let bulkMenge = 1; // 0 = Max
+
+// Kombo-Klick-Multiplikator
+let komboTimer = 0;       // Sekunden durchgehend geklickt
+let komboLetzterKlick = 0; // Timestamp des letzten Klicks
+const KOMBO_TIMEOUT_MS = 2000; // Pause > 2s bricht Kombo ab
+
+function komboMultiplikator() {
+  if (komboTimer >= 30) return 3;
+  if (komboTimer >= 6) return 2;
+  return 1;
+}
 
 function gebaeudeGesamtPreis(g, menge) {
   const anzahl = zustand.gebaeude[g.id] || 0;
@@ -324,6 +421,7 @@ const EINHEITEN = ['', 'K', 'M', 'B', 'T', 'Qd', 'Qi', 'Sx', 'Sp', 'Oc', 'No', '
 
 function fmt(n) {
   if (n === undefined || n === null || isNaN(n)) return '0';
+  if (n > 0 && n < 1) return n.toFixed(1).replace('.', ',');
   if (n < 1000) return Math.floor(n).toString();
   const exp = Math.min(Math.floor(Math.log10(n) / 3), EINHEITEN.length - 1);
   const wert = n / Math.pow(1000, exp);
@@ -369,6 +467,12 @@ function berechnePPS() {
     pps += basePPS * mult;
   }
 
+  // Globale additive PPS-Upgrades
+  for (const upId of zustand.upgrades) {
+    const up = UPGRADES.find(u => u.id === upId);
+    if (up?.typ === 'pps_add') pps += up.wert;
+  }
+
   for (const upId of zustand.prestigeUpgrades) {
     const up = PRESTIGE_UPGRADES.find(u => u.id === upId);
     if (up?.typ === 'qp_global_mult') pps *= up.wert;
@@ -408,7 +512,10 @@ function maxOfflineStunden() {
 }
 
 function berechneQPGewinn() {
-  return Math.max(1, Math.floor(Math.sqrt(zustand.lifetimePixel / 1e9)) + 1);
+  // Basis: Wurzel aus lifetime-Pixel + Prestige-Bonus (je 5 Prestige +1 QP)
+  const basisQP = Math.max(1, Math.floor(Math.sqrt(zustand.lifetimePixel / 1e8)) + 1);
+  const prestigeBonus = Math.floor(zustand.prestige / 5);
+  return basisQP + prestigeBonus;
 }
 
 function statsNeuBerechnen() {
@@ -424,6 +531,7 @@ let letzterFrame = 0;
 let loopId = null;
 let hintergrundInterval = null;
 let spielGestartet = false;
+let letzteShopAktualisierung = 0; // Timestamp letzte Shop-Render
 
 let aktiveBoosts = { ppsMultiplikator: 1, ppkMultiplikator: 1, endeMs: 0 };
 
@@ -447,8 +555,25 @@ function gameLoop(timestamp) {
 
   if (typeof skinsPruefen === 'function') skinsPruefen();
 
+  // Pro-Sekunde-Aufgaben
   if (Math.floor(timestamp / 1000) !== Math.floor((timestamp - delta) / 1000)) {
+    // Kombo-Decay: wenn > 2s kein Klick, Kombo zurücksetzen
+    if (komboLetzterKlick > 0 && Date.now() - komboLetzterKlick > KOMBO_TIMEOUT_MS) {
+      komboTimer = 0;
+    }
+    // maxPPS tracken
+    if (berechneteStats.pps > (zustand._maxPPS || 0)) {
+      zustand._maxPPS = berechneteStats.pps;
+    }
     if (typeof errungenschaftenPruefen === 'function') errungenschaftenPruefen();
+    // Kombo-Balken aktualisieren
+    if (typeof komboBalkenRendern === 'function') komboBalkenRendern();
+  }
+
+  // Shop alle 2 Sekunden aktualisieren (Leistbarkeit)
+  if (timestamp - letzteShopAktualisierung > 2000) {
+    letzteShopAktualisierung = timestamp;
+    if (typeof shopRendern === 'function') shopRendern();
   }
 
   if (typeof prestigeBtnAktualisieren === 'function') prestigeBtnAktualisieren();
@@ -610,7 +735,21 @@ function partikelErzeugen(x, y, text) {
 // ╚══════════════════════════════════════════════════════════╝
 
 function klickHandler(event) {
-  const ppk = berechneteStats.ppk * aktiveBoosts.ppkMultiplikator;
+  // Kombo aktualisieren
+  const jetzt = Date.now();
+  if (komboLetzterKlick > 0 && jetzt - komboLetzterKlick <= KOMBO_TIMEOUT_MS) {
+    komboTimer += (jetzt - komboLetzterKlick) / 1000;
+  } else {
+    komboTimer = 0;
+  }
+  komboLetzterKlick = jetzt;
+
+  // Kombo-Errungenschaften tracken
+  const mult = komboMultiplikator();
+  if (mult >= 2 && !zustand._komboReached2) zustand._komboReached2 = true;
+  if (mult >= 3 && !zustand._komboReached3) zustand._komboReached3 = true;
+
+  const ppk = berechneteStats.ppk * aktiveBoosts.ppkMultiplikator * mult;
   zustand.pixel += ppk;
   zustand.lifetimePixel += ppk;
   zustand.gesamtKlicks++;
@@ -634,6 +773,42 @@ function klickHandler(event) {
   if (typeof errungenschaftenPruefen === 'function') errungenschaftenPruefen();
 }
 
+function komboBalkenRendern() {
+  const fill = document.getElementById('komboFill');
+  const label = document.getElementById('komboLabel');
+  if (!fill || !label) return;
+
+  const mult = komboMultiplikator();
+
+  if (komboTimer <= 0 || (Date.now() - komboLetzterKlick > KOMBO_TIMEOUT_MS)) {
+    fill.style.width = '0%';
+    fill.className = 'kombo-fill';
+    label.textContent = 'Kombo';
+    label.className = 'kombo-label';
+    return;
+  }
+
+  let progress, klasse, labelText;
+  if (komboTimer >= 30) {
+    progress = 100;
+    klasse = 'stufe-3';
+    labelText = '×3 Mega-Kombo!';
+  } else if (komboTimer >= 6) {
+    progress = 50 + ((komboTimer - 6) / 24) * 50;
+    klasse = 'stufe-2';
+    labelText = '×2 Kombo!';
+  } else {
+    progress = (komboTimer / 6) * 50;
+    klasse = '';
+    labelText = 'Kombo aufbauen…';
+  }
+
+  fill.style.width = progress + '%';
+  fill.className = 'kombo-fill ' + klasse;
+  label.textContent = labelText;
+  label.className = 'kombo-label' + (mult >= 3 ? ' aktiv-3' : mult >= 2 ? ' aktiv-2' : '');
+}
+
 function renderStats() {
   const statPixel = document.getElementById('statPixel');
   if (!statPixel) return;
@@ -648,7 +823,8 @@ function prestigeBtnAktualisieren() {
   const btn = document.getElementById('prestigeBtn');
   const info = document.getElementById('prestigeInfo');
   const schwelle = zustand.prestige === 0 ? 1000 : 1000 * Math.pow(10, zustand.prestige);
-  if (zustand.pixel >= schwelle || zustand.lifetimePixel >= schwelle) {
+  // Nur aktuelle Pixel zählen – man muss die Pixel JETZT haben
+  if (zustand.pixel >= schwelle) {
     btn.disabled = false;
     const qp = berechneQPGewinn();
     info.textContent = `+${fmt(qp)} Quantum-Pixel`;
@@ -833,6 +1009,86 @@ function shopPrestigeRendern() {
       <div class="upgrade-preis">⬡ ${fmt(up.preisQP)} Quantum-Pixel</div>`;
     container.appendChild(el);
   }
+
+  // ── Quantum-Boosts Trenner ──
+  const trenner = document.createElement('div');
+  trenner.className = 'boost-trenner';
+  trenner.innerHTML = `
+    <div class="boost-trenner-linie"></div>
+    <div class="boost-trenner-text">⚡ Aktivierbare Boosts</div>
+    <div class="boost-trenner-linie"></div>`;
+  container.appendChild(trenner);
+
+  // Boosts rendern (alle kaufbar, wiederholbar)
+  for (const boost of QUANTUM_BOOSTS) {
+    const kannKaufen = zustand.quantumPixel >= boost.preisQP;
+    const el = document.createElement('div');
+    el.className = `boost-eintrag${kannKaufen ? '' : ' zu-teuer'}`;
+    el.innerHTML = `
+      <div class="boost-icon">${boost.icon}</div>
+      <div class="boost-info">
+        <div class="boost-name">${boost.name}</div>
+        <div class="boost-beschr">${boost.beschreibung}</div>
+      </div>
+      <div class="boost-preis">⬡ ${boost.preisQP}</div>`;
+    if (kannKaufen) {
+      el.addEventListener('click', () => quantumBoostKaufen(boost));
+    }
+    container.appendChild(el);
+  }
+}
+
+function quantumBoostKaufen(boost) {
+  if (zustand.quantumPixel < boost.preisQP) return;
+  zustand.quantumPixel -= boost.preisQP;
+  zustand._boostsAktiviert = (zustand._boostsAktiviert || 0) + 1;
+
+  switch (boost.id) {
+    case 'boost_schauer': {
+      const bonus = berechneteStats.pps * 300;
+      zustand.pixel += bonus;
+      zustand.lifetimePixel += bonus;
+      toastZeigen(`🌧 Pixel-Schauer: +${fmt(bonus)} Pixel (5 Min)`);
+      break;
+    }
+    case 'boost_golden': {
+      if (aktivesGoldElement) { aktivesGoldElement.remove(); aktivesGoldElement = null; }
+      // Spawnt sofort einen goldenen Pixel
+      goldenPixelSpawnen();
+      toastZeigen('⭐ Goldener Pixel erscheint!');
+      break;
+    }
+    case 'boost_klick': {
+      aktiveBoosts.ppkMultiplikator = Math.max(aktiveBoosts.ppkMultiplikator, 10);
+      aktiveBoosts.endeMs = Math.max(aktiveBoosts.endeMs, Date.now() + 60000);
+      toastZeigen('⚡ Klick-Sturm: ×10 Klick für 60 Sekunden!');
+      break;
+    }
+    case 'boost_kombo': {
+      komboTimer = 30;
+      komboLetzterKlick = Date.now();
+      zustand._komboReached3 = true;
+      toastZeigen('🔥 Instant-Kombo: ×3 Multiplikator aktiv!');
+      break;
+    }
+    case 'boost_burst': {
+      aktiveBoosts.ppsMultiplikator = Math.max(aktiveBoosts.ppsMultiplikator, 5);
+      aktiveBoosts.endeMs = Math.max(aktiveBoosts.endeMs, Date.now() + 300000);
+      toastZeigen('💥 Quantum-Burst: ×5 Produktion für 5 Minuten!');
+      break;
+    }
+    case 'boost_stunde': {
+      const bonus = berechneteStats.pps * 3600;
+      zustand.pixel += bonus;
+      zustand.lifetimePixel += bonus;
+      toastZeigen(`⏩ Zeitsprung: +${fmt(bonus)} Pixel (1 Stunde)`);
+      break;
+    }
+  }
+
+  statsNeuBerechnen();
+  shopPrestigeRendern();
+  errungenschaftenPruefen();
 }
 
 function prestigeUpgradeKaufen(up) {
@@ -851,7 +1107,8 @@ function prestigeUpgradeKaufen(up) {
 
 function prestigeDurchfuehren() {
   const schwelle = zustand.prestige === 0 ? 1000 : 1000 * Math.pow(10, zustand.prestige);
-  if (zustand.pixel < schwelle && zustand.lifetimePixel < schwelle) return;
+  // Nur aktuelle Pixel zählen
+  if (zustand.pixel < schwelle) return;
 
   const qpGewinn = berechneQPGewinn();
   document.getElementById('pcQP').textContent = `+${fmt(qpGewinn)} Quantum-Pixel`;
@@ -1301,9 +1558,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('prestigeConfirmModal').classList.add('versteckt');
   });
 
-  // Speichern
-  document.getElementById('speichernBtn').addEventListener('click', () => spielstandSpeichern(true));
-
   // Rangliste
   document.getElementById('ranglisteBtn').addEventListener('click', () => {
     document.getElementById('ranglisteModal').classList.remove('versteckt');
@@ -1371,8 +1625,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Tutorial bei erstem Start zeigen
   tutorialZeigen();
 
-  // Autosave alle 60 Sekunden (kein Toast)
-  setInterval(() => spielstandSpeichern(false), 30000);
+  // Autosave alle 30 Sekunden (kein Toast, kleiner Indikator)
+  setInterval(async () => {
+    await spielstandSpeichern(false);
+    const ind = document.getElementById('autosaveInd');
+    if (ind) {
+      ind.classList.add('sichtbar');
+      setTimeout(() => ind.classList.remove('sichtbar'), 2000);
+    }
+  }, 30000);
 
   // Beim Verlassen: letzterBesuch aktualisieren damit Offline-Bonus stimmt
   window.addEventListener('beforeunload', () => {

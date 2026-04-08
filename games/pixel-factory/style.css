@@ -28,7 +28,8 @@ body {
   font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -58,7 +59,8 @@ body {
 .spiel-layout {
   display: grid;
   grid-template-columns: 260px 1fr 380px;
-  min-height: calc(100vh - 52px);
+  height: calc(100vh - 52px);
+  overflow: hidden;
 }
 
 /* ── LINKE SPALTE ───────────────────────────────────── */
@@ -244,6 +246,51 @@ body {
   text-align: center;
 }
 
+/* ── KOMBO-BALKEN ───────────────────────────────────── */
+.kombo-container {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.kombo-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: color 0.3s;
+}
+.kombo-label.aktiv-2 { color: var(--primary); }
+.kombo-label.aktiv-3 { color: var(--amber-dark); }
+.kombo-balken {
+  width: 100%;
+  height: 8px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.kombo-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--primary), #60a5fa);
+  transition: width 0.15s ease, background 0.3s;
+}
+.kombo-fill.stufe-2 {
+  background: linear-gradient(90deg, var(--primary), #a78bfa);
+}
+.kombo-fill.stufe-3 {
+  background: linear-gradient(90deg, var(--amber), #f59e0b);
+  animation: komboGold 1s ease-in-out infinite alternate;
+}
+@keyframes komboGold {
+  from { opacity: 0.85; }
+  to   { opacity: 1; box-shadow: 0 0 8px rgba(245,158,11,0.6); }
+}
+
 /* ── MITTLERE SPALTE (CANVAS) ───────────────────────── */
 .spiel-mitte {
   display: flex;
@@ -253,6 +300,7 @@ body {
   gap: 16px;
   background: var(--bg);
   padding: 24px;
+  overflow: hidden;
 }
 
 /* ── RECHTE SPALTE (SHOP) ───────────────────────────── */
@@ -761,6 +809,86 @@ body {
 /* ── PARTIKEL ───────────────────────────────────────── */
 .partikel { position: fixed; pointer-events: none; z-index: 160; font-size: 0.78rem; font-weight: 900; color: var(--primary); animation: partikelFliegen 0.75s ease-out forwards; white-space: nowrap; }
 @keyframes partikelFliegen { 0% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx,0px),-65px) scale(0.6); } }
+
+/* ── QUANTUM-BOOST TRENNER & ITEMS ─────────────────── */
+.boost-trenner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 4px;
+}
+.boost-trenner-linie {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(245,158,11,0.4), transparent);
+  border-radius: 99px;
+}
+.boost-trenner-text {
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--amber-dark);
+  white-space: nowrap;
+}
+
+.boost-eintrag {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(to right, rgba(245,158,11,0.06), white);
+  border: 2px solid rgba(245,158,11,0.3);
+  border-left: 4px solid var(--amber);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.boost-eintrag:hover {
+  border-color: var(--amber);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245,158,11,0.2);
+}
+.boost-eintrag.zu-teuer {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.boost-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: rgba(245,158,11,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.boost-info { min-width: 0; }
+.boost-name  { font-weight: 800; font-size: 0.88rem; color: var(--text); }
+.boost-beschr { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+.boost-preis {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--amber-dark);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Autosave-Anzeige */
+.autosave-indikator {
+  font-size: 0.65rem;
+  color: var(--emerald);
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.5s;
+  padding-bottom: 2px;
+}
+.autosave-indikator.sichtbar { opacity: 1; }
 
 /* ── RESPONSIVE ─────────────────────────────────────── */
 @media (max-width: 1100px) {

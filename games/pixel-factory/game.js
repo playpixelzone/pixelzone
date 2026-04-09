@@ -857,7 +857,7 @@ function hintergrundTick() {
   const delta = Math.min(now - (zustand.letzterBesuch || now), 2000);
   zustand.letzterBesuch = now;
 
-  const offlineMult = zustand.prestige >= 10 ? 2 : 1;
+  const offlineMult = (zustand.prestige >= 10 ? 2 : 1) * Math.pow(2, talentLevel('tal_prod_offline'));
   const produktion = berechneteStats.pps * (delta / 1000) * offlineMult;
   zustand.pixel += produktion;
   zustand.lifetimePixel += produktion;
@@ -1001,7 +1001,7 @@ function partikelErzeugen(x, y, text) {
 function klickHandler(event) {
   // Kombo aktualisieren
   const jetzt = Date.now();
-  if (komboLetzterKlick > 0 && jetzt - komboLetzterKlick <= KOMBO_TIMEOUT_MS) {
+  if (komboLetzterKlick > 0 && jetzt - komboLetzterKlick <= KOMBO_TIMEOUT_MS * (1 + talentLevel('tal_klick_kombo') * 0.30)) {
     komboTimer += (jetzt - komboLetzterKlick) / 1000;
   } else {
     komboTimer = 0;
@@ -1057,7 +1057,7 @@ function komboBalkenRendern() {
 
   const mult = komboMultiplikator();
 
-  if (komboTimer <= 0 || (Date.now() - komboLetzterKlick > KOMBO_TIMEOUT_MS)) {
+  if (komboTimer <= 0 || (Date.now() - komboLetzterKlick > KOMBO_TIMEOUT_MS * (1 + talentLevel('tal_klick_kombo') * 0.30))) {
     fill.style.width = '0%';
     fill.className = 'kombo-fill';
     label.textContent = 'Kombo';
@@ -1218,17 +1218,21 @@ function shopUpgradesRendern() {
   // Aufsteigend nach Preis sortieren
   verfuegbar.sort((a, b) => a.preis - b.preis);
 
+  // Upgrade-Rabatt (Talent: Upgrade-Kenner)
+  const upgradeRab = talentLevel('tal_pre_upgrade');
   const klickTypen = ['klick_add', 'klick_mult'];
   for (const up of verfuegbar) {
     const istKlick = klickTypen.includes(up.typ);
-    const kannKaufen = zustand.pixel >= up.preis;
+    let angezeigterPreis = up.preis;
+    if (upgradeRab > 0) angezeigterPreis = Math.ceil(up.preis * Math.pow(1 - 0.10, upgradeRab));
+    const kannKaufen = zustand.pixel >= angezeigterPreis;
     const el = document.createElement('div');
     const kategorieKlasse = istKlick ? 'ppk-upgrade' : 'pps-upgrade';
     el.className = `upgrade-eintrag ${kategorieKlasse}${kannKaufen ? ' leistbar' : ' zu-teuer'}`;
     el.innerHTML = `
       <div class="upgrade-name">${up.name}</div>
       <div class="upgrade-beschreibung">${up.beschreibung}</div>
-      <div class="upgrade-preis">${fmt(up.preis)} Pixel</div>`;
+      <div class="upgrade-preis">${fmt(angezeigterPreis)} Pixel</div>`;
     el.addEventListener('click', () => upgradeKaufen(up));
     container.appendChild(el);
   }

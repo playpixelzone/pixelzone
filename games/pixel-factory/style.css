@@ -848,40 +848,27 @@ body {
   font-weight: 700;
 }
 
-.talent-kategorie-header {
-  grid-column: 1 / -1;
-  font-size: 0.7rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  padding: 4px 0 2px;
-  margin-top: 10px;
-  border-bottom: 2px solid var(--border);
-}
-.talent-kategorie-header:first-child { margin-top: 0; }
+/* Talent-Baum */
+#talentGrid { overflow: hidden; }
 
-.talent-kat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 8px;
-  margin-top: 6px;
+.talent-tree-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 65vh;
+  padding: 8px 4px 16px;
+  cursor: grab;
 }
-
-#talentGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+.talent-tree-scroll:active { cursor: grabbing; }
 
 .talent-karte {
-  background: var(--bg);
+  background: var(--surface);
   border: 2px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 10px;
+  border-radius: 10px;
+  padding: 8px 10px;
   text-align: center;
-  transition: all 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
   cursor: default;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 .talent-karte.kaufbar {
   background: linear-gradient(135deg, #eff6ff, #dbeafe);
@@ -889,44 +876,108 @@ body {
   cursor: pointer;
 }
 .talent-karte.kaufbar:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(58,134,255,0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(58,134,255,0.25);
 }
 .talent-karte.maxlevel {
   background: linear-gradient(135deg, #f0fdf4, #dcfce7);
   border-color: var(--emerald);
 }
-.talent-karte.gesperrt { opacity: 0.5; }
+.talent-karte.gesperrt {
+  opacity: 0.45;
+  filter: grayscale(0.3);
+}
+.talent-karte.root-freigeschaltet {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border-color: var(--amber);
+}
 
 .talent-name {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 800;
   color: var(--text);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
+  line-height: 1.2;
 }
 .talent-beschr {
-  font-size: 0.68rem;
+  font-size: 0.63rem;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   line-height: 1.3;
 }
 .talent-level {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--primary);
   letter-spacing: 2px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 .talent-dot { color: var(--border); }
 .talent-dot.aktiv { color: var(--amber); }
 .talent-karte.maxlevel .talent-dot.aktiv { color: var(--emerald); }
 
 .talent-info {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
   color: var(--text-muted);
 }
-.talent-karte.kaufbar .talent-info { color: var(--primary); }
+.talent-karte.kaufbar .talent-info  { color: var(--primary); }
 .talent-karte.maxlevel .talent-info { color: var(--emerald); }
+
+/* ── Admin-Panel ──────────────────────────── */
+#adminPanel {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 1000;
+  background: #1e293b;
+  color: #f1f5f9;
+  border-radius: 14px;
+  width: 230px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  font-size: 0.82rem;
+}
+.adm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #334155;
+}
+.adm-toggle-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.adm-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.adm-row  { display: flex; gap: 6px; }
+.adm-input {
+  flex: 1;
+  background: #334155;
+  border: 1px solid #475569;
+  border-radius: 7px;
+  color: #f1f5f9;
+  padding: 5px 8px;
+  font-size: 0.78rem;
+  min-width: 0;
+}
+.adm-btn {
+  background: #3a86ff;
+  border: none;
+  border-radius: 7px;
+  color: #fff;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.adm-btn:hover { background: #2563eb; }
+.adm-full { width: 100%; padding: 7px; background: #334155; color: #cbd5e1; }
+.adm-full:hover { background: #475569; }
 
 /* Prestige-Modal: Talent-Punkt-Hinweis */
 .talent-punkt-hint {

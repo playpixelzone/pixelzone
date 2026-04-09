@@ -6,9 +6,11 @@
 
 const PZ_URL = 'https://mgvcxszzhxrvftqnizjm.supabase.co';
 const PZ_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ndmN4c3p6aHhydmZ0cW5pemptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NjYzMjIsImV4cCI6MjA5MDM0MjMyMn0.ccuwZQxMyuJC69i4rzFE2FyxvhcHQdAC5T9w0HhD2bg';
+const PZ_ADMIN_ID = '1dcb3181-9132-4cd0-b3ef-550742a5309d';
 
 const PZ = {
   db: null,
+  isAdmin: false,
 
   // ── Init ────────────────────────────────────────────────
   init() {
@@ -216,16 +218,76 @@ const PZ = {
 
     if (session) {
       const username = await this.getUsername(session.user.id);
+      this.isAdmin = session.user.id === PZ_ADMIN_ID;
+      const adminBtn = this.isAdmin
+        ? `<button class="nav-admin-btn" id="pzAdminBtn">⚙ Admin</button>`
+        : '';
       el.innerHTML = `
         <div class="nav-user">
+          ${adminBtn}
           <span class="nav-avatar">👾</span>
           <span class="nav-username">${this._esc(username || 'Spieler')}</span>
           <button class="nav-logout-btn" id="pzLogoutBtn">Abmelden</button>
         </div>`;
       document.getElementById('pzLogoutBtn').addEventListener('click', () => this._logoutFlow());
+      if (this.isAdmin) {
+        document.getElementById('pzAdminBtn').addEventListener('click', () => this._adminModalOeffnen());
+      }
     } else {
+      this.isAdmin = false;
       el.innerHTML = `<a href="login.html" class="nav-login-btn">Anmelden</a>`;
     }
+  },
+
+  _adminModalOeffnen() {
+    let overlay = document.getElementById('pzAdminOverlay');
+    if (!overlay) {
+      // Basis-Pfad bestimmen (von game-pages aus zwei Ebenen hoch)
+      const inGame = window.location.pathname.includes('/games/');
+      const base = inGame ? '../../' : '';
+      overlay = document.createElement('div');
+      overlay.id = 'pzAdminOverlay';
+      overlay.innerHTML = `
+        <div class="pz-admin-modal">
+          <h2>⚙ Admin-Panel</h2>
+          <p class="pz-admin-hint">Spiel im Test-Modus öffnen (kein echtes Speichern):</p>
+          <div class="pz-admin-games">
+            <a href="${base}games/pixel-factory/?admin=1" class="pz-admin-btn">🏭 Pixel Factory</a>
+            <a href="${base}games/pixel-jump/?admin=1" class="pz-admin-btn">🐸 Pixel Jump</a>
+            <a href="${base}games/space-blaster/?admin=1" class="pz-admin-btn">🚀 Space Blaster</a>
+            <a href="${base}games/minesweeper/?admin=1" class="pz-admin-btn">💣 Minesweeper</a>
+            <a href="${base}games/wordle/?admin=1" class="pz-admin-btn">📝 Wordle</a>
+            <a href="${base}games/arkanoid/?admin=1" class="pz-admin-btn">🧱 Arkanoid</a>
+            <a href="${base}games/memory-match/?admin=1" class="pz-admin-btn">🃏 Memory Match</a>
+            <a href="${base}games/neon-runner/?admin=1" class="pz-admin-btn">🌟 Neon Runner</a>
+            <a href="${base}games/pixel-drop/?admin=1" class="pz-admin-btn">⬇ Pixel Drop</a>
+            <a href="${base}games/snake/?admin=1" class="pz-admin-btn">🐍 Snake</a>
+          </div>
+          <button class="pz-admin-schliessen" id="pzAdminSchliessen">Schließen</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('pzAdminSchliessen').addEventListener('click', () => { overlay.style.display = 'none'; });
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.style.display = 'none'; });
+      // CSS einmalig injizieren
+      if (!document.getElementById('pzAdminCss')) {
+        const s = document.createElement('style');
+        s.id = 'pzAdminCss';
+        s.textContent = `
+          #pzAdminOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999;}
+          .pz-admin-modal{background:#fff;border-radius:16px;padding:28px 24px;max-width:440px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.2);}
+          .pz-admin-modal h2{margin:0 0 6px;font-size:1.25rem;}
+          .pz-admin-hint{margin:0 0 16px;font-size:.85rem;color:#64748b;}
+          .pz-admin-games{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+          .pz-admin-btn{display:block;padding:10px 12px;background:#f0f7ff;border:1.5px solid #bfdbfe;border-radius:10px;text-decoration:none;color:#1e293b;font-size:.9rem;font-weight:600;text-align:center;transition:background .15s;}
+          .pz-admin-btn:hover{background:#dbeafe;}
+          .pz-admin-schliessen{width:100%;padding:10px;border:none;border-radius:10px;background:#e2e8f0;color:#1e293b;font-size:.95rem;font-weight:700;cursor:pointer;}
+          .pz-admin-schliessen:hover{background:#cbd5e1;}
+          .nav-admin-btn{background:#fef3c7;border:1.5px solid #fbbf24;color:#92400e;padding:5px 12px;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;margin-right:6px;}
+          .nav-admin-btn:hover{background:#fde68a;}`;
+        document.head.appendChild(s);
+      }
+    }
+    overlay.style.display = 'flex';
   },
 
   async _logoutFlow() {

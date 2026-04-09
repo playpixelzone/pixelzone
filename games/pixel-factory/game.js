@@ -174,37 +174,38 @@ const PRESTIGE_UPGRADES = [
 ];
 
 // === TALENTE ===
-// Kosten je 1 Talentpunkt (vergeben pro Prestige), manche upgradebar
+// Baumstruktur: col/row = Position im Talent-Baum, requires = Voraussetzung (ID)
+// tal_root wird automatisch beim ersten Prestige freigeschaltet (kostet keinen Punkt)
 const TALENTE = [
-  // KLICK
-  { id: 'tal_klick_speed',   kat: 'Klick',      name: 'Schnelle Finger',    beschr: '+25% Klick-Produktion pro Stufe',      maxLevel: 5, wert: 0.25, typ: 'ppk_mult_add' },
-  { id: 'tal_klick_krit',    kat: 'Klick',      name: 'Kritischer Treffer', beschr: '+5% Chance auf ×3-Klick pro Stufe',    maxLevel: 5, wert: 0.05, typ: 'krit_chance'  },
-  { id: 'tal_klick_kombo',   kat: 'Klick',      name: 'Kombomeister',       beschr: 'Kombo verfällt 30% langsamer/Stufe',   maxLevel: 3, wert: 0.30, typ: 'kombo_dauer'  },
-  { id: 'tal_klick_pps',     kat: 'Klick',      name: 'Klick-Synergie',     beschr: 'Klicks geben +1% der PPS/Stufe extra', maxLevel: 3, wert: 0.01, typ: 'klick_pps'    },
+  // WURZEL (automatisch freigeschaltet beim ersten Prestige)
+  { id: 'tal_root',          name: 'Fabrik-Lehrling',    beschr: 'Fundament aller Talente',                         maxLevel: 1, wert: 0,    typ: 'root',        col: 6,    row: 0, requires: null },
 
-  // PRODUKTION
-  { id: 'tal_prod_eff',      kat: 'Produktion', name: 'Fabrik-Effizienz',   beschr: '+10% PPS global pro Stufe',            maxLevel: 5, wert: 0.10, typ: 'pps_mult_add' },
-  { id: 'tal_prod_gold',     kat: 'Produktion', name: 'Goldener Sinn',      beschr: 'Goldene Pixel 2× häufiger/Stufe',      maxLevel: 3, wert: 2,    typ: 'golden_freq'  },
-  { id: 'tal_prod_rabatt',   kat: 'Produktion', name: 'Gebäude-Rabatt',     beschr: 'Gebäude 8% günstiger pro Stufe',       maxLevel: 3, wert: 0.08, typ: 'gebaeude_rab' },
-  { id: 'tal_prod_offline',  kat: 'Produktion', name: 'Nachtschicht',       beschr: 'Offline-Zeit ×2 pro Stufe',            maxLevel: 2, wert: 2,    typ: 'offline_mult' },
+  // EBENE 1 – Kategorie-Wurzeln (alle brauchen tal_root)
+  { id: 'tal_klick_speed',   name: 'Schnelle Finger',    beschr: '+25% Klick-Produktion pro Stufe',                 maxLevel: 5, wert: 0.25, typ: 'ppk_mult_add', col: 1.5,  row: 1, requires: 'tal_root' },
+  { id: 'tal_prod_eff',      name: 'Fabrik-Effizienz',   beschr: '+10% PPS global pro Stufe',                       maxLevel: 5, wert: 0.10, typ: 'pps_mult_add', col: 4.0,  row: 1, requires: 'tal_root' },
+  { id: 'tal_pre_qp',        name: 'QP-Bonus',           beschr: '+1 QP pro Prestige pro Stufe',                    maxLevel: 5, wert: 1,    typ: 'qp_bonus',     col: 6.0,  row: 1, requires: 'tal_root' },
+  { id: 'tal_start_pixel',   name: 'Pixel-Magnet',       beschr: '+200 Startpixel nach Prestige/Stufe',             maxLevel: 5, wert: 200,  typ: 'start_pixel',  col: 8.5,  row: 1, requires: 'tal_root' },
+  { id: 'tal_sp_pps_klick',  name: 'Synergieeffekt',     beschr: '+1% PPK basierend auf PPS/Stufe',                 maxLevel: 5, wert: 0.01, typ: 'pps_zu_ppk',  col: 11.5, row: 1, requires: 'tal_root' },
 
-  // PRESTIGE
-  { id: 'tal_pre_qp',        kat: 'Prestige',   name: 'QP-Bonus',           beschr: '+1 QP pro Prestige pro Stufe',         maxLevel: 5, wert: 1,    typ: 'qp_bonus'     },
-  { id: 'tal_pre_mult',      kat: 'Prestige',   name: 'Prestige-Kraft',     beschr: 'Prestige-Multiplikator ×1,3/Stufe',    maxLevel: 3, wert: 1.30, typ: 'pre_mult'     },
-  { id: 'tal_pre_schwelle',  kat: 'Prestige',   name: 'Frühes Prestige',    beschr: 'Prestige-Schwelle −10% pro Stufe',     maxLevel: 3, wert: 0.10, typ: 'pre_schwelle' },
-  { id: 'tal_pre_upgrade',   kat: 'Prestige',   name: 'Upgrade-Kenner',     beschr: 'Upgrades 10% günstiger pro Stufe',     maxLevel: 2, wert: 0.10, typ: 'upgrade_rab'  },
+  // EBENE 2 – Zweige
+  { id: 'tal_klick_krit',    name: 'Kritischer Treffer', beschr: '+5% Chance auf Krit-Klick pro Stufe',             maxLevel: 5, wert: 0.05, typ: 'krit_chance',  col: 1.0,  row: 2, requires: 'tal_klick_speed' },
+  { id: 'tal_klick_pps',     name: 'Klick-Synergie',     beschr: 'Klicks geben +1% der PPS/Stufe extra',           maxLevel: 3, wert: 0.01, typ: 'klick_pps',    col: 2.0,  row: 2, requires: 'tal_klick_speed' },
+  { id: 'tal_prod_rabatt',   name: 'Gebäude-Rabatt',     beschr: 'Gebäude 8% günstiger pro Stufe',                  maxLevel: 3, wert: 0.08, typ: 'gebaeude_rab', col: 3.5,  row: 2, requires: 'tal_prod_eff' },
+  { id: 'tal_prod_gold',     name: 'Goldener Sinn',      beschr: 'Goldene Pixel 2× häufiger/Stufe',                 maxLevel: 3, wert: 2,    typ: 'golden_freq',  col: 4.5,  row: 2, requires: 'tal_prod_eff' },
+  { id: 'tal_pre_mult',      name: 'Prestige-Kraft',     beschr: 'Prestige-Multiplikator ×1,3/Stufe',               maxLevel: 3, wert: 1.30, typ: 'pre_mult',     col: 5.5,  row: 2, requires: 'tal_pre_qp' },
+  { id: 'tal_pre_schwelle',  name: 'Frühes Prestige',    beschr: 'Prestige-Schwelle −10% pro Stufe',                maxLevel: 3, wert: 0.10, typ: 'pre_schwelle', col: 6.5,  row: 2, requires: 'tal_pre_qp' },
+  { id: 'tal_start_geb',     name: 'Schnellstart',       beschr: '+2 Einfache Maschinen zu Beginn/Stufe',           maxLevel: 3, wert: 2,    typ: 'start_geb',    col: 8.0,  row: 2, requires: 'tal_start_pixel' },
+  { id: 'tal_start_upg',     name: 'Vorbereitung',       beschr: 'Erstes Klick-Upgrade gratis',                     maxLevel: 1, wert: 1,    typ: 'start_upg',    col: 9.0,  row: 2, requires: 'tal_start_pixel' },
+  { id: 'tal_sp_golden',     name: 'Goldgier',           beschr: 'Goldene Pixel +50% Bonus/Stufe',                  maxLevel: 3, wert: 0.50, typ: 'golden_bonus', col: 11.0, row: 2, requires: 'tal_sp_pps_klick' },
+  { id: 'tal_sp_err',        name: 'Ehrgeiz',            beschr: '+0,5% PPS pro Errungenschaft',                    maxLevel: 1, wert: 0.005,typ: 'err_bonus',    col: 12.0, row: 2, requires: 'tal_sp_pps_klick' },
 
-  // START
-  { id: 'tal_start_pixel',   kat: 'Start',      name: 'Pixel-Magnet',       beschr: '+200 Startpixel nach Prestige/Stufe',  maxLevel: 5, wert: 200,  typ: 'start_pixel'  },
-  { id: 'tal_start_geb',     kat: 'Start',      name: 'Schnellstart',       beschr: '+2 Einfache Maschinen zu Beginn/Stufe',maxLevel: 3, wert: 2,    typ: 'start_geb'    },
-  { id: 'tal_start_upg',     kat: 'Start',      name: 'Vorbereitung',       beschr: 'Erstes Klick-Upgrade gratis',          maxLevel: 1, wert: 1,    typ: 'start_upg'    },
-  { id: 'tal_start_kombo',   kat: 'Start',      name: 'Kombo-Start',        beschr: 'Starte mit ×2-Kombo aktiv',            maxLevel: 1, wert: 1,    typ: 'start_kombo'  },
-
-  // BESONDERES
-  { id: 'tal_sp_golden',     kat: 'Besonderes', name: 'Goldgier',           beschr: 'Goldene Pixel +50% Bonus/Stufe',       maxLevel: 3, wert: 0.50, typ: 'golden_bonus' },
-  { id: 'tal_sp_pps_klick',  kat: 'Besonderes', name: 'Synergieeffekt',     beschr: '+1% PPK basierend auf PPS/Stufe',      maxLevel: 5, wert: 0.01, typ: 'pps_zu_ppk'  },
-  { id: 'tal_sp_alle_geb',   kat: 'Besonderes', name: 'Generalfabrik',      beschr: 'Alle Gebäude ×1,1 effektiver/Stufe',  maxLevel: 3, wert: 1.10, typ: 'alle_geb_mult'},
-  { id: 'tal_sp_err',        kat: 'Besonderes', name: 'Ehrgeiz',            beschr: '+0,5% PPS pro Errungenschaft',         maxLevel: 1, wert: 0.005,typ: 'err_bonus'   },
+  // EBENE 3 – Blätter
+  { id: 'tal_klick_kombo',   name: 'Kombomeister',       beschr: 'Kombo verfällt 30% langsamer/Stufe',              maxLevel: 3, wert: 0.30, typ: 'kombo_dauer',  col: 0.5,  row: 3, requires: 'tal_klick_krit' },
+  { id: 'tal_klick_krit_mult',name:'Krit. Multiplikator',beschr: 'Krit-Klick gibt ×0,5 mehr/Stufe (Standard ×3)',  maxLevel: 4, wert: 0.5,  typ: 'krit_mult',    col: 1.5,  row: 3, requires: 'tal_klick_krit' },
+  { id: 'tal_sp_alle_geb',   name: 'Generalfabrik',      beschr: 'Alle Gebäude ×1,1 effektiver/Stufe',              maxLevel: 3, wert: 1.10, typ: 'alle_geb_mult',col: 3.5,  row: 3, requires: 'tal_prod_rabatt' },
+  { id: 'tal_prod_offline',  name: 'Nachtschicht',       beschr: 'Offline-Zeit ×2 pro Stufe',                       maxLevel: 2, wert: 2,    typ: 'offline_mult', col: 4.5,  row: 3, requires: 'tal_prod_gold' },
+  { id: 'tal_pre_upgrade',   name: 'Upgrade-Kenner',     beschr: 'Upgrades 10% günstiger pro Stufe',                maxLevel: 2, wert: 0.10, typ: 'upgrade_rab',  col: 6.5,  row: 3, requires: 'tal_pre_schwelle' },
+  { id: 'tal_start_kombo',   name: 'Kombo-Start',        beschr: 'Starte mit ×2-Kombo aktiv',                       maxLevel: 1, wert: 1,    typ: 'start_kombo',  col: 9.0,  row: 3, requires: 'tal_start_upg' },
 ];
 
 // === SKINS ===
@@ -593,8 +594,8 @@ function berechnePPS() {
     const anzahl = zustand.gebaeude[g.id] || 0;
     if (anzahl === 0) continue;
 
-    // Verdopplung: jedes weitere Gebäude gibt doppelt so viel wie das vorherige
-    let basePPS = g.basisPPS * (Math.pow(2, anzahl) - 1);
+    // Verdopplung: N Gebäude = basisPPS × 2^(N-1), jeder Kauf verdoppelt die Gesamtleistung
+    let basePPS = g.basisPPS * Math.pow(2, anzahl - 1);
     let mult = 1;
 
     for (const upId of zustand.upgrades) {
@@ -716,15 +717,19 @@ function talentWert(id) {
 }
 
 function talentKaufen(tal) {
+  if (tal.id === 'tal_root') return; // auto-freigeschaltet
   const aktuell = talentLevel(tal.id);
   if (aktuell >= tal.maxLevel) return;
   if ((zustand.talentPunkte || 0) < 1) return;
+  // Voraussetzung prüfen
+  if (tal.requires && talentLevel(tal.requires) < 1) return;
   if (!zustand.talente) zustand.talente = {};
   zustand.talentPunkte = (zustand.talentPunkte || 0) - 1;
   zustand.talente[tal.id] = aktuell + 1;
   statsNeuBerechnen();
   talentModalRendern();
   talentBadgeAktualisieren();
+  toastZeigen(`⭐ ${tal.name} Stufe ${aktuell + 1}`);
   spielstandSpeichern(false);
 }
 
@@ -748,42 +753,91 @@ function talentModalRendern() {
       : `<div class="talent-punkte-anzeige keine">Nächster Punkt beim nächsten Prestige</div>`;
   }
 
-  grid.innerHTML = '';
-  const kategorien = [...new Set(TALENTE.map(t => t.kat))];
+  // Baum-Layout Konstanten
+  const COL_W  = 126;  // Pixel pro Spalte
+  const ROW_H  = 130;  // Pixel pro Zeile
+  const NW     = 114;  // Node-Breite
+  const NH     = 68;   // Node-Höhe
+  const PAD    = 12;   // Rand
 
-  for (const kat of kategorien) {
-    const header = document.createElement('div');
-    header.className = 'talent-kategorie-header';
-    header.textContent = kat;
-    grid.appendChild(header);
+  const maxCol = Math.max(...TALENTE.map(t => t.col));
+  const maxRow = Math.max(...TALENTE.map(t => t.row));
+  const canvasW = (maxCol + 1.5) * COL_W + PAD * 2;
+  const canvasH = (maxRow + 1)   * ROW_H + PAD * 2;
 
-    const katGrid = document.createElement('div');
-    katGrid.className = 'talent-kat-grid';
+  // SVG Verbindungslinien
+  let svgLines = '';
+  for (const tal of TALENTE) {
+    if (!tal.requires) continue;
+    const parent = TALENTE.find(t => t.id === tal.requires);
+    if (!parent) continue;
 
-    for (const tal of TALENTE.filter(t => t.kat === kat)) {
-      const lvl = talentLevel(tal.id);
-      const maxed = lvl >= tal.maxLevel;
-      const kaufbar = !maxed && punkte >= 1;
-      const el = document.createElement('div');
-      el.className = `talent-karte${maxed ? ' maxlevel' : ''}${kaufbar ? ' kaufbar' : ''}${!kaufbar && !maxed ? ' gesperrt' : ''}`;
+    const px = parent.col * COL_W + NW / 2 + PAD;
+    const py = parent.row * ROW_H + NH + PAD;
+    const cx = tal.col   * COL_W + NW / 2 + PAD;
+    const cy = tal.row   * ROW_H + PAD;
+    const mid = (py + cy) / 2;
 
-      // Level-Punkte (◆◆◆◇◇)
-      let levelDots = '';
-      for (let i = 0; i < tal.maxLevel; i++) {
-        levelDots += `<span class="talent-dot${i < lvl ? ' aktiv' : ''}">◆</span>`;
-      }
+    const freigeschaltet = talentLevel(tal.requires) >= 1;
+    const farbe = freigeschaltet ? 'var(--primary)' : '#cbd5e1';
+    const dash  = freigeschaltet ? '' : 'stroke-dasharray="5 4"';
+    const opacity = freigeschaltet ? '0.8' : '0.4';
 
-      el.innerHTML = `
-        <div class="talent-name">${tal.name}</div>
-        <div class="talent-beschr">${tal.beschr}</div>
-        <div class="talent-level">${levelDots}</div>
-        <div class="talent-info">${maxed ? '✓ Voll' : kaufbar ? '1 Punkt' : lvl > 0 ? `Stufe ${lvl}/${tal.maxLevel}` : 'Gesperrt'}</div>`;
-
-      if (kaufbar) el.addEventListener('click', () => talentKaufen(tal));
-      katGrid.appendChild(el);
-    }
-    grid.appendChild(katGrid);
+    svgLines += `<path d="M${px},${py} C${px},${mid} ${cx},${mid} ${cx},${cy}"
+      fill="none" stroke="${farbe}" stroke-width="2" ${dash} opacity="${opacity}"/>`;
   }
+
+  // Talent-Knoten HTML
+  let nodesHTML = '';
+  for (const tal of TALENTE) {
+    const lvl      = talentLevel(tal.id);
+    const isRoot   = tal.id === 'tal_root';
+    const prereqOk = !tal.requires || talentLevel(tal.requires) >= 1;
+    const maxed    = lvl >= tal.maxLevel;
+    const kaufbar  = !isRoot && prereqOk && punkte >= 1 && !maxed;
+
+    const x = tal.col * COL_W + PAD;
+    const y = tal.row * ROW_H + PAD;
+
+    let klass = 'talent-karte';
+    if (isRoot && lvl >= 1)  klass += ' root-freigeschaltet';
+    if (maxed)               klass += ' maxlevel';
+    else if (!prereqOk)      klass += ' gesperrt';
+    else if (kaufbar)        klass += ' kaufbar';
+
+    const dots = tal.maxLevel > 1
+      ? `<div class="talent-level">${Array.from({length: tal.maxLevel}, (_, i) =>
+          `<span class="talent-dot${i < lvl ? ' aktiv' : ''}">◆</span>`).join('')}</div>`
+      : '';
+
+    const info = isRoot
+      ? (lvl >= 1 ? '✓ Freigeschaltet' : 'Wird automatisch freigeschaltet')
+      : (maxed ? '✓ Maximal' : kaufbar ? '1 Punkt' : !prereqOk ? '🔒 Gesperrt' : `Stufe ${lvl}/${tal.maxLevel}`);
+
+    nodesHTML += `<div class="${klass}" data-id="${tal.id}"
+      style="position:absolute;left:${x}px;top:${y}px;width:${NW}px;min-height:${NH}px">
+      <div class="talent-name">${tal.name}</div>
+      <div class="talent-beschr">${tal.beschr}</div>
+      ${dots}
+      <div class="talent-info">${info}</div>
+    </div>`;
+  }
+
+  grid.innerHTML = `
+    <div class="talent-tree-scroll">
+      <div style="position:relative;width:${canvasW}px;height:${canvasH}px">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" pointer-events="none">
+          ${svgLines}
+        </svg>
+        ${nodesHTML}
+      </div>
+    </div>`;
+
+  // Klick-Handler auf Knoten setzen
+  grid.querySelectorAll('.talent-karte').forEach(el => {
+    const tal = TALENTE.find(t => t.id === el.dataset.id);
+    if (tal) el.addEventListener('click', () => talentKaufen(tal));
+  });
 }
 
 // ╔══════════════════════════════════════════════════════════╗
@@ -1014,10 +1068,11 @@ function klickHandler(event) {
   if (mult >= 3 && !zustand._komboReached3) zustand._komboReached3 = true;
 
   let ppk = berechneteStats.ppk * aktiveBoosts.ppkMultiplikator * mult;
-  // Talent: Kritischer Treffer (+5% Chance auf ×3 pro Stufe)
+  // Talent: Kritischer Treffer (+5% Chance auf Krit-Klick pro Stufe)
   const kritChance = talentLevel('tal_klick_krit') * 0.05;
   if (kritChance > 0 && Math.random() < kritChance) {
-    ppk *= 3;
+    const kritMult = 3 + talentLevel('tal_klick_krit_mult') * 0.5; // ×3 bis ×5
+    ppk *= kritMult;
     partikelErzeugen(
       event.clientX || 0,
       (event.clientY || 0) - 20,
@@ -1175,7 +1230,7 @@ function shopGebaeudeRendern() {
       </div>
       <div class="gebaeude-info">
         <div class="gebaeude-name">${g.name}</div>
-        <div class="gebaeude-pps">+${fmt(anzahl > 0 ? g.basisPPS * Math.pow(2, anzahl) : g.basisPPS)}/s nächstes</div>
+        <div class="gebaeude-pps">+${fmt(g.basisPPS * Math.pow(2, Math.max(0, anzahl - 1)))}/s nächstes</div>
       </div>
       <div class="gebaeude-preis-block">
         <div class="gebaeude-preis">${fmt(menge <= 1 ? preis : gebaeudePreis(g, anzahl))}</div>
@@ -1346,6 +1401,9 @@ function prestigeAusfuehren(qpGewinn) {
 
   // Talent-Punkte vergeben (1 pro Prestige, bleiben dauerhaft)
   zustand.talentPunkte = (zustand.talentPunkte || 0) + 1;
+  // Wurzel-Talent automatisch freischalten (kein Punkt)
+  if (!zustand.talente) zustand.talente = {};
+  if (!zustand.talente['tal_root']) zustand.talente['tal_root'] = 1;
 
   // Talent: Pixel-Magnet (+200 Startpixel pro Stufe)
   const pixelMagnet = talentLevel('tal_start_pixel');
@@ -1674,6 +1732,7 @@ function errungenschaftenModalRendern() {
 // ╚══════════════════════════════════════════════════════════╝
 
 async function spielstandSpeichern(mitToast = true) {
+  if (adminModus) { if (mitToast) toastZeigen('⚙ Test-Modus – kein Speichern'); return; }
   const user = await PZ.getUser();
   if (!user) {
     if (mitToast) toastZeigen('⚠ Nicht eingeloggt – Spielstand nicht gespeichert');
@@ -1789,6 +1848,65 @@ async function ranglisteRendern() {
 // ║  INITIALISIERUNG                                        ║
 // ╚══════════════════════════════════════════════════════════╝
 
+// ╔══════════════════════════════════════════════════════════╗
+// ║  ADMIN-PANEL (nur für Admin im Test-Modus)              ║
+// ╚══════════════════════════════════════════════════════════╝
+
+let adminModus = false;
+
+function adminPanelZeigen() {
+  const panel = document.getElementById('adminPanel');
+  if (panel) panel.style.display = 'block';
+}
+
+function adminPanelInit() {
+  const panel = document.getElementById('adminPanel');
+  if (!panel) return;
+
+  panel.querySelector('#adm-pixel-btn').addEventListener('click', () => {
+    const v = Number(panel.querySelector('#adm-pixel').value);
+    if (!isNaN(v)) { zustand.pixel = v; zustand.lifetimePixel = Math.max(zustand.lifetimePixel, v); renderStats(); }
+  });
+  panel.querySelector('#adm-prestige-btn').addEventListener('click', () => {
+    const v = Number(panel.querySelector('#adm-prestige').value);
+    if (!isNaN(v)) { zustand.prestige = v; skinsPruefen(); statsNeuBerechnen(); shopRendern(); prestigeBtnAktualisieren(); }
+  });
+  panel.querySelector('#adm-qp-btn').addEventListener('click', () => {
+    const v = Number(panel.querySelector('#adm-qp').value);
+    if (!isNaN(v)) { zustand.quantumPixel = v; renderStats(); }
+  });
+  panel.querySelector('#adm-talente-btn').addEventListener('click', () => {
+    const v = Number(panel.querySelector('#adm-talente').value);
+    if (!isNaN(v)) { zustand.talentPunkte = v; talentBadgeAktualisieren(); }
+  });
+  panel.querySelector('#adm-alle-upgrades').addEventListener('click', () => {
+    UPGRADES.forEach(u => { if (!zustand.upgrades.includes(u.id)) zustand.upgrades.push(u.id); });
+    statsNeuBerechnen(); shopRendern(); toastZeigen('✓ Alle Upgrades freigeschaltet');
+  });
+  panel.querySelector('#adm-alle-skins').addEventListener('click', () => {
+    SKINS.forEach(s => { if (!zustand.skins.freigeschaltet.includes(s.id)) zustand.skins.freigeschaltet.push(s.id); });
+    toastZeigen('✓ Alle Skins freigeschaltet');
+  });
+  panel.querySelector('#adm-alle-err').addEventListener('click', () => {
+    ERRUNGENSCHAFTEN.forEach(e => { if (!zustand.errungenschaften.includes(e.id)) zustand.errungenschaften.push(e.id); });
+    toastZeigen('✓ Alle Errungenschaften freigeschaltet');
+  });
+  panel.querySelector('#adm-alle-talente').addEventListener('click', () => {
+    TALENTE.forEach(t => { zustand.talente[t.id] = t.maxLevel; });
+    statsNeuBerechnen(); talentBadgeAktualisieren(); toastZeigen('✓ Alle Talente auf Maximum');
+  });
+  panel.querySelector('#adm-vorspulen-btn').addEventListener('click', () => {
+    const stunden = Number(panel.querySelector('#adm-vorspulen').value) || 1;
+    const bonus = berechneteStats.pps * stunden * 3600;
+    zustand.pixel += bonus; zustand.lifetimePixel += bonus;
+    renderStats(); toastZeigen(`⏩ +${fmt(bonus)} Pixel (${stunden}h)`);
+  });
+  panel.querySelector('#adm-toggle').addEventListener('click', () => {
+    const body = panel.querySelector('.adm-body');
+    body.style.display = body.style.display === 'none' ? 'block' : 'none';
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await PZ.updateNavbar();
 
@@ -1803,9 +1921,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   document.getElementById('tutSkip').addEventListener('click', tutorialSchliessen);
 
-  // Spielstand laden (oder frischen Zustand verwenden)
-  const geladen = await spielstandLaden();
-  if (!geladen) zustand = standardZustand();
+  // Admin-Modus prüfen
+  const adminUser = await PZ.getUser();
+  adminModus = !!(adminUser?.id === '1dcb3181-9132-4cd0-b3ef-550742a5309d' && new URLSearchParams(location.search).has('admin'));
+  if (adminModus) { adminPanelZeigen(); }
+
+  // Spielstand laden (im Admin-Modus frischen Zustand, kein echtes Speichern)
+  if (adminModus) {
+    zustand = standardZustand();
+    zustand.pixel = 1e9;
+    zustand.lifetimePixel = 1e12;
+    zustand.quantumPixel = 100;
+    zustand.prestige = 5;
+    zustand.talentPunkte = 20;
+    if (!zustand.talente) zustand.talente = {};
+    zustand.talente['tal_root'] = 1;
+  } else {
+    const geladen = await spielstandLaden();
+    if (!geladen) zustand = standardZustand();
+  }
 
   statsNeuBerechnen();
   skinsPruefen(); // skinsPruefen ruft auch skinAnwenden auf
@@ -1912,15 +2046,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Tutorial bei erstem Start zeigen
   tutorialZeigen();
 
-  // Autosave alle 30 Sekunden (kein Toast, kleiner Indikator)
-  setInterval(async () => {
-    await spielstandSpeichern(false);
-    const ind = document.getElementById('autosaveInd');
-    if (ind) {
-      ind.classList.add('sichtbar');
-      setTimeout(() => ind.classList.remove('sichtbar'), 2000);
-    }
-  }, 30000);
+  // Admin-Panel Buttons initialisieren (falls Admin-Modus)
+  if (adminModus) adminPanelInit();
+
+  // Autosave alle 30 Sekunden (nicht im Admin-Modus)
+  if (!adminModus) {
+    setInterval(async () => {
+      await spielstandSpeichern(false);
+      const ind = document.getElementById('autosaveInd');
+      if (ind) {
+        ind.classList.add('sichtbar');
+        setTimeout(() => ind.classList.remove('sichtbar'), 2000);
+      }
+    }, 30000);
+  }
 
   // Beim Verlassen: letzterBesuch aktualisieren damit Offline-Bonus stimmt
   window.addEventListener('beforeunload', () => {

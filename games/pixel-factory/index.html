@@ -202,6 +202,40 @@
 <div class="toast-container" id="toastContainer"></div>
 <div id="goldenLayer"></div>
 
+<!-- ── ADMIN-PANEL (nur sichtbar im Test-Modus) ──────────── -->
+<div id="adminPanel" style="display:none">
+  <div class="adm-header">
+    <span>⚙ Admin – Test-Modus</span>
+    <button class="adm-toggle-btn" id="adm-toggle">▾</button>
+  </div>
+  <div class="adm-body">
+    <div class="adm-row">
+      <input id="adm-pixel" type="number" placeholder="Pixel" class="adm-input">
+      <button id="adm-pixel-btn" class="adm-btn">Setzen</button>
+    </div>
+    <div class="adm-row">
+      <input id="adm-prestige" type="number" placeholder="Prestige" class="adm-input">
+      <button id="adm-prestige-btn" class="adm-btn">Setzen</button>
+    </div>
+    <div class="adm-row">
+      <input id="adm-qp" type="number" placeholder="Quantum-Pixel" class="adm-input">
+      <button id="adm-qp-btn" class="adm-btn">Setzen</button>
+    </div>
+    <div class="adm-row">
+      <input id="adm-talente" type="number" placeholder="Talentpunkte" class="adm-input">
+      <button id="adm-talente-btn" class="adm-btn">Setzen</button>
+    </div>
+    <div class="adm-row">
+      <input id="adm-vorspulen" type="number" placeholder="Stunden" class="adm-input">
+      <button id="adm-vorspulen-btn" class="adm-btn">Vorspulen</button>
+    </div>
+    <button id="adm-alle-upgrades" class="adm-btn adm-full">Alle Upgrades</button>
+    <button id="adm-alle-skins"    class="adm-btn adm-full">Alle Skins</button>
+    <button id="adm-alle-err"      class="adm-btn adm-full">Alle Errungenschaften</button>
+    <button id="adm-alle-talente"  class="adm-btn adm-full">Alle Talente Max</button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../../auth.js"></script>
 <script src="game.js"></script>

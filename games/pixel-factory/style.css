@@ -1012,20 +1012,7 @@ body {
   .spiel-layout {
     grid-template-columns: 220px 1fr 340px;
   }
-  /* Stats: 1-spaltig mit Label links, Wert rechts – verhindert "Quantum-Pixel"-Umbruch */
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 5px;
-  }
-  .stat-karte {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 10px;
-  }
-  .stat-k-label { margin-bottom: 0; }
-  .stat-k-wert  { margin-top: 0; font-size: 0.9rem; text-align: right; }
-  .stat-haupt   { font-size: 1.75rem; margin-bottom: 10px; }
+  .stat-haupt { font-size: 1.75rem; }
 }
 
 /* iPad / Tablet (portrait + landscape) – verhindert Canvas-Überlauf */
@@ -1039,8 +1026,10 @@ body {
   }
   .stats-panel { padding: 10px 12px; }
   .stat-haupt  { font-size: 1.55rem; margin-bottom: 8px; }
-  .stats-grid  { gap: 4px; }
-  .stat-karte  { padding: 5px 9px; }
+  .stats-grid  { gap: 5px; }
+  .stat-karte  { padding: 6px 8px; }
+  .stat-k-label { font-size: 0.65rem; }
+  .stat-k-wert  { font-size: 0.9rem; }
   #pixelHaufen { width: 260px; height: 260px; }
 }
 

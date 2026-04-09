@@ -5,22 +5,24 @@
 // ╚══════════════════════════════════════════════════════════╝
 
 // === GEBÄUDE ===
+// basisPPS verdoppelt sich bei jedem Gebäude-Typ (Typ 1=1, Typ 2=2, Typ 3=4, ...)
+// Pro gekauftem Stück: basisPPS × anzahl (linear)
 const GEBAEUDE = [
-  { id: 'maschine',      name: 'Einfache Maschine',          basisPreis: 15,           basisPPS: 1,         farbe: '#94a3b8' },
-  { id: 'foerderband',   name: 'Förderband',                 basisPreis: 100,          basisPPS: 5,         farbe: '#60a5fa' },
-  { id: 'drucker',       name: 'Pixel-Drucker',              basisPreis: 500,          basisPPS: 20,        farbe: '#34d399' },
-  { id: 'sortieranlage', name: 'Automatische Sortieranlage', basisPreis: 2000,         basisPPS: 80,        farbe: '#f472b6' },
-  { id: 'labor',         name: 'Pixel-Labor',                basisPreis: 10000,        basisPPS: 250,       farbe: '#a78bfa' },
-  { id: 'quantencomp',   name: 'Quantencomputer',            basisPreis: 50000,        basisPPS: 1000,      farbe: '#38bdf8' },
-  { id: 'reaktor',       name: 'Pixel-Reaktor',              basisPreis: 200000,       basisPPS: 4000,      farbe: '#fb923c' },
-  { id: 'portal',        name: 'Dimensionsportal',           basisPreis: 1000000,      basisPPS: 15000,     farbe: '#818cf8' },
-  { id: 'universum',     name: 'Pixel-Universum',            basisPreis: 10000000,     basisPPS: 70000,     farbe: '#2dd4bf' },
-  { id: 'zeitmaschine',  name: 'Zeitmaschine',               basisPreis: 100000000,    basisPPS: 350000,    farbe: '#fbbf24' },
-  { id: 'nanofabrik',    name: 'Nano-Fabrik',                basisPreis: 500000000,    basisPPS: 450000,    farbe: '#06b6d4', minPrestige: 5  },
-  { id: 'biomatrix',     name: 'Bio-Matrix',                 basisPreis: 5000000000,   basisPPS: 2200000,   farbe: '#84cc16', minPrestige: 10 },
-  { id: 'warpgenerator', name: 'Warp-Generator',             basisPreis: 50000000000,  basisPPS: 11000000,  farbe: '#ec4899', minPrestige: 15 },
-  { id: 'singularitaet', name: 'Pixel-Singularität',         basisPreis: 500000000000, basisPPS: 55000000,  farbe: '#f43f5e', minPrestige: 20 },
-  { id: 'goettlich',     name: 'Göttliche Fabrik',           basisPreis: 5000000000000,basisPPS: 280000000, farbe: '#d946ef', minPrestige: 25 },
+  { id: 'maschine',      name: 'Einfache Maschine',          basisPreis: 15,           basisPPS: 1,       farbe: '#94a3b8' },
+  { id: 'foerderband',   name: 'Förderband',                 basisPreis: 100,          basisPPS: 2,       farbe: '#60a5fa' },
+  { id: 'drucker',       name: 'Pixel-Drucker',              basisPreis: 500,          basisPPS: 4,       farbe: '#34d399' },
+  { id: 'sortieranlage', name: 'Automatische Sortieranlage', basisPreis: 2000,         basisPPS: 8,       farbe: '#f472b6' },
+  { id: 'labor',         name: 'Pixel-Labor',                basisPreis: 10000,        basisPPS: 16,      farbe: '#a78bfa' },
+  { id: 'quantencomp',   name: 'Quantencomputer',            basisPreis: 50000,        basisPPS: 32,      farbe: '#38bdf8' },
+  { id: 'reaktor',       name: 'Pixel-Reaktor',              basisPreis: 200000,       basisPPS: 64,      farbe: '#fb923c' },
+  { id: 'portal',        name: 'Dimensionsportal',           basisPreis: 1000000,      basisPPS: 128,     farbe: '#818cf8' },
+  { id: 'universum',     name: 'Pixel-Universum',            basisPreis: 10000000,     basisPPS: 256,     farbe: '#2dd4bf' },
+  { id: 'zeitmaschine',  name: 'Zeitmaschine',               basisPreis: 100000000,    basisPPS: 512,     farbe: '#fbbf24' },
+  { id: 'nanofabrik',    name: 'Nano-Fabrik',                basisPreis: 500000000,    basisPPS: 1024,    farbe: '#06b6d4', minPrestige: 5  },
+  { id: 'biomatrix',     name: 'Bio-Matrix',                 basisPreis: 5000000000,   basisPPS: 2048,    farbe: '#84cc16', minPrestige: 10 },
+  { id: 'warpgenerator', name: 'Warp-Generator',             basisPreis: 50000000000,  basisPPS: 4096,    farbe: '#ec4899', minPrestige: 15 },
+  { id: 'singularitaet', name: 'Pixel-Singularität',         basisPreis: 500000000000, basisPPS: 8192,    farbe: '#f43f5e', minPrestige: 20 },
+  { id: 'goettlich',     name: 'Göttliche Fabrik',           basisPreis: 5000000000000,basisPPS: 16384,   farbe: '#d946ef', minPrestige: 25 },
 ];
 
 // Preis eines Gebäudes bei aktueller Anzahl
@@ -594,8 +596,8 @@ function berechnePPS() {
     const anzahl = zustand.gebaeude[g.id] || 0;
     if (anzahl === 0) continue;
 
-    // Verdopplung: N Gebäude = basisPPS × 2^(N-1), jeder Kauf verdoppelt die Gesamtleistung
-    let basePPS = g.basisPPS * Math.pow(2, anzahl - 1);
+    // Jeder Gebäude-Typ ist doppelt so stark wie der vorherige; Anzahl zählt linear
+    let basePPS = g.basisPPS * anzahl;
     let mult = 1;
 
     for (const upId of zustand.upgrades) {
@@ -1230,7 +1232,7 @@ function shopGebaeudeRendern() {
       </div>
       <div class="gebaeude-info">
         <div class="gebaeude-name">${g.name}</div>
-        <div class="gebaeude-pps">+${fmt(g.basisPPS * Math.pow(2, Math.max(0, anzahl - 1)))}/s nächstes</div>
+        <div class="gebaeude-pps">+${fmt(g.basisPPS)}/s pro Stück</div>
       </div>
       <div class="gebaeude-preis-block">
         <div class="gebaeude-preis">${fmt(menge <= 1 ? preis : gebaeudePreis(g, anzahl))}</div>

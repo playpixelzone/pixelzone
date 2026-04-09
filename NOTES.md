@@ -259,6 +259,26 @@
 - `games/pixel-factory/style.css` — Sticky-Fix, Talent-CSS, Skin-Grid erweitert
 - `games/pixel-factory/index.html` — Talent-Button, Talent-Modal
 
+### Pixel Factory – Scenic Skin-Hintergründe (2026-04-10) ✅
+
+#### Was gemacht wurde
+- `#bgAnimContainer` aus `.spiel-mitte` herausgelöst → jetzt `position:fixed; inset:0; z-index:-1` (Vollbild)
+- Alle bgAnim-Funktionen komplett neu geschrieben mit echten Landschafts-Szenen:
+  - **Weltraum**: Tiefer Weltraum (dunkel), Planet mit Ring, Mond, Nebel, 180 Sterne, Sternschnuppen
+  - **Kirschblüte**: Japanischer Garten – Himmel, Wiese, Kirschblütenbaum (SVG), kleiner Baum, Blütenblätter
+  - **Winter**: Verschneite Landschaft – Hügel (3 Ebenen), Tannenbäume mit Schnee, Schneeflocken
+  - **Wald**: Sonnendurchfluteter Wald – Himmel, Waldsilhouetten (SVG), Lichtstimmung, fallende Blätter
+  - **Ozean**: Unterwasserpanorama – Himmel, Sonne, Meeresboden, Wellenlinie (CSS), Blasen
+  - **Märchen**: Schloss-Panorama – Farbverlauf, Mondschein, Regenbogen-Bogen, Wiese, Schloss (SVG), Funkeln
+  - **Glitzer-Gold**: Goldener Sonnenuntergang – Sonne, Hügelsilhouetten, Glitzer-Partikel
+- Hilfsfunktion `_bgEl()` für kompaktes DOM-Element-Erstellen
+- CSS: `position:absolute` → `position:fixed` für bgAnimContainer
+
+#### Veränderte Dateien
+- `games/pixel-factory/index.html` — bgAnimContainer direkt in body
+- `games/pixel-factory/style.css` — fixed positioning
+- `games/pixel-factory/game.js` — alle bgAnim-Funktionen neu
+
 ### Pixel Factory – Skin-Animationen aktiviert (2026-04-10) ✅
 
 #### Was gemacht wurde

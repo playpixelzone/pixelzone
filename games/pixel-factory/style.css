@@ -65,6 +65,19 @@ body {
   overflow: hidden;
 }
 
+/* Panels glasartig wenn Bild-Skin aktiv */
+.skin-mit-bild .navbar {
+  background: rgba(255,255,255,0.88) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.skin-mit-bild .spiel-links,
+.skin-mit-bild .spiel-rechts {
+  background: rgba(255,255,255,0.82) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 /* ── LINKE SPALTE ───────────────────────────────────── */
 .spiel-links {
   background: var(--surface);

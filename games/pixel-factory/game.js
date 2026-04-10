@@ -266,21 +266,18 @@ const SKINS = [
   { id: 'wald',         name: 'Wald',             minPrestige: 6,
     farben: ['#4ade80','#22c55e','#15803d','#86efac','#713f12'],
     canvasBg: 'linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%)',
-    bgAnim: bgAnimWald,
     theme: { '--primary': '#16a34a', '--primary-dark': '#15803d', '--bg': '#f0fdf4', '--surface': '#ffffff',
              '--border': '#bbf7d0', '--text-muted': '#3f6b4a', '--amber': '#a16207', '--amber-dark': '#854d0e' } },
 
   { id: 'ozean',        name: 'Ozean',            minPrestige: 8,
     farben: ['#22d3ee','#06b6d4','#0891b2','#a5f3fc','#164e63'],
     canvasBg: 'linear-gradient(145deg, #ecfeff 0%, #cffafe 100%)',
-    bodyClass: 'skin-ozean', bgAnim: bgAnimOzean,
     theme: { '--primary': '#0891b2', '--primary-dark': '#0e7490', '--bg': '#ecfeff', '--surface': '#f0ffff',
              '--border': '#a5f3fc', '--text-muted': '#164e63' } },
 
   { id: 'wueste',       name: 'Wüste',            minPrestige: 12,
     farben: ['#fb923c','#f97316','#ea580c','#fed7aa','#c2410c'],
     canvasBg: 'linear-gradient(145deg, #fff7ed 0%, #ffedd5 100%)',
-    bgAnim: bgAnimWueste,
     theme: { '--primary': '#ea580c', '--primary-dark': '#c2410c', '--bg': '#fff7ed', '--surface': '#fffbf5',
              '--border': '#fed7aa', '--text-muted': '#7c2d12', '--amber': '#ea580c', '--amber-dark': '#c2410c',
              '--amber-light': '#ffedd5' } },
@@ -288,77 +285,66 @@ const SKINS = [
   { id: 'winter',       name: 'Winter',           minPrestige: 14, kristall: true,
     farben: ['#7dd3fc','#38bdf8','#0ea5e9','#e0f2fe','#bfdbfe'],
     canvasBg: 'linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%)',
-    bodyClass: 'skin-winter', bgAnim: bgAnimWinter,
     theme: { '--primary': '#0ea5e9', '--primary-dark': '#0284c7', '--bg': '#f0f9ff', '--surface': '#f8fafc',
              '--border': '#bae6fd', '--text-muted': '#1e4c6b' } },
 
   { id: 'sonnenschein', name: 'Sonnenschein',     minPrestige: 18, glitzer: true,
     farben: ['#fde047','#facc15','#eab308','#fef9c3','#ca8a04'],
-    canvasBg: 'linear-gradient(145deg, #1a0800 0%, #2d1200 100%)',
-    bodyClass: 'skin-sonnenschein', bgAnim: bgAnimSonnenschein,
+    canvasBg: 'linear-gradient(145deg, #fffbeb 0%, #fef9c3 100%)',
     theme: { '--primary': '#ca8a04', '--primary-dark': '#a16207', '--bg': '#fefce8', '--surface': '#fffdf0',
              '--border': '#fde68a', '--text-muted': '#713f12', '--amber': '#ca8a04', '--amber-dark': '#a16207' } },
 
   { id: 'kirschbluete', name: 'Kirschblüte ✦',  minPrestige: 22, glitzer: true,
     farben: ['#f9a8d4','#f472b6','#ec4899','#fce7f3','#db2777'],
     canvasBg: 'linear-gradient(145deg, #fdf2f8 0%, #fce7f3 100%)',
-    bgAnim: bgAnimKirschbluete,
     theme: { '--primary': '#ec4899', '--primary-dark': '#db2777', '--bg': '#fdf2f8', '--surface': '#fff9fb',
              '--border': '#fbcfe8', '--text-muted': '#831843', '--prestige': '#db2777', '--prestige-dark': '#be185d' } },
 
   { id: 'retro',        name: 'Retro',            minPrestige: 28,
     farben: ['#e879f9','#a21caf','#06b6d4','#c084fc','#0891b2'],
     canvasBg: 'linear-gradient(145deg, #1a0a2e 0%, #0d0818 100%)',
-    bodyClass: 'skin-retro', bgAnim: bgAnimRetro,
     theme: { '--primary': '#9333ea', '--primary-dark': '#7e22ce', '--bg': '#fdf4ff', '--surface': '#fef9ff',
              '--border': '#e9d5ff', '--text-muted': '#6b21a8', '--radius': '4px', '--radius-sm': '2px' } },
 
   { id: 'herbst',       name: 'Herbst',           minPrestige: 35,
     farben: ['#ef4444','#f97316','#b45309','#fbbf24','#991b1b'],
-    canvasBg: 'linear-gradient(145deg, #1a0a04 0%, #2d1205 100%)',
-    bgAnim: bgAnimHerbst,
+    canvasBg: 'linear-gradient(145deg, #fff7ed 0%, #ffedd5 100%)',
     theme: { '--primary': '#c2410c', '--primary-dark': '#9a3412', '--bg': '#fff7f0', '--surface': '#fffcf7',
              '--border': '#fcd34d', '--text-muted': '#7c2d12' } },
 
   { id: 'maerchen',     name: 'Märchen ✦',        minPrestige: 38, animiert: true,
     farben: ['#f9a8d4','#c4b5fd','#86efac','#fde68a','#67e8f9'],
     canvasBg: 'linear-gradient(145deg, #fdf4ff 0%, #f0f9ff 100%)',
-    bgAnim: bgAnimMaerchen,
     theme: { '--primary': '#9333ea', '--primary-dark': '#7e22ce', '--bg': '#fdf8ff', '--surface': '#fefcff',
              '--border': '#e9d5ff', '--text-muted': '#6b21a8' } },
 
   { id: 'weltraum',     name: 'Weltraum ✦',       minPrestige: 42, pulsierend: true, glitzer: true,
     farben: ['#818cf8','#6366f1','#4f46e5','#c7d2fe','#a5b4fc'],
     canvasBg: 'linear-gradient(145deg, #0f172a 0%, #1e1b4b 50%, #1a0533 100%)',
-    bodyClass: 'skin-weltraum', bgAnim: bgAnimWeltraum,
     theme: { '--primary': '#4f46e5', '--primary-dark': '#4338ca', '--bg': '#eef2ff', '--surface': '#f5f3ff',
              '--border': '#c7d2fe', '--text-muted': '#312e81', '--prestige': '#4f46e5' } },
 
   { id: 'glitzergold',  name: 'Glitter-Gold ✦✦', minPrestige: 50, glitzer: true, animiert: true,
     farben: ['#fbbf24','#f59e0b','#ffffff','#fef3c7','#d97706'],
-    canvasBg: 'linear-gradient(145deg, #1c1408 0%, #2a1d00 100%)',
-    bgAnim: bgAnimGlitzergold,
+    canvasBg: 'linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%)',
     theme: { '--primary': '#b45309', '--primary-dark': '#92400e', '--bg': '#fffbeb', '--surface': '#fffef5',
              '--border': '#fde68a', '--text-muted': '#78350f', '--amber': '#b45309' } },
 
   { id: 'midnight',     name: 'Midnight Drive',  minPrestige: 55, animiert: true,
     farben: ['#e879f9','#a21caf','#06b6d4','#1e1b4b','#0891b2'],
     canvasBg: 'linear-gradient(145deg, #0f0a1e 0%, #1a1035 100%)',
-    bodyClass: 'skin-midnight', bgAnim: bgAnimMidnight,
     theme: { '--primary': '#7c3aed', '--primary-dark': '#6d28d9', '--bg': '#f5f3ff', '--surface': '#fefcff',
              '--border': '#ddd6fe', '--text-muted': '#4c1d95' } },
 
   { id: 'darkcity',     name: 'Dark City',        minPrestige: 60,
     farben: ['#475569','#334155','#1e293b','#94a3b8','#64748b'],
     canvasBg: 'linear-gradient(145deg, #0f172a 0%, #1e293b 100%)',
-    bodyClass: 'skin-darkcity', bgAnim: bgAnimDarkCity,
     theme: { '--primary': '#475569', '--primary-dark': '#334155', '--bg': '#f8fafc', '--surface': '#ffffff',
              '--border': '#e2e8f0', '--text-muted': '#1e293b' } },
 
   { id: 'chrome',       name: 'Chrome ✦',         minPrestige: 65, glitzer: true,
     farben: ['#e2e8f0','#94a3b8','#475569','#f1f5f9','#cbd5e1'],
     canvasBg: 'linear-gradient(145deg, #0f172a 0%, #0a0a0a 100%)',
-    bodyClass: 'skin-chrome', bgAnim: bgAnimChrome,
     theme: { '--primary': '#475569', '--primary-dark': '#1e293b', '--bg': '#f8fafc', '--surface': '#ffffff',
              '--border': '#e2e8f0', '--text-muted': '#334155' } },
 ];
@@ -1552,235 +1538,9 @@ function skinAnwenden(skin) {
     canvas.style.background = (skin && skin.canvasBg) ? skin.canvasBg : SKIN_DEFAULTS_CANVAS;
     canvas.style.borderColor = skin?.theme?.['--border'] || '';
   }
-  // Hintergrund-Animation
-  bgAnimStoppen();
-  if (skin?.bgAnim) {
-    skin.bgAnim();
-    document.body.classList.add('skin-mit-bild');
-  }
-  if (skin?.bodyClass) document.body.classList.add(skin.bodyClass);
-}
-
-let _bgAnimInterval = null;
-
-function bgAnimStoppen() {
-  // Body-Klassen entfernen
+  // Body-Klassen zurücksetzen
   [...document.body.classList].filter(c => c.startsWith('skin-')).forEach(c => document.body.classList.remove(c));
-  document.body.classList.remove('skin-mit-bild');
-  // Interval stoppen
-  if (_bgAnimInterval) { clearInterval(_bgAnimInterval); _bgAnimInterval = null; }
-  // Partikel-Container leeren
-  const c = document.getElementById('bgAnimContainer');
-  if (c) { c.innerHTML = ''; c.style.background = ''; c.style.backgroundImage = ''; }
-  // Globalen Hintergrund zurücksetzen
-  const g = document.getElementById('bgGlobal');
-  if (g) { g.style.backgroundImage = ''; }
-}
-
-// Hilfsfunktion: einfaches Element erstellen und anhängen
-function _bgEl(c, css, html) {
-  const el = document.createElement('div');
-  el.style.cssText = css || '';
-  if (html) el.innerHTML = html;
-  c.appendChild(el);
-  return el;
-}
-
-// Hilfsfunktion: Bild auf den globalen Vollbild-Container setzen
-function _bgBild(datei) {
-  const g = document.getElementById('bgGlobal');
-  if (g) g.style.backgroundImage = `url(assets/${datei})`;
-}
-
-// ── Weltraum ─────────────────────────────────────────────────
-function bgAnimWeltraum() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('weltraum.png');
-  // Funkelnde Sterne über dem Bild
-  for (let i = 0; i < 55; i++) {
-    const sz = 0.8 + Math.random() * 2;
-    _bgEl(c,`position:absolute;left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:white;border-radius:50%;animation:sternFunkeln ${(2+Math.random()*4).toFixed(1)}s ease-in-out ${(Math.random()*6).toFixed(1)}s infinite`);
-  }
-  // Sternschnuppen
-  _bgAnimInterval = setInterval(() => {
-    if (!document.getElementById('bgAnimContainer')) return;
-    const ss = document.createElement('div');
-    ss.className = 'bg-sternschnuppe';
-    ss.style.cssText = `left:${5+Math.random()*60}%;top:${4+Math.random()*38}%;animation-duration:${(0.6+Math.random()*0.9).toFixed(2)}s`;
-    c.appendChild(ss);
-    setTimeout(() => ss.remove(), 2000);
-  }, 3500);
-}
-
-// ── Kirschblüte ───────────────────────────────────────────
-function bgAnimKirschbluete() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('kirschbluete.png');
-  for (let i = 0; i < 38; i++) {
-    const sz = 6 + Math.random() * 10;
-    const el = document.createElement('div');
-    el.className = 'bg-bluete';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*80}%;width:${sz}px;height:${sz}px;background:hsla(330,75%,${(72+Math.random()*18).toFixed(0)}%,0.85);animation-delay:${(Math.random()*10).toFixed(2)}s;animation-duration:${(5+Math.random()*9).toFixed(2)}s`;
-    c.appendChild(el);
-  }
-}
-
-// ── Winter ───────────────────────────────────────────────
-function bgAnimWinter() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('winter.png');
-  const sym = ['❄','❅','❆','·','*'];
-  for (let i = 0; i < 50; i++) {
-    const el = document.createElement('div');
-    el.className = 'bg-schnee';
-    el.textContent = sym[Math.floor(Math.random()*sym.length)];
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;font-size:${8+Math.random()*16}px;color:rgba(200,225,255,0.8);animation-delay:${(Math.random()*12).toFixed(2)}s;animation-duration:${(7+Math.random()*11).toFixed(2)}s`;
-    c.appendChild(el);
-  }
-}
-
-// ── Wald ───────────────────────────────────────────────────
-function bgAnimWald() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('wald.png');
-  for (let i = 0; i < 25; i++) {
-    const sz = 2 + Math.random() * 4;
-    _bgEl(c,`position:absolute;left:${Math.random()*100}%;top:${10+Math.random()*70}%;width:${sz}px;height:${sz}px;background:rgba(255,255,200,${(0.4+Math.random()*0.4).toFixed(2)});border-radius:50%;filter:blur(1px);animation:blattFallen ${(8+Math.random()*12).toFixed(1)}s ease-in-out ${(Math.random()*8).toFixed(1)}s infinite`);
-  }
-}
-
-// ── Ozean ────────────────────────────────────────────────
-function bgAnimOzean() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('ozean.png');
-  for (let i = 0; i < 22; i++) {
-    const sz = 4 + Math.random() * 14;
-    const el = document.createElement('div');
-    el.className = 'bg-blase';
-    el.style.cssText = `left:${Math.random()*100}%;width:${sz}px;height:${sz}px;animation-delay:${(Math.random()*10).toFixed(2)}s;animation-duration:${(6+Math.random()*10).toFixed(2)}s`;
-    c.appendChild(el);
-  }
-}
-
-// ── Märchen ────────────────────────────────────────────
-function bgAnimMaerchen() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('maerchen.png');
-  const farben = ['#67e8f9','#86efac','#fde68a','#f9a8d4','#c4b5fd','#fff'];
-  for (let i = 0; i < 45; i++) {
-    const sz = 2 + Math.random() * 5;
-    const el = document.createElement('div');
-    el.className = 'bg-funke';
-    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*85}%;width:${sz}px;height:${sz}px;background:${farben[Math.floor(Math.random()*farben.length)]};animation-delay:${(Math.random()*7).toFixed(2)}s;animation-duration:${(1.5+Math.random()*3).toFixed(2)}s`;
-    c.appendChild(el);
-  }
-}
-
-// ── Glitzer-Gold ─────────────────────────────────────────
-function bgAnimGlitzergold() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('glitzergold.png');
-  const farben = ['#fbbf24','#f59e0b','#fef9c3','#fde68a','#ffffff','#fcd34d'];
-  for (let i = 0; i < 55; i++) {
-    const sz = 1.5 + Math.random() * 5, f = farben[Math.floor(Math.random()*farben.length)];
-    const el = document.createElement('div');
-    el.className = 'bg-glitzer';
-    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:${f};box-shadow:0 0 ${(sz*2.5).toFixed(0)}px ${f};animation-delay:${(Math.random()*8).toFixed(2)}s;animation-duration:${(2.0+Math.random()*3.5).toFixed(2)}s`;
-    c.appendChild(el);
-  }
-}
-
-// ── Wüste ────────────────────────────────────────────────
-function bgAnimWueste() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('wueste.png');
-  _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:10%;background:rgba(255,180,60,0.05);filter:blur(8px);animation:lichtStrahl 2.5s ease-in-out infinite');
-}
-
-// ── Sonnenschein ────────────────────────────────────────
-function bgAnimSonnenschein() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('sonnenschein.png');
-  _bgEl(c,'position:absolute;inset:0;background:radial-gradient(ellipse at 65% 55%,rgba(255,100,0,0.06) 0%,transparent 60%);animation:sonnePulse 4s ease-in-out infinite');
-}
-
-// ── Herbst ────────────────────────────────────────────────
-function bgAnimHerbst() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('herbst.png');
-  const farben = ['rgba(200,40,10,0.82)','rgba(220,80,10,0.78)','rgba(180,120,15,0.78)','rgba(230,50,10,0.75)','rgba(160,20,5,0.8)'];
-  for (let i = 0; i < 40; i++) {
-    const sz = 6 + Math.random() * 10;
-    const el = document.createElement('div');
-    el.className = 'bg-blatt';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*80}%;width:${sz}px;height:${sz}px;background:${farben[Math.floor(Math.random()*farben.length)]};border-radius:${Math.random()<0.5?'50% 0 50% 0':'30% 70% 30% 70%'};animation-delay:${(Math.random()*10).toFixed(2)}s;animation-duration:${(5+Math.random()*9).toFixed(2)}s`;
-    c.appendChild(el);
-  }
-}
-
-// ── Retro ──────────────────────────────────────────────────
-function bgAnimRetro() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('retro.png');
-  const pixelFarben = ['rgba(255,0,200,0.65)','rgba(0,220,255,0.6)','rgba(180,0,255,0.55)','rgba(0,255,160,0.5)'];
-  for (let i = 0; i < 16; i++) {
-    const sz = 4 + Math.random() * 8;
-    const el = document.createElement('div');
-    el.className = 'bg-pixel';
-    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*80}%;width:${sz}px;height:${sz}px;background:${pixelFarben[Math.floor(Math.random()*pixelFarben.length)]};box-shadow:0 0 6px currentColor;animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(1.5+Math.random()*3).toFixed(2)}s`;
-    c.appendChild(el);
-  }
-}
-
-// ── Midnight Drive ─────────────────────────────────────
-function bgAnimMidnight() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('midnight.png');
-  for (let i = 0; i < 28; i++) {
-    const el = document.createElement('div');
-    el.className = 'bg-regen';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;height:${12+Math.random()*14}px;animation-delay:${(Math.random()*4).toFixed(2)}s;animation-duration:${(1.4+Math.random()*1.0).toFixed(2)}s`;
-    c.appendChild(el);
-  }
-}
-
-// ── Dark City ────────────────────────────────────────────
-function bgAnimDarkCity() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('darkcity.png');
-  for (let i = 0; i < 35; i++) {
-    const el = document.createElement('div');
-    el.className = 'bg-regen';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;height:${10+Math.random()*12}px;background:linear-gradient(180deg,transparent,rgba(200,210,220,0.4));animation-delay:${(Math.random()*4).toFixed(2)}s;animation-duration:${(1.2+Math.random()*0.8).toFixed(2)}s`;
-    c.appendChild(el);
-  }
-}
-
-// ── Chrome ────────────────────────────────────────────────
-function bgAnimChrome() {
-  const c = document.getElementById('bgAnimContainer');
-  if (!c) return;
-  _bgBild('chrome.png');
-  for (let i = 0; i < 30; i++) {
-    const sz = 1.5 + Math.random() * 3.5;
-    const el = document.createElement('div');
-    el.className = 'bg-glitzer';
-    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:rgba(255,255,255,0.9);box-shadow:0 0 ${(sz*2.5).toFixed(0)}px rgba(255,255,255,0.7);animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(0.8+Math.random()*2).toFixed(2)}s`;
-    c.appendChild(el);
-  }
+  if (skin?.bodyClass) document.body.classList.add(skin.bodyClass);
 }
 
 const SKIN_DEFAULTS_CANVAS = 'linear-gradient(145deg, #f8faff 0%, #eef2ff 100%)';

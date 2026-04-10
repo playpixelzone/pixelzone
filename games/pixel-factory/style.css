@@ -73,7 +73,7 @@ body {
 }
 .skin-mit-bild .spiel-links,
 .skin-mit-bild .spiel-rechts {
-  background: rgba(255,255,255,0.35) !important;
+  background: rgba(255,255,255,0.05) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-color: rgba(255,255,255,0.35) !important;

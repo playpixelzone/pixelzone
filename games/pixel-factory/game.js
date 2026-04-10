@@ -1547,89 +1547,74 @@ function bgAnimStoppen() {
 }
 
 // Hilfsfunktion: einfaches Element erstellen und anhängen
-function _bgEl(c, tag, css, html) {
-  const el = document.createElement(tag || 'div');
-  if (css) el.style.cssText = css;
+function _bgEl(c, css, html) {
+  const el = document.createElement('div');
+  el.style.cssText = css || '';
   if (html) el.innerHTML = html;
   c.appendChild(el);
   return el;
 }
 
-// ── Weltraum: Tiefer Weltraum mit Planet + Sternschnuppen ─────
+// ── Weltraum: Tiefer Weltraum ────────────────────────────────
 function bgAnimWeltraum() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  c.style.background = 'linear-gradient(180deg,#020617 0%,#0f0c29 35%,#1e1b4b 70%,#312e81 100%)';
-
-  // Nebel-Schleier
-  _bgEl(c,'div','position:absolute;left:-10%;top:5%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.18) 0%,transparent 70%);');
-  _bgEl(c,'div','position:absolute;right:-10%;bottom:10%;width:60%;height:50%;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.14) 0%,transparent 70%);');
-
-  // Planet mit Ring
-  _bgEl(c,'div','position:absolute;right:9%;top:7%;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle at 38% 36%,#818cf8 0%,#3730a3 45%,#1e1b4b 100%);box-shadow:0 0 70px rgba(99,102,241,0.5),inset -25px -18px 35px rgba(0,0,0,0.6);');
-  _bgEl(c,'div','position:absolute;right:4%;top:15%;width:210px;height:35px;border-radius:50%;border:8px solid rgba(129,140,248,0.3);transform:rotate(-20deg);box-shadow:0 0 20px rgba(99,102,241,0.3);');
-
-  // Kleiner Mond
-  _bgEl(c,'div','position:absolute;right:22%;top:3%;width:45px;height:45px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#e2e8f0 0%,#94a3b8 100%);box-shadow:0 0 22px rgba(226,232,240,0.35);');
-
-  // Viele Sterne
-  for (let i = 0; i < 180; i++) {
-    const sz = Math.random() < 0.08 ? 3 + Math.random() * 2 : 1 + Math.random() * 2;
-    _bgEl(c,'div',`position:absolute;left:${Math.random()*100}%;top:${Math.random()*90}%;width:${sz}px;height:${sz}px;background:white;border-radius:50%;animation:sternFunkeln ${(1.5+Math.random()*4).toFixed(2)}s ease-in-out ${(Math.random()*6).toFixed(2)}s infinite;`);
+  c.style.background = 'radial-gradient(ellipse at 60% 30%,#1e1b4b 0%,#0f0c29 50%,#020617 100%)';
+  // Nebel-Leuchten
+  _bgEl(c,'position:absolute;inset:0;background:radial-gradient(ellipse at 15% 20%,rgba(79,70,229,0.25) 0%,transparent 55%)');
+  _bgEl(c,'position:absolute;inset:0;background:radial-gradient(ellipse at 85% 75%,rgba(139,92,246,0.2) 0%,transparent 50%)');
+  // Planet
+  _bgEl(c,'position:absolute;top:8%;right:8%;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle at 35% 33%,#a5b4fc,#4f46e5 40%,#312e81 68%,#1e1b4b);box-shadow:0 0 55px rgba(99,102,241,0.6),0 0 110px rgba(99,102,241,0.25),inset -22px -15px 30px rgba(0,0,0,0.55)');
+  // Planeten-Ring
+  _bgEl(c,'position:absolute;top:14%;right:0%;width:188px;height:26px;border-radius:50%;border:6px solid rgba(129,140,248,0.3);transform:rotate(-18deg);box-shadow:0 0 12px rgba(99,102,241,0.25)');
+  // Mond
+  _bgEl(c,'position:absolute;top:5%;left:22%;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 38% 36%,#f1f5f9,#cbd5e1 60%,#94a3b8);box-shadow:0 0 18px rgba(248,250,252,0.4)');
+  // Sterne
+  for (let i = 0; i < 130; i++) {
+    const sz = Math.random() < 0.1 ? 2.5 + Math.random() : 0.8 + Math.random() * 1.8;
+    const glow = sz > 2 ? `;box-shadow:0 0 ${Math.round(sz*3)}px rgba(255,255,255,0.7)` : '';
+    _bgEl(c,`position:absolute;left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz.toFixed(1)}px;height:${sz.toFixed(1)}px;background:white;border-radius:50%${glow};animation:sternFunkeln ${(2+Math.random()*4).toFixed(1)}s ease-in-out ${(Math.random()*6).toFixed(1)}s infinite`);
   }
-
-  // Sternschnuppen-Intervall
+  // Sternschnuppen
   _bgAnimInterval = setInterval(() => {
     if (!document.getElementById('bgAnimContainer')) return;
-    const ss = _bgEl(c,'div');
+    const ss = document.createElement('div');
     ss.className = 'bg-sternschnuppe';
-    ss.style.cssText = `left:${5+Math.random()*55}%;top:${2+Math.random()*40}%;animation-duration:${(0.7+Math.random()*0.9).toFixed(2)}s`;
+    ss.style.cssText = `left:${5+Math.random()*60}%;top:${4+Math.random()*38}%;animation-duration:${(0.6+Math.random()*0.9).toFixed(2)}s`;
+    c.appendChild(ss);
     setTimeout(() => ss.remove(), 2000);
-  }, 2800);
+  }, 3000);
 }
 
-// ── Kirschblüte: Japanischer Garten ─────────────────────────
+// ── Kirschblüte: Japanische Gartenszene ─────────────────────
 function bgAnimKirschbluete() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  c.style.background = 'linear-gradient(180deg,#fce7f3 0%,#fbcfe8 28%,#fdf4ff 60%,#f3e8ff 100%)';
-
-  // Wiese
-  _bgEl(c,'div','position:absolute;bottom:0;left:0;right:0;height:20%;background:linear-gradient(180deg,#bbf7d0 0%,#86efac 100%);border-radius:55% 45% 0 0/22% 18% 0 0;');
-  _bgEl(c,'div','position:absolute;bottom:17%;left:0;right:0;height:5%;background:rgba(134,239,172,0.35);filter:blur(5px);');
-
-  // Großer Kirschblütenbaum links
-  _bgEl(c,'div','position:absolute;bottom:17%;left:2%;width:30%;max-width:290px;pointer-events:none;',`
-    <svg viewBox="0 0 290 440" xmlns="http://www.w3.org/2000/svg">
-      <rect x="128" y="230" width="34" height="210" rx="10" fill="#7c3f14"/>
-      <path d="M145 255 Q78 195 55 115 Q100 108 132 168Z" fill="#6b3411"/>
-      <path d="M145 255 Q215 185 242 98 Q192 92 158 162Z" fill="#7c3f14"/>
-      <path d="M145 255 Q82 220 42 242 Q76 192 132 210Z" fill="#6b3411"/>
-      <ellipse cx="88" cy="108" rx="72" ry="62" fill="rgba(251,207,232,0.88)"/>
-      <ellipse cx="148" cy="76" rx="68" ry="58" fill="rgba(249,168,212,0.82)"/>
-      <ellipse cx="210" cy="102" rx="68" ry="60" fill="rgba(251,207,232,0.85)"/>
-      <ellipse cx="82" cy="155" rx="58" ry="48" fill="rgba(252,231,243,0.78)"/>
-      <ellipse cx="205" cy="150" rx="55" ry="46" fill="rgba(252,231,243,0.80)"/>
-      <ellipse cx="145" cy="58" rx="52" ry="44" fill="rgba(244,114,182,0.72)"/>
-    </svg>`);
-
-  // Kleiner Baum rechts
-  _bgEl(c,'div','position:absolute;bottom:17%;right:3%;width:18%;max-width:165px;pointer-events:none;opacity:0.78;',`
-    <svg viewBox="0 0 165 295" xmlns="http://www.w3.org/2000/svg">
-      <rect x="72" y="168" width="22" height="127" rx="7" fill="#7c3f14"/>
-      <ellipse cx="83" cy="104" rx="55" ry="47" fill="rgba(251,207,232,0.82)"/>
-      <ellipse cx="56" cy="138" rx="42" ry="35" fill="rgba(249,168,212,0.75)"/>
-      <ellipse cx="112" cy="132" rx="40" ry="34" fill="rgba(252,231,243,0.80)"/>
-      <ellipse cx="83" cy="72" rx="40" ry="34" fill="rgba(244,114,182,0.68)"/>
-    </svg>`);
-
-  // Fallende Blütenblätter
-  for (let i = 0; i < 40; i++) {
-    const hue = 314 + Math.random() * 30;
-    const sz = 7 + Math.random() * 11;
-    const el = _bgEl(c,'div');
+  c.style.background = 'linear-gradient(180deg,#fce7f3 0%,#fbcfe8 38%,#fdf4ff 72%,#faf5ff 100%)';
+  // Grüne Wiese
+  _bgEl(c,'position:absolute;bottom:0;left:-5%;width:110%;height:22%;background:linear-gradient(180deg,#bbf7d0 0%,#86efac 100%);border-radius:52% 48% 0 0/20% 18% 0 0');
+  _bgEl(c,'position:absolute;bottom:18%;left:0;right:0;height:6%;background:rgba(134,239,172,0.38);filter:blur(7px)');
+  // Stamm
+  _bgEl(c,'position:absolute;bottom:20%;left:calc(50% - 10px);width:20px;height:30%;background:linear-gradient(180deg,#92400e,#78350f);border-radius:8px 8px 3px 3px');
+  // Äste
+  _bgEl(c,'position:absolute;bottom:36%;left:calc(50% - 58px);width:52px;height:10px;background:#92400e;border-radius:6px;transform:rotate(-38deg);transform-origin:100% 50%');
+  _bgEl(c,'position:absolute;bottom:41%;right:calc(50% - 58px);width:48px;height:9px;background:#92400e;border-radius:6px;transform:rotate(32deg);transform-origin:0% 50%');
+  // Blütenwolken (weich durch blur = malerisch)
+  [['26%','9%','30%','24%','rgba(251,207,232,0.92)'],
+   ['38%','3%','26%','21%','rgba(249,168,212,0.88)'],
+   ['54%','10%','28%','23%','rgba(252,231,243,0.86)'],
+   ['18%','21%','22%','18%','rgba(244,114,182,0.80)'],
+   ['60%','23%','20%','16%','rgba(252,231,243,0.82)'],
+   ['34%','1%','22%','17%','rgba(244,114,182,0.74)'],
+   ['44%','16%','24%','20%','rgba(251,207,232,0.78)'],
+  ].forEach(([l,t,w,h,bg]) => _bgEl(c,`position:absolute;left:${l};top:${t};width:${w};height:${h};background:${bg};border-radius:50%;filter:blur(12px)`));
+  // Blütenblätter
+  for (let i = 0; i < 38; i++) {
+    const hue = 312 + Math.random() * 32, sz = 7 + Math.random() * 12;
+    const el = document.createElement('div');
     el.className = 'bg-bluete';
-    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*70}%;width:${sz}px;height:${sz}px;background:hsla(${hue},84%,${68+Math.random()*20}%,0.88);animation-delay:${(Math.random()*9).toFixed(2)}s;animation-duration:${(5+Math.random()*8).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*80}%;width:${sz}px;height:${sz}px;background:hsla(${hue},84%,${67+Math.random()*22}%,0.9);animation-delay:${(Math.random()*9).toFixed(2)}s;animation-duration:${(5+Math.random()*9).toFixed(2)}s`;
+    c.appendChild(el);
   }
 }
 
@@ -1637,141 +1622,110 @@ function bgAnimKirschbluete() {
 function bgAnimWinter() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  c.style.background = 'linear-gradient(180deg,#dbeafe 0%,#bfdbfe 30%,#eff6ff 65%,#f8fafc 100%)';
-
-  // Schneebedeckte Hügel (mehrere Ebenen)
-  _bgEl(c,'div','position:absolute;bottom:0;left:-8%;width:65%;height:42%;background:linear-gradient(180deg,#f0f9ff 0%,#e0f2fe 100%);border-radius:60% 70% 0 0/80% 80% 0 0;');
-  _bgEl(c,'div','position:absolute;bottom:0;right:-8%;width:60%;height:36%;background:linear-gradient(180deg,#f0f9ff 0%,#dbeafe 100%);border-radius:70% 55% 0 0/80% 80% 0 0;');
-  _bgEl(c,'div','position:absolute;bottom:0;left:22%;width:58%;height:28%;background:#f8fafc;border-radius:50% 60% 0 0/65% 65% 0 0;');
-  // Schnee-Glanz oben auf Hügeln
-  _bgEl(c,'div','position:absolute;bottom:38%;left:-5%;width:50%;height:8%;background:rgba(255,255,255,0.6);filter:blur(6px);border-radius:50%;');
-  _bgEl(c,'div','position:absolute;bottom:32%;right:-5%;width:45%;height:7%;background:rgba(255,255,255,0.5);filter:blur(5px);border-radius:50%;');
-
-  // Tannenbäume (CSS-Dreiecke)
-  [
-    {l:'4%',s:1.0},{l:'11%',s:0.73},{l:'17%',s:0.88},
-    {l:'74%',s:0.80},{l:'81%',s:1.0},{l:'88%',s:0.68}
-  ].forEach(({l, s}) => {
-    const h = 130*s, w = 68*s;
-    _bgEl(c,'div',`position:absolute;bottom:${24*s}%;left:${l};width:0;height:0;border-left:${w/2}px solid transparent;border-right:${w/2}px solid transparent;border-bottom:${h}px solid rgba(21,128,61,0.78);`);
-    // Schnee auf der Spitze
-    _bgEl(c,'div',`position:absolute;bottom:${24*s+4}%;left:calc(${l} + ${w*0.18}px);width:${w*0.64}px;height:${h*0.22}px;background:rgba(255,255,255,0.7);filter:blur(3px);border-radius:50%;`);
+  c.style.background = 'linear-gradient(180deg,#c8defa 0%,#dbeafe 38%,#eff6ff 72%,#f8fafc 100%)';
+  // Hügel
+  _bgEl(c,'position:absolute;bottom:0;left:-8%;width:63%;height:42%;background:linear-gradient(180deg,#f0f9ff 0%,#e0f2fe 100%);border-radius:58% 68% 0 0/78% 78% 0 0');
+  _bgEl(c,'position:absolute;bottom:0;right:-8%;width:58%;height:35%;background:linear-gradient(180deg,#f0f9ff 0%,#dbeafe 100%);border-radius:68% 52% 0 0/78% 78% 0 0');
+  _bgEl(c,'position:absolute;bottom:0;left:20%;width:62%;height:27%;background:#f8fafc;border-radius:50% 60% 0 0/60% 60% 0 0');
+  // Schneeglanz
+  _bgEl(c,'position:absolute;bottom:37%;left:0;width:42%;height:6%;background:rgba(255,255,255,0.65);filter:blur(7px);border-radius:50%');
+  _bgEl(c,'position:absolute;bottom:30%;right:0;width:38%;height:5%;background:rgba(255,255,255,0.55);filter:blur(6px);border-radius:50%');
+  // Tannenbäume
+  [{l:'4%',s:1},{l:'11%',s:0.72},{l:'17%',s:0.87},{l:'74%',s:0.80},{l:'81%',s:1},{l:'88%',s:0.67}].forEach(({l,s}) => {
+    const h = 130*s, w = 66*s, b = 22*s;
+    _bgEl(c,`position:absolute;bottom:${b}%;left:${l};width:0;height:0;border-left:${w/2}px solid transparent;border-right:${w/2}px solid transparent;border-bottom:${h}px solid rgba(21,128,61,0.82)`);
+    _bgEl(c,`position:absolute;bottom:${b+3}%;left:calc(${l} + ${(w*0.16).toFixed(1)}px);width:${(w*0.68).toFixed(1)}px;height:${(h*0.2).toFixed(1)}px;background:rgba(255,255,255,0.78);filter:blur(3px);border-radius:50%`);
   });
-
-  // Schneeflocken (jetzt dunkleres Blau, sichtbar auf hellem Grund)
-  const sym = ['❄','❅','❆','·','*','·'];
+  // Schneeflocken
+  const sym = ['❄','❅','❆','·','*'];
   for (let i = 0; i < 50; i++) {
-    const el = _bgEl(c,'div');
+    const el = document.createElement('div');
     el.className = 'bg-schnee';
     el.textContent = sym[Math.floor(Math.random()*sym.length)];
     el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*100}%;font-size:${9+Math.random()*18}px;animation-delay:${(Math.random()*10).toFixed(2)}s;animation-duration:${(6+Math.random()*10).toFixed(2)}s`;
+    c.appendChild(el);
   }
 }
 
-// ── Wald: Sonnendurchfluteter Wald ──────────────────────────
+// ── Wald: Waldszene ─────────────────────────────────────────
 function bgAnimWald() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  c.style.background = 'linear-gradient(180deg,#d1fae5 0%,#a7f3d0 25%,#6ee7b7 55%,#34d399 80%,#22c55e 100%)';
-
+  c.style.background = 'linear-gradient(180deg,#d1fae5 0%,#86efac 30%,#4ade80 60%,#16a34a 85%,#166534 100%)';
+  // Lichtschein
+  _bgEl(c,'position:absolute;top:0;left:50%;transform:translateX(-50%);width:80%;height:60%;background:radial-gradient(ellipse,rgba(253,224,71,0.16) 0%,transparent 65%)');
   // Waldboden
-  _bgEl(c,'div','position:absolute;bottom:0;left:0;right:0;height:22%;background:linear-gradient(180deg,#166534 0%,#14532d 100%);');
-  // Lichtstimmung
-  _bgEl(c,'div','position:absolute;top:0;left:30%;width:40%;height:70%;background:radial-gradient(ellipse,rgba(253,224,71,0.18) 0%,transparent 65%);');
-
-  // Baum-Silhouetten SVG (Hintergrund + Vordergrund)
-  _bgEl(c,'div','position:absolute;bottom:20%;left:0;right:0;height:68%;pointer-events:none;',`
-    <svg viewBox="0 0 1000 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="80"  cy="310" rx="68" ry="90"  fill="rgba(34,197,94,0.55)"/><rect x="72"  y="360" width="16" height="140" fill="rgba(92,64,51,0.5)"/>
-      <ellipse cx="220" cy="285" rx="80" ry="108" fill="rgba(21,128,61,0.52)"/><rect x="212" y="348" width="16" height="152" fill="rgba(92,64,51,0.5)"/>
-      <ellipse cx="380" cy="295" rx="73" ry="98"  fill="rgba(34,197,94,0.56)"/><rect x="372" y="352" width="16" height="148" fill="rgba(92,64,51,0.5)"/>
-      <ellipse cx="550" cy="278" rx="78" ry="103" fill="rgba(21,128,61,0.53)"/><rect x="542" y="345" width="16" height="155" fill="rgba(92,64,51,0.5)"/>
-      <ellipse cx="720" cy="288" rx="70" ry="95"  fill="rgba(34,197,94,0.55)"/><rect x="712" y="350" width="16" height="150" fill="rgba(92,64,51,0.5)"/>
-      <ellipse cx="900" cy="282" rx="76" ry="100" fill="rgba(21,128,61,0.54)"/><rect x="892" y="348" width="16" height="152" fill="rgba(92,64,51,0.5)"/>
-      <ellipse cx="40"  cy="385" rx="52" ry="72"  fill="rgba(15,107,52,0.92)"/><rect x="33"  y="425" width="14" height="75"  fill="rgba(58,30,10,0.8)"/>
-      <ellipse cx="170" cy="375" rx="62" ry="84"  fill="rgba(20,83,45,0.90)"/> <rect x="163" y="418" width="14" height="82"  fill="rgba(58,30,10,0.8)"/>
-      <ellipse cx="310" cy="380" rx="56" ry="78"  fill="rgba(15,107,52,0.92)"/><rect x="303" y="422" width="14" height="78"  fill="rgba(58,30,10,0.8)"/>
-      <ellipse cx="460" cy="370" rx="60" ry="80"  fill="rgba(20,83,45,0.90)"/> <rect x="453" y="414" width="14" height="86"  fill="rgba(58,30,10,0.8)"/>
-      <ellipse cx="630" cy="376" rx="58" ry="79"  fill="rgba(15,107,52,0.92)"/><rect x="623" y="420" width="14" height="80"  fill="rgba(58,30,10,0.8)"/>
-      <ellipse cx="800" cy="372" rx="61" ry="82"  fill="rgba(20,83,45,0.90)"/> <rect x="793" y="416" width="14" height="84"  fill="rgba(58,30,10,0.8)"/>
-      <ellipse cx="960" cy="382" rx="54" ry="74"  fill="rgba(15,107,52,0.92)"/><rect x="953" y="424" width="14" height="76"  fill="rgba(58,30,10,0.8)"/>
-    </svg>`);
-
+  _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:20%;background:linear-gradient(180deg,#166534 0%,#14532d 100%)');
+  // Hintere Bäume
+  [{x:'5%',w:'13%',h:'50%'},{x:'22%',w:'15%',h:'56%'},{x:'40%',w:'13%',h:'49%'},
+   {x:'56%',w:'15%',h:'54%'},{x:'74%',w:'13%',h:'50%'},{x:'88%',w:'12%',h:'46%'}
+  ].forEach(({x,w,h}) => _bgEl(c,`position:absolute;bottom:18%;left:${x};width:${w};height:${h};background:rgba(21,128,61,0.52);border-radius:50% 50% 15% 15%`));
+  // Vordere Bäume
+  [{x:'0%',w:'11%',h:'44%'},{x:'14%',w:'13%',h:'48%'},{x:'30%',w:'12%',h:'45%'},
+   {x:'46%',w:'12%',h:'47%'},{x:'62%',w:'13%',h:'49%'},{x:'78%',w:'12%',h:'43%'},{x:'90%',w:'10%',h:'41%'}
+  ].forEach(({x,w,h}) => _bgEl(c,`position:absolute;bottom:18%;left:${x};width:${w};height:${h};background:rgba(20,83,45,0.9);border-radius:50% 50% 8% 8%`));
   // Fallende Blätter
   const blaetter = ['🍃','🍀','🌿','🍂','🍁'];
-  for (let i = 0; i < 28; i++) {
-    const el = _bgEl(c,'div');
+  for (let i = 0; i < 26; i++) {
+    const el = document.createElement('div');
     el.className = 'bg-blatt';
     el.textContent = blaetter[Math.floor(Math.random()*blaetter.length)];
     el.style.cssText = `left:${Math.random()*100}%;top:${-Math.random()*70}%;font-size:${12+Math.random()*14}px;animation-delay:${(Math.random()*11).toFixed(2)}s;animation-duration:${(7+Math.random()*10).toFixed(2)}s`;
+    c.appendChild(el);
   }
 }
 
-// ── Ozean: Unterwasserpanorama ──────────────────────────────
+// ── Ozean: Ozean-Szene ──────────────────────────────────────
 function bgAnimOzean() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  c.style.background = 'linear-gradient(180deg,#bae6fd 0%,#7dd3fc 25%,#38bdf8 50%,#0891b2 72%,#0e7490 88%,#164e63 100%)';
-
-  // Sonne im Himmel
-  _bgEl(c,'div','position:absolute;top:5%;right:12%;width:85px;height:85px;border-radius:50%;background:radial-gradient(circle,rgba(254,240,138,0.95) 0%,rgba(253,224,71,0.35) 55%,transparent 100%);box-shadow:0 0 55px rgba(253,224,71,0.5);');
-
+  c.style.background = 'linear-gradient(180deg,#bae6fd 0%,#38bdf8 35%,#0891b2 62%,#0e7490 82%,#164e63 100%)';
+  // Sonne
+  _bgEl(c,'position:absolute;top:5%;right:10%;width:78px;height:78px;border-radius:50%;background:radial-gradient(circle,rgba(254,240,138,0.96) 0%,rgba(253,224,71,0.45) 45%,transparent 100%);box-shadow:0 0 50px rgba(253,224,71,0.55),0 0 100px rgba(253,224,71,0.22)');
+  // Lichtspiegelung
+  _bgEl(c,'position:absolute;top:33%;left:28%;width:44%;height:3%;background:rgba(255,255,255,0.18);filter:blur(5px);border-radius:50%');
   // Meeresboden
-  _bgEl(c,'div','position:absolute;bottom:0;left:0;right:0;height:12%;background:linear-gradient(180deg,#1e3a5f 0%,#0c2340 100%);border-radius:3% 5% 0 0;');
-  // Sand
-  _bgEl(c,'div','position:absolute;bottom:10%;left:0;right:0;height:5%;background:rgba(180,160,100,0.35);filter:blur(4px);');
-
-  // Aufsteigende Blasen (Wellenlinie kommt via CSS .skin-ozean ::after)
-  for (let i = 0; i < 30; i++) {
+  _bgEl(c,'position:absolute;bottom:0;left:0;right:0;height:12%;background:linear-gradient(180deg,#1e3a5f 0%,#0c2340 100%);border-radius:3% 5% 0 0');
+  // Blasen
+  for (let i = 0; i < 28; i++) {
     const sz = 5 + Math.random() * 20;
-    const el = _bgEl(c,'div');
+    const el = document.createElement('div');
     el.className = 'bg-blase';
     el.style.cssText = `left:${Math.random()*100}%;width:${sz}px;height:${sz}px;animation-delay:${(Math.random()*8).toFixed(2)}s;animation-duration:${(5+Math.random()*9).toFixed(2)}s`;
+    c.appendChild(el);
   }
 }
 
-// ── Märchen: Magisches Schloss-Panorama ─────────────────────
+// ── Märchen: Fantasy-Panorama ───────────────────────────────
 function bgAnimMaerchen() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  c.style.background = 'linear-gradient(180deg,#fdf4ff 0%,#e9d5ff 22%,#c4b5fd 50%,#818cf8 78%,#6366f1 100%)';
-
-  // Mondschein
-  _bgEl(c,'div','position:absolute;top:5%;right:15%;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,240,0.95) 0%,rgba(253,224,71,0.2) 55%,transparent 100%);box-shadow:0 0 40px rgba(255,255,220,0.5);');
-
-  // Regenbogen-Bogen
-  _bgEl(c,'div','position:absolute;top:18%;left:50%;transform:translateX(-50%);width:700px;height:350px;border-radius:350px 350px 0 0/350px 350px 0 0;border:10px solid transparent;box-shadow:0 0 0 10px rgba(251,207,232,0.22),0 0 0 20px rgba(216,180,254,0.18),0 0 0 30px rgba(165,243,252,0.14);');
-
-  // Wiese + Weg
-  _bgEl(c,'div','position:absolute;bottom:0;left:0;right:0;height:20%;background:linear-gradient(180deg,#86efac 0%,#4ade80 100%);border-radius:45% 55% 0 0/15% 12% 0 0;');
-  _bgEl(c,'div','position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:80px;height:22%;background:linear-gradient(180deg,rgba(217,119,6,0.4) 0%,rgba(180,83,9,0.5) 100%);border-radius:5px 5px 0 0;');
-
-  // Schloss-Silhouette
-  _bgEl(c,'div','position:absolute;bottom:17%;left:50%;transform:translateX(-50%);width:38%;max-width:340px;pointer-events:none;opacity:0.45;',`
-    <svg viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg">
-      <rect x="18"  y="88" width="52" height="172" fill="#7c3aed"/>
-      <polygon points="18,88 70,88 44,32" fill="#6d28d9"/>
-      <circle cx="44" cy="32" r="6" fill="#fbbf24"/>
-      <rect x="140" y="42" width="60" height="218" fill="#7c3aed"/>
-      <polygon points="140,42 200,42 170,-12" fill="#6d28d9"/>
-      <circle cx="170" cy="-12" r="8" fill="#fbbf24"/>
-      <rect x="270" y="88" width="52" height="172" fill="#7c3aed"/>
-      <polygon points="270,88 322,88 296,32" fill="#6d28d9"/>
-      <circle cx="296" cy="32" r="6" fill="#fbbf24"/>
-      <rect x="52" y="128" width="236" height="132" fill="#8b5cf6"/>
-      <path d="M148 260 L148 178 Q170 148 192 178 L192 260Z" fill="#4c1d95"/>
-      <circle cx="95"  cy="158" r="13" fill="rgba(253,224,71,0.65)"/>
-      <circle cx="245" cy="158" r="13" fill="rgba(253,224,71,0.65)"/>
-      <circle cx="170" cy="100" r="15" fill="rgba(253,224,71,0.75)"/>
+  c.style.background = 'linear-gradient(180deg,#fdf4ff 0%,#e9d5ff 28%,#a78bfa 58%,#7c3aed 82%,#5b21b6 100%)';
+  // Mond
+  _bgEl(c,'position:absolute;top:6%;right:12%;width:62px;height:62px;border-radius:50%;background:radial-gradient(circle at 40% 38%,#fefce8,#fef9c3 48%,#fde68a);box-shadow:0 0 32px rgba(254,249,195,0.55),0 0 65px rgba(254,249,195,0.22)');
+  _bgEl(c,'position:absolute;top:2%;right:7%;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(254,249,195,0.18) 0%,transparent 70%)');
+  // Wiese
+  _bgEl(c,'position:absolute;bottom:0;left:-5%;width:110%;height:20%;background:linear-gradient(180deg,#4ade80 0%,#22c55e 100%);border-radius:50% 50% 0 0/15% 15% 0 0');
+  // Schloss-Silhouette (dunkle CSS-Formen, kein Farbiges SVG)
+  _bgEl(c,'position:absolute;bottom:18%;left:50%;transform:translateX(-50%);width:34%;max-width:200px;',`
+    <svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg" width="100%" style="opacity:0.35">
+      <rect x="12" y="60" width="38" height="100" fill="#4c1d95"/>
+      <polygon points="12,60 50,60 31,28" fill="#3b0764"/>
+      <rect x="81" y="30" width="38" height="130" fill="#4c1d95"/>
+      <polygon points="81,30 119,30 100,0" fill="#3b0764"/>
+      <rect x="150" y="60" width="38" height="100" fill="#4c1d95"/>
+      <polygon points="150,60 188,60 169,28" fill="#3b0764"/>
+      <rect x="42" y="82" width="116" height="78" fill="#5b21b6"/>
+      <path d="M90 160 L90 118 Q100 100 110 118 L110 160Z" fill="#3b0764"/>
     </svg>`);
-
-  // Funkelnde Sterne
-  const farben = ['#a78bfa','#f9a8d4','#86efac','#fde68a','#67e8f9','#c4b5fd'];
-  for (let i = 0; i < 60; i++) {
+  // Funkeln
+  const farben = ['#a78bfa','#f9a8d4','#86efac','#fde68a','#67e8f9','#c4b5fd','#fca5a5'];
+  for (let i = 0; i < 55; i++) {
     const sz = 2 + Math.random() * 6;
-    const el = _bgEl(c,'div');
+    const el = document.createElement('div');
     el.className = 'bg-funke';
     el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:${farben[Math.floor(Math.random()*farben.length)]};animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(1.5+Math.random()*3.5).toFixed(2)}s`;
+    c.appendChild(el);
   }
 }
 
@@ -1779,22 +1733,20 @@ function bgAnimMaerchen() {
 function bgAnimGlitzergold() {
   const c = document.getElementById('bgAnimContainer');
   if (!c) return;
-  c.style.background = 'linear-gradient(180deg,#fff7ed 0%,#fef3c7 20%,#fde68a 42%,#fbbf24 65%,#f59e0b 85%,#d97706 100%)';
-
+  c.style.background = 'linear-gradient(165deg,#fffbeb 0%,#fef3c7 18%,#fde68a 38%,#fbbf24 58%,#f59e0b 78%,#d97706 100%)';
   // Sonne
-  _bgEl(c,'div','position:absolute;top:4%;left:50%;transform:translateX(-50%);width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.92) 0%,rgba(253,224,71,0.75) 28%,rgba(251,191,36,0.35) 55%,transparent 100%);');
-
-  // Hügelsilhouette
-  _bgEl(c,'div','position:absolute;bottom:0;left:-5%;width:55%;height:30%;background:rgba(120,53,15,0.35);border-radius:60% 70% 0 0/80% 80% 0 0;');
-  _bgEl(c,'div','position:absolute;bottom:0;right:-5%;width:50%;height:24%;background:rgba(120,53,15,0.3);border-radius:70% 60% 0 0/80% 80% 0 0;');
-
-  // Goldene Glitzer-Partikel
-  const farben = ['#fbbf24','#f59e0b','#fef9c3','#fde68a','#ffffff','#fcd34d','#fef3c7'];
+  _bgEl(c,'position:absolute;top:2%;left:50%;transform:translateX(-50%);width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.95) 0%,rgba(253,224,71,0.8) 22%,rgba(251,191,36,0.45) 48%,transparent 100%)');
+  // Hügelsilhouetten
+  _bgEl(c,'position:absolute;bottom:0;left:-8%;width:55%;height:30%;background:rgba(120,53,15,0.32);border-radius:60% 70% 0 0/78% 78% 0 0');
+  _bgEl(c,'position:absolute;bottom:0;right:-8%;width:50%;height:24%;background:rgba(120,53,15,0.28);border-radius:70% 60% 0 0/78% 78% 0 0');
+  // Goldene Partikel
+  const farben = ['#fbbf24','#f59e0b','#fef9c3','#fde68a','#ffffff','#fcd34d'];
   for (let i = 0; i < 65; i++) {
-    const sz = 2 + Math.random() * 7;
-    const el = _bgEl(c,'div');
+    const sz = 2 + Math.random() * 7, f = farben[Math.floor(Math.random()*farben.length)];
+    const el = document.createElement('div');
     el.className = 'bg-glitzer';
-    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*85}%;width:${sz}px;height:${sz}px;background:${farben[Math.floor(Math.random()*farben.length)]};box-shadow:0 0 ${sz*2}px ${farben[Math.floor(Math.random()*farben.length)]};animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(1+Math.random()*2.5).toFixed(2)}s`;
+    el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*85}%;width:${sz}px;height:${sz}px;background:${f};box-shadow:0 0 ${(sz*2).toFixed(0)}px ${f};animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(1+Math.random()*2.5).toFixed(2)}s`;
+    c.appendChild(el);
   }
 }
 

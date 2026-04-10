@@ -1068,11 +1068,13 @@ body {
 }
 
 /* ── HINTERGRUND-ANIMATIONEN ─────────────────────────── */
+.spiel-mitte { position: relative; }
+
 #bgAnimContainer {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
   overflow: hidden;
 }
 .klick-sektion,

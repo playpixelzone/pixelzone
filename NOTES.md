@@ -1,5 +1,21 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Heutiger Stand (2026-04-10)
+
+### Pixel Factory – Animierte Skin-Hintergründe ✅
+- Skins haben jetzt echte animierte Szenen-Hintergründe im Mittelbereich
+- `#bgAnimContainer` liegt korrekt in `.spiel-mitte` (nicht full-page)
+- CSS: `position: absolute; inset: 0; z-index: 0`, `.spiel-mitte { position: relative }`
+- Alle bgAnim-Funktionen neu geschrieben (kein schlechtes SVG-Art mehr):
+  - **Weltraum**: Nebel-Gradienten, leuchtender Planet mit Ring + Mond, 130 Sterne, Sternschnuppen
+  - **Kirschblüte**: Rosa Himmel, Wiese, Stamm/Äste (CSS), 7 verschwommene Blüten-Wolken, fallende Blütenblätter
+  - **Winter**: Blauer Himmel, 3 Schneehügel, CSS-Tannenbäume mit Schnee, 50 Schneeflocken
+  - **Wald**: Grüner Wald, Licht-Gradient, Waldboden, einfache Baumellipsen, fallende Blätter
+  - **Ozean**: Ozean-Gradient, Sonne, Lichtreflexion, Meeresboden, 28 Blasen
+  - **Märchen**: Lila Fantasy, Mond, Wiese, vereinfachtes Schloss-SVG (0.35 Opacity), 55 Funken
+  - **Glitzer-Gold**: Goldener Gradient, große Sonne, Hügel-Silhouetten, 65 leuchtende Gold-Partikel
+- Geänderte Dateien: game.js, style.css, index.html
+
 ## Heutiger Stand (2026-04-06)
 
 ### Pixel Factory – Layout & Features (2026-04-06) ✅

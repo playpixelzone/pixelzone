@@ -38,19 +38,7 @@
   </url>
 
   <url>
-    <loc>https://playpixelzone.github.io/pixelzone/games/arkanoid/</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-
-  <url>
     <loc>https://playpixelzone.github.io/pixelzone/games/memory-match/</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-
-  <url>
-    <loc>https://playpixelzone.github.io/pixelzone/games/neon-runner/</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>

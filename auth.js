@@ -256,9 +256,7 @@ const PZ = {
             <a href="${base}games/space-blaster/?admin=1" class="pz-admin-btn">🚀 Space Blaster</a>
             <a href="${base}games/minesweeper/?admin=1" class="pz-admin-btn">💣 Minesweeper</a>
             <a href="${base}games/wordle/?admin=1" class="pz-admin-btn">📝 Wordle</a>
-            <a href="${base}games/arkanoid/?admin=1" class="pz-admin-btn">🧱 Arkanoid X</a>
             <a href="${base}games/memory-match/?admin=1" class="pz-admin-btn">🃏 Memory Match</a>
-            <a href="${base}games/neon-runner/?admin=1" class="pz-admin-btn">🌟 Neon Runner</a>
             <a href="${base}games/pixel-drop/?admin=1" class="pz-admin-btn">⬇ Pixel Drop</a>
           </div>
           <button class="pz-admin-schliessen" id="pzAdminSchliessen">Schließen</button>

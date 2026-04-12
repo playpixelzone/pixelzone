@@ -473,10 +473,65 @@ function kollisionPruefen() {
 }
 
 // ══════════════════════════════════════════════════════
-//  7. COINS  (in Task 4 gefüllt)
+//  7. COINS
 // ══════════════════════════════════════════════════════
-function coinsZeichnen() {}
-function coinsAktualisieren() {}
+function coinsZeichnen() {
+  for (const c of coinItems) {
+    if (c.gesammelt) continue;
+    const sy = c.worldY - scrollOffset;
+    if (sy < -20 || sy > CH + 20) continue;
+
+    const pulse = 1 + Math.sin(zeit * 4 + c.worldY * 0.01) * 0.15;
+    const r     = COIN_RADIUS * pulse;
+
+    ctx.beginPath();
+    ctx.arc(c.x, sy, r, 0, Math.PI * 2);
+    const grad = ctx.createRadialGradient(c.x - 2, sy - 2, 1, c.x, sy, r);
+    grad.addColorStop(0,   '#fff7aa');
+    grad.addColorStop(0.5, '#ffd700');
+    grad.addColorStop(1,   '#cc8800');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(c.x - 2, sy - 2, r * 0.35, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fill();
+  }
+}
+
+function coinsAktualisieren() {
+  const px          = spieler.x + SPIELER_GROESSE / 2;
+  const py          = CH * SPIELER_Y_RATIO + SPIELER_GROESSE / 2;
+  const sammelRadius = COIN_RADIUS + SPIELER_GROESSE / 2 + 2;
+
+  for (const c of coinItems) {
+    if (c.gesammelt) continue;
+    const sy = c.worldY - scrollOffset;
+    if (sy < -40) { c.gesammelt = true; continue; }
+
+    const dx = px - c.x, dy = py - sy;
+    if (Math.sqrt(dx * dx + dy * dy) < sammelRadius) {
+      c.gesammelt = true;
+      gameCoins++;
+      for (let i = 0; i < 6; i++) {
+        const winkel = (i / 6) * Math.PI * 2;
+        partikel.push({
+          x: c.x, y: sy,
+          vx: Math.cos(winkel) * 60, vy: Math.sin(winkel) * 60,
+          alpha: 1, size: 3, color: '#ffd700',
+          life: 0.4, maxLife: 0.4,
+        });
+      }
+      hudAktualisieren();
+    }
+  }
+
+  // Aufräumen alle ~100 Frames
+  if (Math.random() < 0.01) {
+    coinItems = coinItems.filter(c => !c.gesammelt && c.worldY > scrollOffset - ZEILEN_HOEHE * 2);
+  }
+}
 
 // ══════════════════════════════════════════════════════
 //  8. PARTIKEL & SKINS  (in Task 7 gefüllt)

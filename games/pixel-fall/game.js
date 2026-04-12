@@ -392,7 +392,24 @@ async function lootboxOeffnen() {}
 //  10. INPUT & BUTTONS  (in Task 2 + Task 6 gefüllt)
 // ══════════════════════════════════════════════════════
 function verdrahteButtons() {}
-function verdrahteInput() {}
+function verdrahteInput() {
+  window.addEventListener('mousemove', e => {
+    if (!running) return;
+    spieler.targetX = e.clientX - SPIELER_GROESSE / 2;
+  });
+
+  window.addEventListener('touchmove', e => {
+    if (!running) return;
+    e.preventDefault();
+    spieler.targetX = e.touches[0].clientX - SPIELER_GROESSE / 2;
+  }, { passive: false });
+
+  window.addEventListener('touchstart', e => {
+    if (!running) return;
+    e.preventDefault();
+    spieler.targetX = e.touches[0].clientX - SPIELER_GROESSE / 2;
+  }, { passive: false });
+}
 
 // ══════════════════════════════════════════════════════
 //  INIT

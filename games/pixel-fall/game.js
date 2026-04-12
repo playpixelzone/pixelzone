@@ -735,9 +735,286 @@ function spielerZeichnen() {
   ctx.fillRect(sx + 10, sy + 5, 2, 3);
 }
 
-function shopRendern() {}
-function ranglisteRendern() {}
-async function lootboxOeffnen() {}
+function skinVorschauZeichnen(canvas, skinId) {
+  const ctx2 = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx2.clearRect(0, 0, w, h);
+
+  const effekt = SKINS[skinId]?.effekt ?? 'keins';
+
+  // Hintergrund
+  ctx2.fillStyle = '#1a1a2e';
+  ctx2.fillRect(0, 0, w, h);
+
+  // Charakter (kleines Pixel)
+  const cx = w / 2 - 5, cy = h / 2 - 5, g = 10;
+
+  // Effekt-Vorschau
+  switch (effekt) {
+    case 'aura-cyan':
+    case 'trail-blau': {
+      const grad = ctx2.createRadialGradient(cx+5,cy+5,0,cx+5,cy+5,14);
+      grad.addColorStop(0,'rgba(0,245,255,0.5)'); grad.addColorStop(1,'rgba(0,245,255,0)');
+      ctx2.fillStyle = grad; ctx2.beginPath(); ctx2.arc(cx+5,cy+5,14,0,Math.PI*2); ctx2.fill();
+      break;
+    }
+    case 'trail-feuer':
+    case 'partikel-feuer': {
+      const grad = ctx2.createRadialGradient(cx+5,cy+5,0,cx+5,cy+5,12);
+      grad.addColorStop(0,'rgba(255,106,0,0.6)'); grad.addColorStop(1,'rgba(255,0,0,0)');
+      ctx2.fillStyle = grad; ctx2.beginPath(); ctx2.arc(cx+5,cy+8,12,0,Math.PI*2); ctx2.fill();
+      break;
+    }
+    case 'trail-gruen':
+    case 'partikel-gruen': {
+      const grad = ctx2.createRadialGradient(cx+5,cy+5,0,cx+5,cy+5,12);
+      grad.addColorStop(0,'rgba(0,230,118,0.5)'); grad.addColorStop(1,'rgba(0,230,118,0)');
+      ctx2.fillStyle = grad; ctx2.beginPath(); ctx2.arc(cx+5,cy+5,12,0,Math.PI*2); ctx2.fill();
+      break;
+    }
+    case 'trail-lila': {
+      const grad = ctx2.createRadialGradient(cx+5,cy+5,0,cx+5,cy+5,12);
+      grad.addColorStop(0,'rgba(155,93,229,0.5)'); grad.addColorStop(1,'rgba(155,93,229,0)');
+      ctx2.fillStyle = grad; ctx2.beginPath(); ctx2.arc(cx+5,cy+5,12,0,Math.PI*2); ctx2.fill();
+      break;
+    }
+    case 'partikel-weiss': {
+      for (let i=0;i<5;i++) {
+        ctx2.fillStyle = `rgba(220,220,255,${0.3+Math.random()*0.5})`;
+        ctx2.beginPath(); ctx2.arc(cx+Math.random()*18, cy+Math.random()*18, 1.5, 0, Math.PI*2); ctx2.fill();
+      }
+      break;
+    }
+    case 'partikel-gelb': {
+      for (let i=0;i<5;i++) {
+        ctx2.fillStyle = `rgba(255,230,0,${0.4+Math.random()*0.4})`;
+        ctx2.beginPath(); ctx2.arc(cx+Math.random()*18, cy+Math.random()*18, 1.5, 0, Math.PI*2); ctx2.fill();
+      }
+      break;
+    }
+    case 'partikel-blau': {
+      for (let i=0;i<5;i++) {
+        ctx2.fillStyle = `rgba(58,134,255,${0.4+Math.random()*0.4})`;
+        ctx2.beginPath(); ctx2.arc(cx+Math.random()*18, cy+Math.random()*18, 1.5, 0, Math.PI*2); ctx2.fill();
+      }
+      break;
+    }
+    case 'partikel-eis': {
+      for (let i=0;i<5;i++) {
+        ctx2.fillStyle = `rgba(160,228,255,${0.4+Math.random()*0.4})`;
+        ctx2.beginPath(); ctx2.arc(cx+Math.random()*18, cy+Math.random()*18, 1.5, 0, Math.PI*2); ctx2.fill();
+      }
+      break;
+    }
+    case 'blitze': {
+      ctx2.strokeStyle='#00f5ff'; ctx2.lineWidth=1; ctx2.globalAlpha=0.7;
+      ctx2.beginPath(); ctx2.moveTo(cx-3,cy-3); ctx2.lineTo(cx+3,cy+8); ctx2.lineTo(cx,cy+4); ctx2.lineTo(cx+6,cy+14); ctx2.stroke();
+      ctx2.globalAlpha=1;
+      break;
+    }
+    case 'galaxy': {
+      for (let i=0;i<6;i++) {
+        const a = (i/6)*Math.PI*2, r = 11;
+        ctx2.fillStyle=['#fff','#c084fc','#60a5fa'][i%3];
+        ctx2.beginPath(); ctx2.arc(cx+5+Math.cos(a)*r, cy+5+Math.sin(a)*r, 1.5, 0, Math.PI*2); ctx2.fill();
+      }
+      break;
+    }
+    case 'god': {
+      const grad = ctx2.createRadialGradient(cx+5,cy+5,0,cx+5,cy+5,14);
+      grad.addColorStop(0,'rgba(255,255,100,0.6)'); grad.addColorStop(1,'rgba(255,100,0,0)');
+      ctx2.fillStyle = grad; ctx2.beginPath(); ctx2.arc(cx+5,cy+5,14,0,Math.PI*2); ctx2.fill();
+      break;
+    }
+    case 'prism': {
+      const grad = ctx2.createRadialGradient(cx+5,cy+5,0,cx+5,cy+5,14);
+      grad.addColorStop(0,'rgba(255,0,255,0.4)'); grad.addColorStop(0.5,'rgba(0,255,255,0.3)'); grad.addColorStop(1,'rgba(255,255,0,0)');
+      ctx2.fillStyle = grad; ctx2.beginPath(); ctx2.arc(cx+5,cy+5,14,0,Math.PI*2); ctx2.fill();
+      break;
+    }
+  }
+
+  // Charakter-Pixel
+  ctx2.fillStyle = '#00f5ff';
+  ctx2.fillRect(cx, cy, g, g);
+  ctx2.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx2.fillRect(cx+1,cy+1,3,3);
+  ctx2.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx2.fillRect(cx+1,cy+g-3,g-2,2);
+}
+
+function shopRendern() {
+  document.getElementById('shop-coins-display').textContent = `🪙 ${pdata.coins}`;
+
+  const grid = document.getElementById('skins-grid');
+  grid.innerHTML = '';
+
+  for (const [id, skin] of Object.entries(SKINS)) {
+    const freigeschaltet = pdata.unlocked_skins.includes(id);
+    const istAktiv       = pdata.active_skin === id;
+
+    const karte = document.createElement('div');
+    karte.className = 'skin-card' + (istAktiv ? ' aktiv' : '') + (!freigeschaltet ? ' gesperrt' : '');
+
+    // Canvas-Vorschau
+    const vorschau = document.createElement('canvas');
+    vorschau.className = 'skin-preview';
+    vorschau.width  = 36;
+    vorschau.height = 36;
+    karte.appendChild(vorschau);
+    skinVorschauZeichnen(vorschau, id);
+
+    // Name
+    const nameEl = document.createElement('div');
+    nameEl.className = 'skin-name';
+    nameEl.textContent = freigeschaltet ? skin.name : '???';
+    karte.appendChild(nameEl);
+
+    // Seltenheit / Quelle
+    if (skin.seltenheit) {
+      const rarEl = document.createElement('div');
+      rarEl.className = `skin-rarity rarity-${skin.seltenheit}`;
+      const texte = { common:'Common', rare:'Rare', epic:'Epic', legendary:'Legendary', meilenstein:'Meilenstein' };
+      rarEl.textContent = texte[skin.seltenheit] ?? skin.seltenheit;
+      karte.appendChild(rarEl);
+    }
+
+    // Meilenstein-Hinweis
+    if (skin.quelle === 'meilenstein' && !freigeschaltet) {
+      const hinweis = document.createElement('div');
+      hinweis.className = 'skin-rarity rarity-meilenstein';
+      hinweis.textContent = `Score ${skin.meilenstein}`;
+      karte.appendChild(hinweis);
+    }
+
+    // Button
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    if (istAktiv) {
+      btn.textContent = '✓ AKTIV';
+      btn.classList.add('btn-primary');
+      btn.disabled = true;
+    } else if (freigeschaltet) {
+      btn.textContent = 'ANLEGEN';
+      btn.classList.add('btn-secondary');
+      btn.addEventListener('click', () => {
+        pdata.active_skin = id;
+        const extraDaten = { coins: pdata.coins, active_skin: pdata.active_skin, unlocked_skins: pdata.unlocked_skins };
+        PZ.saveGameData(SPIEL_NAME, pdata.best_score, 1, extraDaten).catch(() => {});
+        localStorage.setItem(LS_KEY, JSON.stringify(pdata));
+        shopRendern();
+      });
+    } else {
+      btn.textContent = skin.quelle === 'lootbox' ? '🎁 LOOTBOX' : '🔒';
+      btn.classList.add('btn-secondary');
+      btn.disabled = true;
+    }
+    karte.appendChild(btn);
+
+    grid.appendChild(karte);
+  }
+}
+
+async function ranglisteRendern() {
+  const liste = document.getElementById('leaderboard-list');
+  liste.innerHTML = '<div class="leaderboard-loading">Lade...</div>';
+
+  try {
+    const eintraege = await PZ.getLeaderboard(SPIEL_NAME, 10);
+    if (!eintraege || eintraege.length === 0) {
+      liste.innerHTML = '<div class="leaderboard-loading">Noch keine Einträge.</div>';
+      return;
+    }
+
+    liste.innerHTML = '';
+    eintraege.forEach((e, i) => {
+      const zeile = document.createElement('div');
+      const istEigene = e.username === currentUsername;
+      zeile.className = 'leaderboard-row' + (istEigene ? ' eigene' : '');
+
+      let rangText;
+      if      (i === 0) rangText = '🥇';
+      else if (i === 1) rangText = '🥈';
+      else if (i === 2) rangText = '🥉';
+      else              rangText = `#${i + 1}`;
+
+      zeile.innerHTML = `
+        <span class="lb-rang">${rangText}</span>
+        <span class="lb-name">${e.username ?? '???'}</span>
+        <span class="lb-score">${e.punkte ?? 0}</span>
+      `;
+      liste.appendChild(zeile);
+    });
+  } catch (err) {
+    liste.innerHTML = '<div class="leaderboard-loading">Fehler beim Laden.</div>';
+  }
+}
+
+async function lootboxOeffnen() {
+  if (pdata.coins < 100) {
+    document.getElementById('lootbox-result').textContent = 'Zu wenig Coins!';
+    document.getElementById('lootbox-result').style.color = '#ff2d78';
+    return;
+  }
+
+  const btn = document.getElementById('btn-lootbox');
+  btn.disabled = true;
+
+  // Coin abziehen
+  pdata.coins -= 100;
+  document.getElementById('shop-coins-display').textContent = `🪙 ${pdata.coins}`;
+
+  // Animation
+  const visual = document.getElementById('lootbox-visual');
+  visual.classList.add('spinning');
+  visual.textContent = '🎁';
+  document.getElementById('lootbox-result').textContent = '';
+  document.getElementById('lootbox-result').style.color = '';
+
+  // Gewichtete Zufallsauswahl
+  const roll = Math.random();
+  let pool;
+  if      (roll < 0.03) pool = LOOTBOX_POOL.legendary;
+  else if (roll < 0.15) pool = LOOTBOX_POOL.epic;
+  else if (roll < 0.40) pool = LOOTBOX_POOL.rare;
+  else                  pool = LOOTBOX_POOL.common;
+
+  const gewonnenId = pool[Math.floor(Math.random() * pool.length)];
+  const skin = SKINS[gewonnenId];
+  const bereitsHaben = pdata.unlocked_skins.includes(gewonnenId);
+
+  await new Promise(r => setTimeout(r, 820));
+
+  visual.classList.remove('spinning');
+  visual.textContent = '✨';
+
+  // Emoji pro Seltenheit
+  const emojis = { common: '⭐', rare: '💎', epic: '🔮', legendary: '👑' };
+  const rarText = { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' };
+  const farben  = { common: 'var(--common)', rare: 'var(--rare)', epic: 'var(--epic)', legendary: 'var(--legendary)' };
+
+  const resultEl = document.getElementById('lootbox-result');
+  if (bereitsHaben) {
+    resultEl.textContent = `${emojis[skin.seltenheit]} ${skin.name} (bereits freigeschaltet) → +50 🪙`;
+    resultEl.style.color = farben[skin.seltenheit];
+    pdata.coins += 50;
+    document.getElementById('shop-coins-display').textContent = `🪙 ${pdata.coins}`;
+  } else {
+    resultEl.textContent = `${emojis[skin.seltenheit]} ${rarText[skin.seltenheit]}: ${skin.name}!`;
+    resultEl.style.color = farben[skin.seltenheit];
+    pdata.unlocked_skins.push(gewonnenId);
+  }
+
+  // Speichern
+  const extraDaten = { coins: pdata.coins, active_skin: pdata.active_skin, unlocked_skins: pdata.unlocked_skins };
+  await PZ.saveGameData(SPIEL_NAME, pdata.best_score, 1, extraDaten).catch(() => {});
+  localStorage.setItem(LS_KEY, JSON.stringify(pdata));
+
+  // Shop-Grid aktualisieren
+  shopRendern();
+
+  btn.disabled = false;
+}
 
 // ══════════════════════════════════════════════════════
 //  10. INPUT & BUTTONS  (in Task 2 + Task 6 gefüllt)

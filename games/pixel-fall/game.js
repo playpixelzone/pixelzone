@@ -125,7 +125,7 @@ function meilensteinPruefen(neuerScore) {
         && !pdata.unlocked_skins.includes(m.id)
         && !freigeschaltetDieserRun.includes(m.id)) {
       freigeschaltetDieserRun.push(m.id);
-      meilensteinFreischalten(m.id);
+      meilensteinFreischalten(m.id).catch(err => console.error('Skin-Speichern fehlgeschlagen:', err));
       bannerZeigen(`🏆 Skin freigeschaltet: ${SKINS[m.id].name}!`);
     }
   }
@@ -170,18 +170,24 @@ function spielEnde() {
   const runScore = score;
   const runCoins = gameCoins;
 
-  spielerDatenSpeichern(runScore, runCoins).then(({ isNewRecord }) => {
-    document.getElementById('gameover-score').textContent  = runScore;
-    document.getElementById('gameover-coins').textContent  = `+${runCoins}`;
-    document.getElementById('menu-best-score').textContent = pdata.best_score;
-    document.getElementById('menu-coins').textContent      = pdata.coins;
+  spielerDatenSpeichern(runScore, runCoins)
+    .then(({ isNewRecord }) => {
+      document.getElementById('gameover-score').textContent  = runScore;
+      document.getElementById('gameover-coins').textContent  = `+${runCoins}`;
+      document.getElementById('menu-best-score').textContent = pdata.best_score;
+      document.getElementById('menu-coins').textContent      = pdata.coins;
 
-    const badge = document.getElementById('gameover-highscore-badge');
-    if (isNewRecord) badge.classList.remove('versteckt');
-    else             badge.classList.add('versteckt');
+      const badge = document.getElementById('gameover-highscore-badge');
+      if (isNewRecord) badge.classList.remove('versteckt');
+      else             badge.classList.add('versteckt');
 
-    zeigeScreen('screen-gameover');
-  });
+      zeigeScreen('screen-gameover');
+    })
+    .catch(() => {
+      document.getElementById('gameover-score').textContent = runScore;
+      document.getElementById('gameover-coins').textContent = `+${runCoins}`;
+      zeigeScreen('screen-gameover');
+    });
 }
 
 function gameLoop(timestamp) {

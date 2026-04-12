@@ -606,7 +606,41 @@ async function lootboxOeffnen() {}
 // ══════════════════════════════════════════════════════
 //  10. INPUT & BUTTONS  (in Task 2 + Task 6 gefüllt)
 // ══════════════════════════════════════════════════════
-function verdrahteButtons() {}
+function verdrahteButtons() {
+  // Hauptmenü
+  document.getElementById('btn-spielen').addEventListener('click', spielStarten);
+  document.getElementById('btn-shop').addEventListener('click', () => {
+    shopRendern();
+    zeigeScreen('screen-shop');
+  });
+  document.getElementById('btn-rangliste').addEventListener('click', () => {
+    ranglisteRendern();
+    zeigeScreen('screen-leaderboard');
+  });
+  document.getElementById('btn-logout').addEventListener('click', async () => {
+    await PZ.logout();
+    window.location.href = '../../index.html';
+  });
+
+  // Game Over
+  document.getElementById('btn-retry').addEventListener('click', spielStarten);
+  document.getElementById('btn-menu-from-gameover').addEventListener('click', () => {
+    menuAktualisieren();
+    zeigeScreen('screen-menu');
+  });
+
+  // Shop
+  document.getElementById('btn-shop-back').addEventListener('click', () => {
+    menuAktualisieren();
+    zeigeScreen('screen-menu');
+  });
+  document.getElementById('btn-lootbox').addEventListener('click', lootboxOeffnen);
+
+  // Rangliste
+  document.getElementById('btn-leaderboard-back').addEventListener('click', () => {
+    zeigeScreen('screen-menu');
+  });
+}
 function verdrahteInput() {
   window.addEventListener('mousemove', e => {
     if (!running) return;

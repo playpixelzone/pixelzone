@@ -846,6 +846,18 @@ function skinVorschauZeichnen(canvas, skinId) {
 function shopRendern() {
   document.getElementById('shop-coins-display').textContent = `🪙 ${pdata.coins}`;
 
+  // Lootbox-Button deaktivieren wenn alle Skins freigeschaltet
+  const alleLootboxIds = [...LOOTBOX_POOL.common, ...LOOTBOX_POOL.rare, ...LOOTBOX_POOL.epic, ...LOOTBOX_POOL.legendary];
+  const alleFreigeschaltet = alleLootboxIds.every(id => pdata.unlocked_skins.includes(id));
+  const lootboxBtn = document.getElementById('btn-lootbox');
+  if (alleFreigeschaltet) {
+    lootboxBtn.textContent = '✓ ALLE SKINS FREIGESCHALTET';
+    lootboxBtn.disabled = true;
+  } else {
+    lootboxBtn.textContent = 'BOX ÖFFNEN (100 🪙)';
+    lootboxBtn.disabled = false;
+  }
+
   const grid = document.getElementById('skins-grid');
   grid.innerHTML = '';
 
@@ -864,10 +876,10 @@ function shopRendern() {
     karte.appendChild(vorschau);
     skinVorschauZeichnen(vorschau, id);
 
-    // Name
+    // Name (Meilenstein-Skins immer sichtbar, Lootbox-Skins als ??? wenn gesperrt)
     const nameEl = document.createElement('div');
     nameEl.className = 'skin-name';
-    nameEl.textContent = freigeschaltet ? skin.name : '???';
+    nameEl.textContent = (freigeschaltet || skin.quelle === 'meilenstein') ? skin.name : '???';
     karte.appendChild(nameEl);
 
     // Seltenheit / Quelle
@@ -971,17 +983,47 @@ async function lootboxOeffnen() {
   document.getElementById('lootbox-result').textContent = '';
   document.getElementById('lootbox-result').style.color = '';
 
-  // Gewichtete Zufallsauswahl
-  const roll = Math.random();
-  let pool;
-  if      (roll < 0.03) pool = LOOTBOX_POOL.legendary;
-  else if (roll < 0.15) pool = LOOTBOX_POOL.epic;
-  else if (roll < 0.40) pool = LOOTBOX_POOL.rare;
-  else                  pool = LOOTBOX_POOL.common;
+  // Nicht-besessene Skins pro Seltenheit
+  const verfuegbar = {
+    common:    LOOTBOX_POOL.common.filter(id => !pdata.unlocked_skins.includes(id)),
+    rare:      LOOTBOX_POOL.rare.filter(id => !pdata.unlocked_skins.includes(id)),
+    epic:      LOOTBOX_POOL.epic.filter(id => !pdata.unlocked_skins.includes(id)),
+    legendary: LOOTBOX_POOL.legendary.filter(id => !pdata.unlocked_skins.includes(id)),
+  };
 
-  const gewonnenId = pool[Math.floor(Math.random() * pool.length)];
+  // Alle Lootbox-Skins schon freigeschaltet?
+  const alleLootboxIds = [...LOOTBOX_POOL.common, ...LOOTBOX_POOL.rare, ...LOOTBOX_POOL.epic, ...LOOTBOX_POOL.legendary];
+  const allFreigeschaltet = alleLootboxIds.every(id => pdata.unlocked_skins.includes(id));
+
+  if (allFreigeschaltet) {
+    pdata.coins += 100; // Rückerstattung
+    localStorage.setItem(LS_KEY, JSON.stringify(pdata));
+    visual.classList.remove('spinning');
+    visual.textContent = '🎁';
+    const resultEl2 = document.getElementById('lootbox-result');
+    resultEl2.textContent = 'Alle Skins bereits freigeschaltet! Coins zurückerstattet.';
+    resultEl2.style.color = 'var(--neon-yell)';
+    document.getElementById('shop-coins-display').textContent = `🪙 ${pdata.coins}`;
+    btn.disabled = false;
+    return;
+  }
+
+  // Gewichtete Zufallsauswahl, Fallback falls Tier leer
+  const roll = Math.random();
+  let seltenheit;
+  if      (roll < 0.03) seltenheit = 'legendary';
+  else if (roll < 0.15) seltenheit = 'epic';
+  else if (roll < 0.40) seltenheit = 'rare';
+  else                  seltenheit = 'common';
+
+  // Falls gewürfeltes Tier keine neuen Skins hat, nächstes verfügbares nehmen
+  const tierReihenfolge = ['common', 'rare', 'epic', 'legendary'];
+  if (verfuegbar[seltenheit].length === 0) {
+    seltenheit = tierReihenfolge.find(t => verfuegbar[t].length > 0);
+  }
+
+  const gewonnenId = verfuegbar[seltenheit][Math.floor(Math.random() * verfuegbar[seltenheit].length)];
   const skin = SKINS[gewonnenId];
-  const bereitsHaben = pdata.unlocked_skins.includes(gewonnenId);
 
   await new Promise(r => setTimeout(r, 820));
 
@@ -994,16 +1036,9 @@ async function lootboxOeffnen() {
   const farben  = { common: 'var(--common)', rare: 'var(--rare)', epic: 'var(--epic)', legendary: 'var(--legendary)' };
 
   const resultEl = document.getElementById('lootbox-result');
-  if (bereitsHaben) {
-    resultEl.textContent = `${emojis[skin.seltenheit]} ${skin.name} (bereits freigeschaltet) → +50 🪙`;
-    resultEl.style.color = farben[skin.seltenheit];
-    pdata.coins += 50;
-    document.getElementById('shop-coins-display').textContent = `🪙 ${pdata.coins}`;
-  } else {
-    resultEl.textContent = `${emojis[skin.seltenheit]} ${rarText[skin.seltenheit]}: ${skin.name}!`;
-    resultEl.style.color = farben[skin.seltenheit];
-    pdata.unlocked_skins.push(gewonnenId);
-  }
+  resultEl.textContent = `${emojis[skin.seltenheit]} ${rarText[skin.seltenheit]}: ${skin.name}!`;
+  resultEl.style.color = farben[skin.seltenheit];
+  pdata.unlocked_skins.push(gewonnenId);
 
   // Speichern
   const extraDaten = { coins: pdata.coins, active_skin: pdata.active_skin, unlocked_skins: pdata.unlocked_skins };

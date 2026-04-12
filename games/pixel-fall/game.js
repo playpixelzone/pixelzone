@@ -306,11 +306,171 @@ function tunnelZeichnen() {
 }
 
 // ══════════════════════════════════════════════════════
-//  6. HINDERNISSE  (in Task 3 gefüllt)
+//  6. HINDERNISSE
 // ══════════════════════════════════════════════════════
-function hindernisGenerieren(leftX, rightX, worldY) { return null; }
-function hindernisZeichnen(h, screenY, leftX, rightX) {}
-function kollisionPruefen() { return false; }
+function hindernisGenerieren(leftX, rightX, worldY) {
+  if (Math.random() > 0.25) return null; // ~25% Chance pro Zeile
+
+  const mitte = (leftX + rightX) / 2;
+
+  let typen;
+  if      (score >= 200) typen = ['saegeblatt','flamme','eisblock','laser','lava'];
+  else if (score >= 100) typen = ['saegeblatt','flamme','eisblock','laser'];
+  else if (score >= 50)  typen = ['saegeblatt','flamme','eisblock'];
+  else if (score >= 25)  typen = ['saegeblatt','flamme'];
+  else                   typen = ['saegeblatt'];
+
+  const typ = typen[Math.floor(Math.random() * typen.length)];
+  return hindernisObjekt(typ, mitte, leftX, rightX, worldY);
+}
+
+function hindernisObjekt(typ, mitte, leftX, rightX, worldY) {
+  const gb = rightX - leftX;
+  switch (typ) {
+    case 'saegeblatt': return { typ, x: mitte, worldY: worldY + ZEILEN_HOEHE / 2, r: 14 };
+    case 'flamme':     return { typ, x: mitte, worldY: worldY + ZEILEN_HOEHE / 2, breite: gb * 0.6, hoehe: ZEILEN_HOEHE * 0.7 };
+    case 'eisblock':   return { typ, x: mitte - 18, worldY: worldY + 4, breite: 36, hoehe: ZEILEN_HOEHE - 8 };
+    case 'laser':      return { typ, leftX, rightX, worldY: worldY + ZEILEN_HOEHE / 2 };
+    case 'lava':       return { typ, leftX, rightX, worldY };
+    default:           return null;
+  }
+}
+
+function hindernisZeichnen(h, screenY, leftX, rightX) {
+  switch (h.typ) {
+    case 'saegeblatt': {
+      const hy = h.worldY - scrollOffset;
+      ctx.save();
+      ctx.translate(h.x, hy);
+      ctx.rotate(zeit * 3);
+      ctx.beginPath();
+      const zaehne = 8;
+      for (let i = 0; i < zaehne; i++) {
+        const a1     = (i / zaehne) * Math.PI * 2;
+        const a2     = ((i + 0.5) / zaehne) * Math.PI * 2;
+        const aussen = h.r, innen = h.r * 0.6;
+        if (i === 0) ctx.moveTo(Math.cos(a1) * aussen, Math.sin(a1) * aussen);
+        else         ctx.lineTo(Math.cos(a1) * aussen, Math.sin(a1) * aussen);
+        ctx.lineTo(Math.cos(a2) * innen, Math.sin(a2) * innen);
+      }
+      ctx.closePath();
+      ctx.fillStyle = '#888'; ctx.fill();
+      ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#555'; ctx.fill();
+      ctx.restore();
+      break;
+    }
+    case 'flamme': {
+      const aktiv = Math.sin(zeit * 2) > 0;
+      const hy    = h.worldY - scrollOffset;
+      if (!aktiv) {
+        ctx.fillStyle = '#554400';
+        ctx.fillRect(h.x - 8, hy - 6, 16, 8);
+        break;
+      }
+      const sy   = hy - h.hoehe / 2;
+      const grad = ctx.createLinearGradient(h.x, sy, h.x, sy + h.hoehe);
+      grad.addColorStop(0,   'rgba(255,255,0,0.9)');
+      grad.addColorStop(0.4, 'rgba(255,100,0,0.8)');
+      grad.addColorStop(1,   'rgba(255,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(h.x, sy + h.hoehe / 2, h.breite / 2, h.hoehe / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case 'eisblock': {
+      const hy   = h.worldY - scrollOffset;
+      const grad = ctx.createLinearGradient(h.x, hy, h.x + h.breite, hy + h.hoehe);
+      grad.addColorStop(0, 'rgba(150,220,255,0.9)');
+      grad.addColorStop(1, 'rgba(80,160,220,0.9)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(h.x, hy, h.breite, h.hoehe);
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1;
+      ctx.strokeRect(h.x, hy, h.breite, h.hoehe);
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.fillRect(h.x + 3, hy + 3, h.breite / 3, 4);
+      break;
+    }
+    case 'laser': {
+      const aktiv = Math.sin(zeit * 4) > 0.3;
+      const hy    = h.worldY - scrollOffset;
+      if (aktiv) {
+        ctx.strokeStyle = '#ff2d78'; ctx.lineWidth = 3;
+        ctx.shadowColor = '#ff2d78'; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.moveTo(h.leftX, hy); ctx.lineTo(h.rightX, hy); ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#ff6ea0';
+        ctx.beginPath(); ctx.arc(h.leftX,  hy, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(h.rightX, hy, 4, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.fillStyle = '#550022';
+        ctx.beginPath(); ctx.arc(h.leftX,  hy, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(h.rightX, hy, 4, 0, Math.PI * 2); ctx.fill();
+      }
+      break;
+    }
+    case 'lava': {
+      // Lava-Partikel aus den Wänden
+      if (Math.random() < 0.3) {
+        partikel.push({
+          x: leftX + Math.random() * 10, y: screenY + Math.random() * ZEILEN_HOEHE,
+          vx: 20 + Math.random() * 30, vy: -30 - Math.random() * 40,
+          alpha: 0.8, size: 3 + Math.random() * 3, color: '#ff4400',
+          life: 0.4, maxLife: 0.4,
+        });
+      }
+      break;
+    }
+  }
+}
+
+function kollisionPruefen() {
+  const hitboxS   = SPIELER_GROESSE * 0.8;
+  const hitboxOff = (SPIELER_GROESSE - hitboxS) / 2;
+  const sl = spieler.x + hitboxOff;
+  const sr = sl + hitboxS;
+  const st = CH * SPIELER_Y_RATIO + hitboxOff;
+  const sb = st + hitboxS;
+
+  for (const z of zeilen) {
+    const screenY = z.worldY - scrollOffset;
+    if (screenY > CH || screenY + ZEILEN_HOEHE < 0) continue;
+    const zt = screenY, zb = screenY + ZEILEN_HOEHE;
+
+    // Wandkollision
+    if (sb > zt && st < zb) {
+      if (sl < z.leftX || sr > z.rightX) return true;
+    }
+
+    const h = z.hindernis;
+    if (!h) continue;
+    const hy = h.worldY - scrollOffset;
+
+    switch (h.typ) {
+      case 'saegeblatt': {
+        const dx = (sl + hitboxS / 2) - h.x;
+        const dy = (st + hitboxS / 2) - hy;
+        if (Math.sqrt(dx * dx + dy * dy) < h.r + hitboxS / 2 - 4) return true;
+        break;
+      }
+      case 'flamme':
+        if (Math.sin(zeit * 2) <= 0) break;
+        if (sr > h.x - h.breite / 2 && sl < h.x + h.breite / 2 &&
+            sb > hy - h.hoehe / 2   && st < hy + h.hoehe / 2) return true;
+        break;
+      case 'eisblock':
+        if (sr > h.x && sl < h.x + h.breite && sb > hy && st < hy + h.hoehe) return true;
+        break;
+      case 'laser':
+        if (Math.sin(zeit * 4) <= 0.3) break;
+        if (sl < h.rightX && sr > h.leftX && st < hy + 6 && sb > hy - 6) return true;
+        break;
+    }
+  }
+  return false;
+}
 
 // ══════════════════════════════════════════════════════
 //  7. COINS  (in Task 4 gefüllt)

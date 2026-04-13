@@ -436,9 +436,9 @@ body {
     <form id="loginForm" onsubmit="login(event)">
 
       <div class="field">
-        <label for="emailInput">E-Mail</label>
-        <input id="emailInput" type="email" autocomplete="email"
-               placeholder="admin@example.com" required>
+        <label for="usernameInput">Benutzername</label>
+        <input id="usernameInput" type="text" autocomplete="username"
+               placeholder="dein Benutzername" required>
       </div>
 
       <div class="field">
@@ -512,9 +512,9 @@ body {
 // ═══════════════════════════════════════════
 //  KONFIGURATION  –  hier deine Werte eintragen
 // ═══════════════════════════════════════════
-const SUPABASE_URL     = 'DEINE_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'DEIN_SUPABASE_ANON_KEY';
-const ADMIN_EMAIL      = 'DEINE_ADMIN_EMAIL@example.com'; // Nur diese E-Mail darf das Panel nutzen
+const SUPABASE_URL      = 'https://mgvcxszzhxrvftqnizjm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ndmN4c3p6aHhydmZ0cW5pemptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NjYzMjIsImV4cCI6MjA5MDM0MjMyMn0.ccuwZQxMyuJC69i4rzFE2FyxvhcHQdAC5T9w0HhD2bg';
+const ADMIN_USER_ID     = '1dcb3181-9132-4cd0-b3ef-550742a5309d'; // Deine User-ID aus auth.js
 
 
 // ═══════════════════════════════════════════
@@ -542,8 +542,14 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 //  AUTH – Session beim Laden prüfen
 // ═══════════════════════════════════════════
 db.auth.onAuthStateChange((event, session) => {
-  if (session && session.user.email === ADMIN_EMAIL) {
-    zeigeDashboard(session.user.email);
+  if (session && session.user.id === ADMIN_USER_ID) {
+    // Benutzername aus der E-Mail ableiten (format: name@pixelzone.gg)
+    const username = session.user.email.replace('@pixelzone.gg', '');
+    zeigeDashboard(username);
+  } else if (session) {
+    // Eingeloggt, aber kein Admin
+    db.auth.signOut();
+    zeigeLoginFehler('Kein Admin-Zugriff für diesen Account.');
   } else {
     zeigeLogin();
   }
@@ -559,16 +565,9 @@ async function login(e) {
   btn.disabled = true;
   btn.textContent = 'Anmelden…';
 
-  const email    = document.getElementById('emailInput').value.trim();
+  const username = document.getElementById('usernameInput').value.trim().toLowerCase();
   const password = document.getElementById('passInput').value;
-
-  // Sicherheitscheck: Nur Admin-E-Mail erlaubt
-  if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-    zeigeLoginFehler('Kein Zugriff für diese E-Mail-Adresse.');
-    btn.disabled = false;
-    btn.textContent = 'Anmelden';
-    return;
-  }
+  const email    = `${username}@pixelzone.gg`; // Format wie im Spiel
 
   const { error } = await db.auth.signInWithPassword({ email, password });
 
@@ -594,10 +593,10 @@ async function logout() {
 
 
 // ─── UI-Umschalter ───────────────────────────
-function zeigeDashboard(email) {
+function zeigeDashboard(username) {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
-  document.getElementById('adm-email-label').textContent = email;
+  document.getElementById('adm-email-label').textContent = username;
   ladeSpiele();
 }
 

@@ -39,6 +39,17 @@ const PZ = {
       return { error: 'Passwort muss mindestens 6 Zeichen haben.' };
     }
 
+    // Extremistische und verfassungsfeindliche Namen blockieren
+    const nameUpper = username.toUpperCase();
+    const verboteneTerme = [
+      '88', 'HH', 'HEIL', 'NAZI', 'NSDAP', 'REICH', 'FUEHRER', 'FÜHRER',
+      'ARISCH', 'ARYAN', 'SIEG', 'GOERING', 'HIMMLER', 'GOEBBELS',
+      'KKK', 'NOOSE', 'WEWELSBURG',
+    ];
+    if (verboteneTerme.some(t => nameUpper.includes(t))) {
+      return { error: 'Dieser Benutzername ist nicht erlaubt.' };
+    }
+
     const email = this.emailFrom(username);
 
     // Sign up

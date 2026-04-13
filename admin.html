@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – PIXELZONE</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+
+/* ══════════════════════════════════════════════
+   PIXELZONE Admin-Panel  ·  Helles Design
+══════════════════════════════════════════════ */
+
+:root {
+  --bg:          #f0f7ff;
+  --surface:     #ffffff;
+  --border:      #e4eaf5;
+  --primary:     #3a86ff;
+  --primary-h:   #2a6fd6;
+  --green:       #22c55e;
+  --green-light: #dcfce7;
+  --green-dark:  #15803d;
+  --red:         #ef4444;
+  --red-light:   #fee2e2;
+  --red-dark:    #b91c1c;
+  --text:        #1a1a2e;
+  --text2:       #555;
+  --text3:       #888;
+  --shadow:      0 2px 12px rgba(0,0,0,.07);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,.12);
+  --radius:      14px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Utility ───────────────────────────────── */
+.hidden { display: none !important; }
+
+/* ── Login Screen ──────────────────────────── */
+#loginScreen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  min-height: 100vh;
+}
+
+.login-card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 2.25rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin-bottom: .3rem;
+}
+.login-logo-mark { font-size: 1.6rem; }
+
+.login-subtitle {
+  font-size: .85rem;
+  color: var(--text3);
+  font-weight: 600;
+  margin-bottom: 1.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  margin-bottom: 1rem;
+}
+.field label {
+  font-size: .82rem;
+  font-weight: 800;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.field input {
+  padding: .7rem .9rem;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color .15s;
+}
+.field input:focus { border-color: var(--primary); }
+
+.login-btn {
+  width: 100%;
+  margin-top: .5rem;
+  padding: .8rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+}
+.login-btn:hover  { background: var(--primary-h); }
+.login-btn:active { transform: scale(.98); }
+.login-btn:disabled { opacity: .6; cursor: default; }
+
+.login-err {
+  margin-top: .9rem;
+  padding: .55rem .9rem;
+  background: var(--red-light);
+  border: 2px solid var(--red);
+  border-radius: 8px;
+  color: var(--red-dark);
+  font-size: .84rem;
+  font-weight: 700;
+  display: none;
+}
+.login-err.show { display: block; }
+
+/* ── Dashboard ─────────────────────────────── */
+#dashboard { flex: 1; display: flex; flex-direction: column; }
+
+/* Header */
+.adm-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.25rem;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.adm-logo {
+  display: flex; align-items: center; gap: .5rem;
+  font-weight: 900; font-size: 1.05rem;
+  text-decoration: none; color: var(--text);
+}
+.adm-logo-mark { font-size: 1.35rem; }
+.adm-badge {
+  font-size: .7rem; font-weight: 800;
+  background: var(--primary);
+  color: #fff;
+  padding: .15rem .5rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.adm-user {
+  display: flex; align-items: center; gap: .6rem;
+}
+.adm-email {
+  font-size: .8rem; color: var(--text3); font-weight: 700;
+  display: none;
+}
+@media (min-width: 480px) { .adm-email { display: block; } }
+
+.logout-btn {
+  padding: .35rem .85rem;
+  background: var(--red-light);
+  color: var(--red-dark);
+  border: none; border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800; font-size: .82rem;
+  cursor: pointer;
+  transition: background .15s;
+}
+.logout-btn:hover { background: #fecaca; }
+
+/* Main content */
+.adm-main {
+  flex: 1;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.stat-pill {
+  display: flex; align-items: center; gap: .4rem;
+  background: var(--surface);
+  border-radius: 30px;
+  padding: .45rem .9rem;
+  font-size: .82rem;
+  font-weight: 800;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+.stat-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.stat-dot.green { background: var(--green); }
+.stat-dot.red   { background: var(--red); }
+
+/* Section title */
+.section-title {
+  font-size: .78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--text3);
+  margin-bottom: .85rem;
+}
+
+/* Game cards */
+.games-list { display: flex; flex-direction: column; gap: .85rem; }
+
+.game-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: box-shadow .2s;
+}
+.game-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.1); }
+
+/* Card top row */
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: 1.1rem 1.25rem;
+}
+
+.game-emoji {
+  font-size: 1.9rem;
+  width: 46px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.game-info { flex: 1; min-width: 0; }
+.game-name {
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: -.01em;
+}
+.game-tag {
+  font-size: .72rem;
+  font-weight: 800;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+/* Status badge */
+.status-badge {
+  font-size: .72rem;
+  font-weight: 800;
+  padding: .22rem .7rem;
+  border-radius: 20px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.status-badge.active   { background: var(--green-light); color: var(--green-dark); }
+.status-badge.inactive { background: var(--red-light);   color: var(--red-dark);   }
+
+/* Toggle switch */
+.toggle-wrap {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 27px;
+  flex-shrink: 0;
+}
+.toggle-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #d1d5db;
+  border-radius: 27px;
+  transition: background .25s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 21px; width: 21px;
+  left: 3px; bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .25s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+.toggle-wrap input:checked + .toggle-slider { background: var(--green); }
+.toggle-wrap input:checked + .toggle-slider::before { transform: translateX(23px); }
+.toggle-wrap input:disabled + .toggle-slider { opacity: .6; cursor: default; }
+
+/* Disabled message panel */
+.msg-panel {
+  border-top: 1px solid var(--border);
+  padding: .9rem 1.25rem 1.1rem;
+  background: #fafbff;
+  display: none;
+}
+.msg-panel.open { display: block; }
+
+.msg-label {
+  font-size: .77rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text3);
+  margin-bottom: .45rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.msg-label::before {
+  content: '💬';
+  font-size: .9rem;
+}
+
+.msg-textarea {
+  width: 100%;
+  padding: .65rem .85rem;
+  border: 2px solid var(--border);
+  border-radius: 9px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+  resize: vertical;
+  min-height: 72px;
+  outline: none;
+  transition: border-color .15s;
+  background: var(--surface);
+}
+.msg-textarea:focus { border-color: var(--primary); }
+
+.msg-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: .55rem;
+}
+.save-btn {
+  padding: .45rem 1.1rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+.save-btn:hover   { background: var(--primary-h); }
+.save-btn:disabled { opacity: .5; cursor: default; }
+
+/* Loading skeleton */
+.skeleton-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  height: 72px;
+  animation: shimmer 1.5s ease infinite;
+}
+@keyframes shimmer {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .5; }
+}
+
+/* ── Toast ─────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: #1a1a2e;
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-size: .88rem;
+  font-weight: 700;
+  padding: .6rem 1.3rem;
+  border-radius: 30px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.22);
+  z-index: 999;
+  white-space: nowrap;
+  transition: opacity .3s, transform .3s;
+}
+#toast.hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(12px); }
+#toast.green  { background: var(--green-dark); }
+#toast.red    { background: var(--red-dark); }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN-SCREEN
+══════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+
+    <div class="login-logo">
+      <span class="login-logo-mark">🕹</span>
+      PIXELZONE
+    </div>
+    <div class="login-subtitle">Admin-Panel</div>
+
+    <form id="loginForm" onsubmit="login(event)">
+
+      <div class="field">
+        <label for="emailInput">E-Mail</label>
+        <input id="emailInput" type="email" autocomplete="email"
+               placeholder="admin@example.com" required>
+      </div>
+
+      <div class="field">
+        <label for="passInput">Passwort</label>
+        <input id="passInput" type="password" autocomplete="current-password"
+               placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="login-btn" id="loginBtn">Anmelden</button>
+      <div class="login-err" id="loginErr"></div>
+
+    </form>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     DASHBOARD
+══════════════════════════════════════════ -->
+<div id="dashboard" class="hidden">
+
+  <header class="adm-header">
+    <a href="index.html" class="adm-logo">
+      <span class="adm-logo-mark">🕹</span>
+      PIXELZONE
+      <span class="adm-badge">Admin</span>
+    </a>
+    <div class="adm-user">
+      <span class="adm-email" id="adm-email-label"></span>
+      <button class="logout-btn" onclick="logout()">Abmelden</button>
+    </div>
+  </header>
+
+  <main class="adm-main">
+
+    <!-- Statistiken -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-pill">
+        <span class="stat-dot green"></span>
+        <span id="statActive">– aktiv</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-dot red"></span>
+        <span id="statInactive">– deaktiviert</span>
+      </div>
+    </div>
+
+    <!-- Spiele-Liste -->
+    <div class="section-title">Spiele verwalten</div>
+    <div class="games-list" id="gamesList">
+      <!-- Skeleton-Loader -->
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+
+  </main>
+</div>
+
+
+<!-- Toast-Benachrichtigung -->
+<div id="toast" class="hidden"></div>
+
+
+<!-- ══════════════════════════════════════════
+     SUPABASE + LOGIK
+══════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+
+// ═══════════════════════════════════════════
+//  KONFIGURATION  –  hier deine Werte eintragen
+// ═══════════════════════════════════════════
+const SUPABASE_URL     = 'DEINE_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'DEIN_SUPABASE_ANON_KEY';
+const ADMIN_EMAIL      = 'DEINE_ADMIN_EMAIL@example.com'; // Nur diese E-Mail darf das Panel nutzen
+
+
+// ═══════════════════════════════════════════
+//  SPIELINFORMATIONEN  (Anzeige)
+// ═══════════════════════════════════════════
+const GAME_INFO = {
+  'pixel-factory': { name: 'Pixel Factory', emoji: '🏭', tag: 'Idle'    },
+  'pixel-jump':    { name: 'Pixel Jump',    emoji: '🐸', tag: 'Arcade'  },
+  'space-blaster': { name: 'Space Blaster', emoji: '🚀', tag: 'Action'  },
+  'minesweeper':   { name: 'Minesweeper',   emoji: '💣', tag: 'Puzzle'  },
+  'wordle':        { name: 'Wordle',         emoji: '🔤', tag: 'Wörter' },
+  'memory-match':  { name: 'Memory Match',  emoji: '🃏', tag: 'Memory'  },
+  'pixel-drop':    { name: 'Pixel Drop',    emoji: '🧩', tag: 'Puzzle'  },
+};
+
+
+// ═══════════════════════════════════════════
+//  SUPABASE INITIALISIEREN
+// ═══════════════════════════════════════════
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
+// ═══════════════════════════════════════════
+//  AUTH – Session beim Laden prüfen
+// ═══════════════════════════════════════════
+db.auth.onAuthStateChange((event, session) => {
+  if (session && session.user.email === ADMIN_EMAIL) {
+    zeigeDashboard(session.user.email);
+  } else {
+    zeigeLogin();
+  }
+});
+
+
+// ─── Login ──────────────────────────────────
+async function login(e) {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginErr');
+  err.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = 'Anmelden…';
+
+  const email    = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passInput').value;
+
+  // Sicherheitscheck: Nur Admin-E-Mail erlaubt
+  if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    zeigeLoginFehler('Kein Zugriff für diese E-Mail-Adresse.');
+    btn.disabled = false;
+    btn.textContent = 'Anmelden';
+    return;
+  }
+
+  const { error } = await db.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    zeigeLoginFehler('Login fehlgeschlagen: ' + error.message);
+    btn.disabled = false;
+    btn.textContent = 'Anmelden';
+  }
+  // Erfolg: onAuthStateChange zeigt das Dashboard
+}
+
+function zeigeLoginFehler(msg) {
+  const err = document.getElementById('loginErr');
+  err.textContent = msg;
+  err.classList.add('show');
+}
+
+
+// ─── Logout ─────────────────────────────────
+async function logout() {
+  await db.auth.signOut();
+}
+
+
+// ─── UI-Umschalter ───────────────────────────
+function zeigeDashboard(email) {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  document.getElementById('adm-email-label').textContent = email;
+  ladeSpiele();
+}
+
+function zeigeLogin() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('dashboard').classList.add('hidden');
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = 'Anmelden';
+}
+
+
+// ═══════════════════════════════════════════
+//  SPIELE LADEN
+// ═══════════════════════════════════════════
+async function ladeSpiele() {
+  const { data, error } = await db
+    .from('games')
+    .select('*')
+    .order('name');
+
+  if (error) {
+    zeigeToast('Fehler beim Laden: ' + error.message, 'red');
+    return;
+  }
+
+  const liste = document.getElementById('gamesList');
+  liste.innerHTML = '';
+
+  if (!data || data.length === 0) {
+    liste.innerHTML = '<p style="color:var(--text3);font-size:.9rem;padding:.5rem">Keine Spiele in der Datenbank gefunden.</p>';
+    return;
+  }
+
+  data.forEach(spiel => renderSpielKarte(spiel, liste));
+  aktualisiereStats(data);
+}
+
+
+// ═══════════════════════════════════════════
+//  SPIEL-KARTE RENDERN
+// ═══════════════════════════════════════════
+function renderSpielKarte(spiel, container) {
+  const info = GAME_INFO[spiel.id] || { name: spiel.name, emoji: '🎮', tag: '' };
+  const aktiv = spiel.is_active;
+
+  const karte = document.createElement('div');
+  karte.className = 'game-card';
+  karte.id = 'karte-' + spiel.id;
+
+  karte.innerHTML = `
+    <div class="card-top">
+      <div class="game-emoji">${info.emoji}</div>
+      <div class="game-info">
+        <div class="game-name">${info.name}</div>
+        <div class="game-tag">${info.tag}</div>
+      </div>
+      <span class="status-badge ${aktiv ? 'active' : 'inactive'}" id="badge-${spiel.id}">
+        ${aktiv ? 'Aktiv' : 'Deaktiviert'}
+      </span>
+      <label class="toggle-wrap" title="${aktiv ? 'Spiel deaktivieren' : 'Spiel aktivieren'}">
+        <input type="checkbox" id="toggle-${spiel.id}"
+               ${aktiv ? 'checked' : ''}
+               onchange="toggleSpiel('${spiel.id}', this)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="msg-panel ${aktiv ? '' : 'open'}" id="msg-${spiel.id}">
+      <div class="msg-label">Nachricht für Spieler</div>
+      <textarea class="msg-textarea" id="text-${spiel.id}"
+                placeholder="z. B. Wegen eines Bugs vorübergehend nicht verfügbar."
+                rows="2">${escapeHTML(spiel.disabled_message || '')}</textarea>
+      <div class="msg-footer">
+        <button class="save-btn" onclick="speichereNachricht('${spiel.id}')">Speichern</button>
+      </div>
+    </div>
+  `;
+
+  container.appendChild(karte);
+}
+
+
+// ═══════════════════════════════════════════
+//  SPIEL AKTIVIEREN / DEAKTIVIEREN
+// ═══════════════════════════════════════════
+async function toggleSpiel(id, checkbox) {
+  checkbox.disabled = true;
+  const neuerStatus = checkbox.checked;
+
+  const { error } = await db
+    .from('games')
+    .update({ is_active: neuerStatus })
+    .eq('id', id);
+
+  if (error) {
+    zeigeToast('Fehler: ' + error.message, 'red');
+    checkbox.checked = !neuerStatus; // Zurücksetzen
+    checkbox.disabled = false;
+    return;
+  }
+
+  // Badge aktualisieren
+  const badge = document.getElementById('badge-' + id);
+  if (neuerStatus) {
+    badge.textContent = 'Aktiv';
+    badge.className = 'status-badge active';
+  } else {
+    badge.textContent = 'Deaktiviert';
+    badge.className = 'status-badge inactive';
+  }
+
+  // Nachrichten-Panel ein-/ausblenden
+  const panel = document.getElementById('msg-' + id);
+  if (neuerStatus) {
+    panel.classList.remove('open');
+  } else {
+    panel.classList.add('open');
+  }
+
+  checkbox.disabled = false;
+  zeigeToast(
+    (GAME_INFO[id]?.name || id) + (neuerStatus ? ' aktiviert' : ' deaktiviert'),
+    neuerStatus ? 'green' : 'red'
+  );
+
+  // Statistiken neu berechnen
+  await aktualisiereStatsAusDB();
+}
+
+
+// ═══════════════════════════════════════════
+//  NACHRICHT SPEICHERN
+// ═══════════════════════════════════════════
+async function speichereNachricht(id) {
+  const textarea = document.getElementById('text-' + id);
+  const btn = textarea.closest('.msg-panel').querySelector('.save-btn');
+  const nachricht = textarea.value.trim();
+
+  btn.disabled = true;
+  btn.textContent = 'Speichern…';
+
+  const { error } = await db
+    .from('games')
+    .update({ disabled_message: nachricht })
+    .eq('id', id);
+
+  btn.disabled = false;
+  btn.textContent = 'Speichern';
+
+  if (error) {
+    zeigeToast('Fehler: ' + error.message, 'red');
+  } else {
+    zeigeToast('Nachricht gespeichert', 'green');
+  }
+}
+
+
+// ═══════════════════════════════════════════
+//  STATISTIKEN
+// ═══════════════════════════════════════════
+function aktualisiereStats(data) {
+  const aktiv      = data.filter(s => s.is_active).length;
+  const inaktiv    = data.length - aktiv;
+  document.getElementById('statActive').textContent   = aktiv + ' aktiv';
+  document.getElementById('statInactive').textContent = inaktiv + ' deaktiviert';
+}
+
+async function aktualisiereStatsAusDB() {
+  const { data } = await db.from('games').select('is_active');
+  if (data) aktualisiereStats(data);
+}
+
+
+// ═══════════════════════════════════════════
+//  TOAST-BENACHRICHTIGUNG
+// ═══════════════════════════════════════════
+let toastTimer = null;
+
+function zeigeToast(msg, typ = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = typ; // 'green' | 'red' | ''
+  el.classList.remove('hidden');
+
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.classList.add('hidden');
+  }, 2800);
+}
+
+
+// ═══════════════════════════════════════════
+//  HILFSFUNKTIONEN
+// ═══════════════════════════════════════════
+function escapeHTML(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+</script>
+</body>
+</html>

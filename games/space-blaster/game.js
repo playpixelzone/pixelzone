@@ -62,10 +62,12 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { keys[e.key] = false; });
 
 document.addEventListener('touchstart', e => {
+  if (!running) return; // Buttons auf Title/Gameover-Screen nicht blockieren
   e.preventDefault(); // verhindert blaues Markieren und Kontextmenü
   touchX = e.touches[0].clientX;
 }, { passive: false });
 document.addEventListener('touchmove', e => {
+  if (!running) return;
   e.preventDefault();
   touchX = e.touches[0].clientX;
 }, { passive: false });

@@ -10,7 +10,7 @@
 
 body {
   font-family: 'Nunito', sans-serif;
-  background: linear-gradient(160deg, #5b80a8 0%, #7a9bbf 50%, #6b8faa 100%);
+  background: linear-gradient(160deg, #0d2340 0%, #1a3a60 50%, #0f2a4a 100%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -22,7 +22,7 @@ body {
 header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 1.25rem; height: 52px;
-  background: rgba(0,0,0,.18);
+  background: rgba(0,0,0,.25);
   flex-shrink: 0;
 }
 .logo {
@@ -31,20 +31,20 @@ header {
 }
 .logo-mark {
   width: 30px; height: 30px;
-  background: rgba(255,255,255,.25); border-radius: 8px;
+  background: rgba(255,255,255,.2); border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   font-size: .95rem;
 }
 .nav-login-btn {
-  padding: .38rem .9rem; background: rgba(255,255,255,.22); color: #fff;
+  padding: .38rem .9rem; background: rgba(255,255,255,.18); color: #fff;
   border-radius: 8px; text-decoration: none; font-weight: 700; font-size: .85rem;
-  border: 1px solid rgba(255,255,255,.3);
+  border: 1px solid rgba(255,255,255,.25);
 }
 .nav-user { display: flex; align-items: center; gap: .6rem; font-size: .88rem; }
 .nav-username { font-weight: 700; color: #fff; }
 .nav-logout-btn {
-  padding: .3rem .7rem; background: rgba(255,80,80,.25); color: #ffcccc;
-  border: 1px solid rgba(255,100,100,.35); border-radius: 6px;
+  padding: .3rem .7rem; background: rgba(255,80,80,.2); color: #ffbbbb;
+  border: 1px solid rgba(255,100,100,.3); border-radius: 6px;
   font-family: 'Nunito', sans-serif; font-weight: 700; font-size: .82rem; cursor: pointer;
 }
 
@@ -66,35 +66,40 @@ header {
 .score-val {
   font-size: 1.75rem; font-weight: 900; color: #fff;
   letter-spacing: -.03em; line-height: 1;
-  text-shadow: 0 2px 8px rgba(0,0,0,.25);
+  text-shadow: 0 2px 8px rgba(0,0,0,.4);
 }
 
 /* ── GRID ── */
 .grid-container {
-  background: rgba(255,255,255,.15);
-  border-radius: 16px;
-  padding: 7px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.2);
+  background: #071524;
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
 }
 #grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
-  gap: 3px;
+  gap: 2px;                        /* dünne dunkle Linie zwischen Zellen */
   width: min(340px, calc(100vw - 2.5rem));
   height: min(340px, calc(100vw - 2.5rem));
 }
 .cell {
-  background: rgba(255,255,255,.82);
-  border-radius: 5px;
+  background: #162540;             /* dunkelblaue leere Zellen */
+  border-radius: 0;                /* keine Abrundung */
 }
-.cell.filled { border-radius: 5px; }
-.cell.preview-ok  { opacity: .6 !important; border-radius: 5px; }
-.cell.preview-bad { background: rgba(220,60,60,.4) !important; border-radius: 5px; }
-.cell.flash { animation: cellFlash .3s ease-out forwards; }
-@keyframes cellFlash {
-  0%   { filter: brightness(2.5) saturate(2); }
-  100% { filter: brightness(1) saturate(1); }
+.cell.filled  { border-radius: 0; }
+.cell.preview-ok  { opacity: .55 !important; }
+.cell.preview-bad { background: rgba(220,60,60,.5) !important; }
+
+/* Zeilen-Lösch-Animation: Zelle wird erstmal zur Reihen-Farbe, dann blinkt sie */
+.cell.flash-line {
+  animation: lineFlash .35s ease-out forwards;
+}
+@keyframes lineFlash {
+  0%   { filter: brightness(2.5) saturate(1.8); }
+  60%  { filter: brightness(1.8) saturate(1.4); }
+  100% { filter: brightness(1) saturate(1); opacity: 0; }
 }
 
 /* ── PIECE TRAY ── */
@@ -112,17 +117,18 @@ header {
 }
 .tray-slot:active { cursor: grabbing; transform: scale(.94); }
 .tray-slot.used   { opacity: 0; pointer-events: none; }
-.tray-slot.cant-fit { opacity: .3; cursor: not-allowed; }
+.tray-slot.cant-fit { opacity: .25; cursor: not-allowed; }
 
-/* ── MINI PIECE (verbundene Form) ── */
+/* Mini-Stücke: verbunden, keine Lücken, keine Abrundung */
 .mini-piece {
   display: grid;
-  gap: 0;          /* kein Abstand = verbundene Blöcke */
+  gap: 0;
   pointer-events: none;
-  filter: drop-shadow(0 3px 8px rgba(0,0,0,.3));
+  filter: drop-shadow(0 3px 10px rgba(0,0,0,.5));
 }
 .mini-cell {
-  width: 16px; height: 16px;
+  width: 15px; height: 15px;
+  border-radius: 0;
 }
 
 /* ── DRAG GHOST ── */
@@ -131,18 +137,18 @@ header {
   pointer-events: none;
   z-index: 999;
   display: none;
-  gap: 3px;
-  opacity: .88;
-  filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
+  gap: 2px;
+  opacity: .85;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,.5));
 }
-#ghost .ghost-cell { border-radius: 5px; }
+#ghost .ghost-cell { border-radius: 0; }
 
 /* ── SCORE POPUP ── */
 .score-popup {
   position: fixed;
   font-size: 1.15rem; font-weight: 900; color: #fff;
   pointer-events: none; z-index: 998;
-  text-shadow: 0 2px 6px rgba(0,0,0,.4);
+  text-shadow: 0 2px 6px rgba(0,0,0,.5);
   animation: popupFloat .9s ease-out forwards;
 }
 @keyframes popupFloat {
@@ -154,45 +160,46 @@ header {
 #gameOverScreen {
   display: none;
   position: fixed; inset: 0; z-index: 100;
-  background: rgba(70,100,140,.75);
-  backdrop-filter: blur(8px);
+  background: rgba(5,15,30,.82);
+  backdrop-filter: blur(10px);
   align-items: center; justify-content: center;
   padding: 1rem;
 }
 #gameOverScreen.show { display: flex; }
 .go-card {
-  background: #fff; border-radius: 22px;
+  background: #1a3050; border: 1px solid #2a4870;
+  border-radius: 20px;
   padding: 2rem 2rem 1.75rem;
   width: 100%; max-width: 340px; text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
   animation: goSlide .35s cubic-bezier(.34,1.2,.64,1);
 }
 @keyframes goSlide {
   from { opacity: 0; transform: scale(.85) translateY(30px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
-.go-title  { font-size: 1.4rem; font-weight: 900; color: #1a1a2e; margin-bottom: .1rem; }
-.go-score  { font-size: 3.2rem; font-weight: 900; color: #3a86ff; letter-spacing: -.04em; margin: .4rem 0 .1rem; }
-.go-hs     { font-size: .82rem; font-weight: 700; color: #9ab0cc; margin-bottom: 1.2rem; }
-.go-hs.new-record { color: #22c55e; }
-.go-lb     { background: #f4f9ff; border-radius: 12px; border: 1px solid #dceeff; padding: .75rem 1rem; margin-bottom: 1.2rem; text-align: left; }
-.go-lb-title { font-size: .62rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: #9ab0cc; margin-bottom: .55rem; }
-.lb-row    { display: flex; align-items: center; gap: .6rem; font-size: .88rem; font-weight: 700; padding: .2rem 0; color: #5a7aaa; }
-.lb-row.me { color: #3a86ff; }
-.lb-rank   { width: 1.4rem; font-size: .75rem; color: #b0ccf0; flex-shrink: 0; }
+.go-title  { font-size: 1.4rem; font-weight: 900; color: #fff; margin-bottom: .1rem; }
+.go-score  { font-size: 3.2rem; font-weight: 900; color: #FECA57; letter-spacing: -.04em; margin: .4rem 0 .1rem; }
+.go-hs     { font-size: .82rem; font-weight: 700; color: #6080a0; margin-bottom: 1.2rem; }
+.go-hs.new-record { color: #48DBFB; }
+.go-lb     { background: #0f2040; border-radius: 10px; border: 1px solid #2a3a54; padding: .75rem 1rem; margin-bottom: 1.2rem; text-align: left; }
+.go-lb-title { font-size: .62rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: #506080; margin-bottom: .55rem; }
+.lb-row    { display: flex; align-items: center; gap: .6rem; font-size: .88rem; font-weight: 700; padding: .2rem 0; color: #7090b0; }
+.lb-row.me { color: #FECA57; }
+.lb-rank   { width: 1.4rem; font-size: .75rem; color: #405060; flex-shrink: 0; }
 .lb-name   { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-empty  { font-size: .8rem; color: #9ab0cc; font-weight: 600; }
+.lb-empty  { font-size: .8rem; color: #506080; font-weight: 600; }
 .go-btn {
   display: inline-block; padding: .75rem 2.5rem;
-  background: #3a86ff; color: #fff; border: none; border-radius: 12px;
+  background: #3a86ff; color: #fff; border: none; border-radius: 10px;
   font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1rem; cursor: pointer;
-  box-shadow: 0 4px 16px rgba(58,134,255,.3);
+  box-shadow: 0 4px 20px rgba(58,134,255,.4);
   transition: opacity .15s, transform .15s;
 }
 .go-btn:hover { opacity: .9; transform: translateY(-2px); }
 
 @media (max-width: 380px) {
-  .mini-cell { width: 13px; height: 13px; }
+  .mini-cell { width: 12px; height: 12px; }
   .tray { gap: .6rem; }
 }
 </style>
@@ -253,7 +260,6 @@ header {
 
 const RASTER_SIZE = 8;
 
-// ── FARBEN (wie im Reference-Screenshot) ──────────
 const FARBEN = {
   rot:    '#e84040',
   orange: '#f07020',
@@ -266,51 +272,46 @@ const FARBEN = {
 };
 const F = FARBEN;
 
-// ── FORMEN NACH SCHWIERIGKEIT ─────────────────────
-// Leicht: kleine Stücke (passen immer gut)
 const FORMEN_LEICHT = [
-  { z: [[0,0]],                       f: F.rot    }, // 1×1
-  { z: [[0,0],[0,1]],                 f: F.orange }, // 1×2 H
-  { z: [[0,0],[1,0]],                 f: F.gelb   }, // 1×2 V
-  { z: [[0,0],[0,1],[0,2]],           f: F.gruen  }, // 1×3 H
-  { z: [[0,0],[1,0],[2,0]],           f: F.blau   }, // 1×3 V
-  { z: [[0,0],[0,1],[1,0],[1,1]],     f: F.lila   }, // 2×2
-  { z: [[0,0],[0,1],[1,0]],           f: F.rosa   }, // Ecke TL
-  { z: [[0,0],[0,1],[1,1]],           f: F.tuerkis}, // Ecke TR
-  { z: [[0,0],[1,0],[1,1]],           f: F.orange }, // Ecke BL
-  { z: [[0,1],[1,0],[1,1]],           f: F.rot    }, // Ecke BR
+  { z: [[0,0]],                   f: F.rot    },
+  { z: [[0,0],[0,1]],             f: F.orange },
+  { z: [[0,0],[1,0]],             f: F.gelb   },
+  { z: [[0,0],[0,1],[0,2]],       f: F.gruen  },
+  { z: [[0,0],[1,0],[2,0]],       f: F.blau   },
+  { z: [[0,0],[0,1],[1,0],[1,1]], f: F.lila   },
+  { z: [[0,0],[0,1],[1,0]],       f: F.rosa   },
+  { z: [[0,0],[0,1],[1,1]],       f: F.tuerkis},
+  { z: [[0,0],[1,0],[1,1]],       f: F.orange },
+  { z: [[0,1],[1,0],[1,1]],       f: F.rot    },
 ];
 
-// Mittel: L, T, S, Z Formen
 const FORMEN_MITTEL = [
-  { z: [[0,0],[1,0],[2,0],[2,1]],     f: F.rot    }, // L
-  { z: [[0,1],[1,1],[2,0],[2,1]],     f: F.blau   }, // J
-  { z: [[0,0],[0,1],[0,2],[1,0]],     f: F.gruen  }, // L-oben
-  { z: [[0,0],[0,1],[0,2],[1,2]],     f: F.orange }, // J-oben
-  { z: [[0,0],[1,0],[1,1],[1,2]],     f: F.lila   }, // L-unten
-  { z: [[0,2],[1,0],[1,1],[1,2]],     f: F.rosa   }, // J-unten
-  { z: [[0,0],[0,1],[0,2],[1,1]],     f: F.tuerkis}, // T-oben
-  { z: [[0,1],[1,0],[1,1],[2,1]],     f: F.gelb   }, // T-rechts
-  { z: [[0,1],[1,0],[1,1],[1,2]],     f: F.rot    }, // T-unten
-  { z: [[0,0],[1,0],[1,1],[2,0]],     f: F.blau   }, // T-links
-  { z: [[0,1],[0,2],[1,0],[1,1]],     f: F.orange }, // S-H
-  { z: [[0,0],[0,1],[1,1],[1,2]],     f: F.gruen  }, // Z-H
-  { z: [[0,0],[1,0],[1,1],[2,1]],     f: F.lila   }, // S-V
-  { z: [[0,1],[1,0],[1,1],[2,0]],     f: F.rosa   }, // Z-V
+  { z: [[0,0],[1,0],[2,0],[2,1]],         f: F.rot    },
+  { z: [[0,1],[1,1],[2,0],[2,1]],         f: F.blau   },
+  { z: [[0,0],[0,1],[0,2],[1,0]],         f: F.gruen  },
+  { z: [[0,0],[0,1],[0,2],[1,2]],         f: F.orange },
+  { z: [[0,0],[1,0],[1,1],[1,2]],         f: F.lila   },
+  { z: [[0,2],[1,0],[1,1],[1,2]],         f: F.rosa   },
+  { z: [[0,0],[0,1],[0,2],[1,1]],         f: F.tuerkis},
+  { z: [[0,1],[1,0],[1,1],[2,1]],         f: F.gelb   },
+  { z: [[0,1],[1,0],[1,1],[1,2]],         f: F.rot    },
+  { z: [[0,0],[1,0],[1,1],[2,0]],         f: F.blau   },
+  { z: [[0,1],[0,2],[1,0],[1,1]],         f: F.orange },
+  { z: [[0,0],[0,1],[1,1],[1,2]],         f: F.gruen  },
+  { z: [[0,0],[1,0],[1,1],[2,1]],         f: F.lila   },
+  { z: [[0,1],[1,0],[1,1],[2,0]],         f: F.rosa   },
 ];
 
-// Schwer: lange Stücke und große Blöcke
 const FORMEN_SCHWER = [
-  { z: [[0,0],[0,1],[0,2],[0,3]],                                   f: F.blau   }, // I-4 H
-  { z: [[0,0],[1,0],[2,0],[3,0]],                                   f: F.tuerkis}, // I-4 V
-  { z: [[0,0],[0,1],[0,2],[0,3],[0,4]],                             f: F.lila   }, // I-5 H
-  { z: [[0,0],[1,0],[2,0],[3,0],[4,0]],                             f: F.rosa   }, // I-5 V
-  { z: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],                       f: F.gruen  }, // 2×3
-  { z: [[0,0],[0,1],[1,0],[1,1],[2,0],[2,1]],                       f: F.orange }, // 3×2
-  { z: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],     f: F.rot    }, // 3×3
+  { z: [[0,0],[0,1],[0,2],[0,3]],                                f: F.blau   },
+  { z: [[0,0],[1,0],[2,0],[3,0]],                                f: F.tuerkis},
+  { z: [[0,0],[0,1],[0,2],[0,3],[0,4]],                          f: F.lila   },
+  { z: [[0,0],[1,0],[2,0],[3,0],[4,0]],                          f: F.rosa   },
+  { z: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],                    f: F.gruen  },
+  { z: [[0,0],[0,1],[1,0],[1,1],[2,0],[2,1]],                    f: F.orange },
+  { z: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]], f: F.rot    },
 ];
 
-// ── SPIELZUSTAND ──────────────────────────────────
 let raster      = [];
 let zellen      = [];
 let stuecke     = [null, null, null];
@@ -323,16 +324,13 @@ const gridEl   = document.getElementById('grid');
 const goScreen = document.getElementById('gameOverScreen');
 const ghost    = document.getElementById('ghost');
 
-// ── SCHWIERIGKEIT ─────────────────────────────────
 function aktuelleFormen() {
   if (punkte < 30)  return FORMEN_LEICHT;
   if (punkte < 100) return [...FORMEN_LEICHT, ...FORMEN_MITTEL];
   if (punkte < 300) return [...FORMEN_MITTEL, ...FORMEN_SCHWER];
-  // Ab 300 Punkten: nur schwere und mittlere Stücke
   return [...FORMEN_MITTEL, ...FORMEN_MITTEL, ...FORMEN_SCHWER];
 }
 
-// ── INIT ──────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   PZ.updateNavbar();
   highscore = parseInt(localStorage.getItem('bb_hs') || '0', 10);
@@ -352,7 +350,6 @@ function spielStart() {
   neuePiecesGenerieren();
 }
 
-// ── RASTER ────────────────────────────────────────
 function rasterRendern() {
   gridEl.innerHTML = '';
   zellen = Array.from({ length: RASTER_SIZE }, () => Array(RASTER_SIZE).fill(null));
@@ -370,16 +367,14 @@ function zellFarbeSetzen(el, block) {
   if (block) {
     el.classList.add('filled');
     el.style.background = block.farbe;
-    el.style.boxShadow  = `inset 0 3px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.2)`;
+    el.style.boxShadow  = `inset 0 3px 0 rgba(255,255,255,.28), inset 0 -2px 0 rgba(0,0,0,.25)`;
   } else {
     el.classList.remove('filled');
-    el.style.background = 'rgba(255,255,255,.82)';
+    el.style.background = '#162540';
     el.style.boxShadow  = 'none';
   }
 }
 
-// ── PIECES GENERIEREN ─────────────────────────────
-// Gibt ein zufälliges Stück zurück das auf das Raster passt
 function zufaelligesStueckPassend(maxVersuche = 80) {
   const formen = aktuelleFormen();
   for (let i = 0; i < maxVersuche; i++) {
@@ -387,24 +382,16 @@ function zufaelligesStueckPassend(maxVersuche = 80) {
     const s = { zellen: f.z, farbe: f.f };
     if (kannPassen(s)) return s;
   }
-  // Fallback: kleinstes passendes Stück finden
-  const klein = [...FORMEN_LEICHT].sort((a, b) => a.z.length - b.z.length);
-  for (const f of klein) {
+  for (const f of FORMEN_LEICHT.sort((a,b) => a.z.length - b.z.length)) {
     const s = { zellen: f.z, farbe: f.f };
     if (kannPassen(s)) return s;
   }
-  return null; // Brett voll → Game Over
+  return null;
 }
 
 function neuePiecesGenerieren() {
-  for (let i = 0; i < 3; i++) {
-    stuecke[i] = zufaelligesStueckPassend();
-  }
-  // Wenn kein Stück passt → Game Over
-  if (stuecke.every(s => s === null)) {
-    setTimeout(() => spielEnde(), 300);
-    return;
-  }
+  for (let i = 0; i < 3; i++) stuecke[i] = zufaelligesStueckPassend();
+  if (stuecke.every(s => s === null)) { setTimeout(() => spielEnde(), 300); return; }
   trayRendern();
 }
 
@@ -420,8 +407,8 @@ function trayRendern() {
     const cols = Math.max(...s.zellen.map(([, c]) => c)) + 1;
     const mg = document.createElement('div');
     mg.className = 'mini-piece';
-    mg.style.gridTemplateColumns = `repeat(${cols}, 16px)`;
-    mg.style.gridTemplateRows    = `repeat(${rows}, 16px)`;
+    mg.style.gridTemplateColumns = `repeat(${cols}, 15px)`;
+    mg.style.gridTemplateRows    = `repeat(${rows}, 15px)`;
 
     const occupied = new Set(s.zellen.map(([r, c]) => `${r},${c}`));
     for (let r = 0; r < rows; r++) {
@@ -430,18 +417,7 @@ function trayRendern() {
         mc.className = 'mini-cell';
         if (occupied.has(`${r},${c}`)) {
           mc.style.background = s.farbe;
-          // Abgerundete Außenecken
-          const oben   = !occupied.has(`${r-1},${c}`);
-          const unten  = !occupied.has(`${r+1},${c}`);
-          const links  = !occupied.has(`${r},${c-1}`);
-          const rechts = !occupied.has(`${r},${c+1}`);
-          mc.style.borderRadius = [
-            oben && links  ? '5px' : '1px',
-            oben && rechts ? '5px' : '1px',
-            unten && rechts? '5px' : '1px',
-            unten && links ? '5px' : '1px',
-          ].join(' ');
-          mc.style.boxShadow = 'inset 0 2px 0 rgba(255,255,255,.38), inset 0 -2px 0 rgba(0,0,0,.18)';
+          mc.style.boxShadow  = `inset 0 2px 0 rgba(255,255,255,.28), inset 0 -2px 0 rgba(0,0,0,.25)`;
         } else {
           mc.style.background = 'transparent';
         }
@@ -453,7 +429,6 @@ function trayRendern() {
   }
 }
 
-// ── KANN PASSEN? ──────────────────────────────────
 function kannPassen(s) {
   for (let r0 = 0; r0 < RASTER_SIZE; r0++) {
     for (let c0 = 0; c0 < RASTER_SIZE; c0++) {
@@ -469,7 +444,6 @@ function kannPassen(s) {
 function passFormPruefen() {
   const verbleibend = stuecke.filter(s => s !== null);
   if (verbleibend.length === 0) return;
-
   let nochMoeglich = false;
   for (let i = 0; i < 3; i++) {
     if (!stuecke[i]) continue;
@@ -480,20 +454,15 @@ function passFormPruefen() {
       document.getElementById(`slot${i}`).classList.add('cant-fit');
     }
   }
-
-  if (!nochMoeglich) {
-    setTimeout(() => spielEnde(), 400);
-  }
+  if (!nochMoeglich) setTimeout(() => spielEnde(), 400);
 }
 
-// ── ZELLGRÖSSE ────────────────────────────────────
 function effZellGroesse() {
   const r0 = zellen[0][0].getBoundingClientRect();
   const r1 = zellen[0][1].getBoundingClientRect();
   return r1.left - r0.left;
 }
 
-// ── DRAG & DROP ───────────────────────────────────
 let dragIdx    = -1;
 let dragStueck = null;
 let dragCS     = 0;
@@ -502,7 +471,6 @@ function dragStart(e, idx) {
   if (istAnimiert || istGameOver) return;
   const slot = document.getElementById(`slot${idx}`);
   if (slot.classList.contains('cant-fit') || slot.classList.contains('used')) return;
-
   e.preventDefault();
   dragIdx    = idx;
   dragStueck = stuecke[idx];
@@ -516,9 +484,9 @@ function dragStart(e, idx) {
   ghost.style.display = 'grid';
   ghost.style.gridTemplateColumns = `repeat(${cols}, ${dragCS}px)`;
   ghost.style.gridTemplateRows    = `repeat(${rows}, ${dragCS}px)`;
-  ghost.style.gap    = '3px';
-  ghost.style.width  = `${cols * dragCS + (cols - 1) * 3}px`;
-  ghost.style.height = `${rows * dragCS + (rows - 1) * 3}px`;
+  ghost.style.gap    = '2px';
+  ghost.style.width  = `${cols * dragCS + (cols-1)*2}px`;
+  ghost.style.height = `${rows * dragCS + (rows-1)*2}px`;
 
   const occupied = new Set(s.zellen.map(([r, c]) => `${r},${c}`));
   for (let r = 0; r < rows; r++) {
@@ -529,14 +497,13 @@ function dragStart(e, idx) {
       gc.style.height = `${dragCS}px`;
       if (occupied.has(`${r},${c}`)) {
         gc.style.background = s.farbe;
-        gc.style.boxShadow  = `inset 0 3px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.2)`;
+        gc.style.boxShadow  = `inset 0 3px 0 rgba(255,255,255,.28), inset 0 -2px 0 rgba(0,0,0,.25)`;
       } else {
         gc.style.background = 'transparent';
       }
       ghost.appendChild(gc);
     }
   }
-
   ghostPositionieren(e.clientX, e.clientY);
   document.addEventListener('pointermove', dragMove);
   document.addEventListener('pointerup',   dragEnd);
@@ -547,10 +514,10 @@ function ghostPositionieren(cx, cy) {
   const s    = dragStueck;
   const rows = Math.max(...s.zellen.map(([r]) => r)) + 1;
   const cols = Math.max(...s.zellen.map(([, c]) => c)) + 1;
-  const w    = cols * dragCS + (cols - 1) * 3;
-  const h    = rows * dragCS + (rows - 1) * 3;
-  ghost.style.left = `${cx - w / 2}px`;
-  ghost.style.top  = `${cy - h - dragCS * 1.5}px`;
+  const w    = cols * dragCS + (cols-1)*2;
+  const h    = rows * dragCS + (rows-1)*2;
+  ghost.style.left = `${cx - w/2}px`;
+  ghost.style.top  = `${cy - h - dragCS*1.5}px`;
 }
 
 let vorschauZellen = [];
@@ -570,37 +537,36 @@ function rasterPosBerechnen(cx, cy) {
   const s    = dragStueck;
   const rows = Math.max(...s.zellen.map(([r]) => r)) + 1;
   const cols = Math.max(...s.zellen.map(([, c]) => c)) + 1;
-  const w    = cols * cs + (cols - 1) * 3;
-  const pieceLeft = cx - w / 2;
-  const pieceTop  = cy - (rows * cs + (rows - 1) * 3) - cs * 1.5;
-  const c0 = Math.round((pieceLeft - ref.left) / cs);
-  const r0 = Math.round((pieceTop  - ref.top)  / cs);
-  return { r0, c0 };
+  const w    = cols * cs + (cols-1)*2;
+  const pieceLeft = cx - w/2;
+  const pieceTop  = cy - (rows * cs + (rows-1)*2) - cs*1.5;
+  return {
+    r0: Math.round((pieceTop  - ref.top)  / cs),
+    c0: Math.round((pieceLeft - ref.left) / cs),
+  };
 }
 
 function dragMove(e) {
   if (!dragStueck) return;
   ghostPositionieren(e.clientX, e.clientY);
   vorschauLoeschen();
-
   const { r0, c0 } = rasterPosBerechnen(e.clientX, e.clientY);
   const s = dragStueck;
   const gueltig = s.zellen.every(([dr, dc]) => {
-    const r = r0 + dr, c = c0 + dc;
-    return r >= 0 && r < RASTER_SIZE && c >= 0 && c < RASTER_SIZE && !raster[r][c];
+    const r = r0+dr, c = c0+dc;
+    return r>=0 && r<RASTER_SIZE && c>=0 && c<RASTER_SIZE && !raster[r][c];
   });
-
   s.zellen.forEach(([dr, dc]) => {
-    const r = r0 + dr, c = c0 + dc;
-    if (r < 0 || r >= RASTER_SIZE || c < 0 || c >= RASTER_SIZE) return;
+    const r = r0+dr, c = c0+dc;
+    if (r<0||r>=RASTER_SIZE||c<0||c>=RASTER_SIZE) return;
     const el = zellen[r][c];
     if (gueltig) {
       el.classList.add('preview-ok');
       el.style.background = s.farbe;
-      el.style.boxShadow  = `inset 0 3px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.2)`;
+      el.style.boxShadow  = `inset 0 3px 0 rgba(255,255,255,.28), inset 0 -2px 0 rgba(0,0,0,.25)`;
     } else {
       el.classList.add('preview-bad');
-      el.style.background = 'rgba(220,60,60,.4)';
+      el.style.background = 'rgba(220,60,60,.5)';
       el.style.boxShadow  = 'none';
     }
     vorschauZellen.push([r, c]);
@@ -612,21 +578,16 @@ async function dragEnd(e) {
   document.removeEventListener('pointermove', dragMove);
   document.removeEventListener('pointerup',   dragEnd);
   document.removeEventListener('pointercancel', dragAbort);
-
   vorschauLoeschen();
   ghost.style.display = 'none';
-
   const { r0, c0 } = rasterPosBerechnen(e.clientX, e.clientY);
   const s = dragStueck;
   const gueltig = s.zellen.every(([dr, dc]) => {
-    const r = r0 + dr, c = c0 + dc;
-    return r >= 0 && r < RASTER_SIZE && c >= 0 && c < RASTER_SIZE && !raster[r][c];
+    const r = r0+dr, c = c0+dc;
+    return r>=0 && r<RASTER_SIZE && c>=0 && c<RASTER_SIZE && !raster[r][c];
   });
-
   const idx = dragIdx;
-  dragIdx    = -1;
-  dragStueck = null;
-
+  dragIdx = -1; dragStueck = null;
   if (gueltig) await steinSetzen(idx, r0, c0);
 }
 
@@ -636,40 +597,29 @@ function dragAbort() {
   document.removeEventListener('pointercancel', dragAbort);
   vorschauLoeschen();
   ghost.style.display = 'none';
-  dragIdx    = -1;
-  dragStueck = null;
+  dragIdx = -1; dragStueck = null;
 }
 
-// ── STEIN SETZEN ──────────────────────────────────
 async function steinSetzen(idx, r0, c0) {
   if (istAnimiert) return;
   const s = stuecke[idx];
-
   s.zellen.forEach(([dr, dc]) => {
-    const r = r0 + dr, c = c0 + dc;
+    const r = r0+dr, c = c0+dc;
     raster[r][c] = { farbe: s.farbe };
     zellFarbeSetzen(zellen[r][c], raster[r][c]);
   });
-
   punkte += s.zellen.length;
   scorePopup(s.zellen.length, r0, c0);
-
   stuecke[idx] = null;
   document.getElementById(`slot${idx}`).classList.add('used');
-
-  await linienLoeschen(r0, c0);
-
-  if (stuecke.every(s => s === null)) {
-    neuePiecesGenerieren();
-  } else {
-    passFormPruefen();
-  }
-
+  // Reihenfarbe = Farbe des platzierten Steins
+  await linienLoeschen(r0, c0, s.farbe);
+  if (stuecke.every(s => s === null)) neuePiecesGenerieren();
+  else passFormPruefen();
   punkteRendern();
 }
 
-// ── LINIEN LÖSCHEN ────────────────────────────────
-async function linienLoeschen(platzR, platzC) {
+async function linienLoeschen(platzR, platzC, platzFarbe) {
   const volleReihen  = [];
   const volleSpalten = [];
   for (let r = 0; r < RASTER_SIZE; r++) {
@@ -683,19 +633,23 @@ async function linienLoeschen(platzR, platzC) {
   istAnimiert = true;
 
   const betroffen = new Set();
-  volleReihen.forEach(r => { for (let c = 0; c < RASTER_SIZE; c++) betroffen.add(`${r},${c}`); });
-  volleSpalten.forEach(c => { for (let r = 0; r < RASTER_SIZE; r++) betroffen.add(`${r},${c}`); });
+  volleReihen.forEach(r  => { for (let c=0;c<RASTER_SIZE;c++) betroffen.add(`${r},${c}`); });
+  volleSpalten.forEach(c => { for (let r=0;r<RASTER_SIZE;r++) betroffen.add(`${r},${c}`); });
 
+  // Alle betroffenen Zellen auf die Farbe des platzierten Steins setzen → dann blinken
   betroffen.forEach(key => {
     const [r, c] = key.split(',').map(Number);
-    zellen[r][c].classList.add('flash');
+    const el = zellen[r][c];
+    el.style.background = platzFarbe;
+    el.style.boxShadow  = `inset 0 3px 0 rgba(255,255,255,.28), inset 0 -2px 0 rgba(0,0,0,.25)`;
+    el.classList.add('flash-line');
   });
 
-  await new Promise(res => setTimeout(res, 300));
+  await new Promise(res => setTimeout(res, 350));
 
   betroffen.forEach(key => {
     const [r, c] = key.split(',').map(Number);
-    zellen[r][c].classList.remove('flash');
+    zellen[r][c].classList.remove('flash-line');
     raster[r][c] = null;
     zellFarbeSetzen(zellen[r][c], null);
   });
@@ -708,11 +662,9 @@ async function linienLoeschen(platzR, platzC) {
   punkte += liniePunkte;
   scorePopup(liniePunkte, platzR, platzC, true);
   punkteRendern();
-
   istAnimiert = false;
 }
 
-// ── PUNKTE ────────────────────────────────────────
 function punkteRendern() {
   document.getElementById('scoreDisp').textContent = punkte;
   if (punkte > highscore) {
@@ -723,39 +675,34 @@ function punkteRendern() {
 }
 
 function scorePopup(n, r, c, linie = false) {
-  const ref = zellen[Math.min(r, RASTER_SIZE-1)][Math.min(c, RASTER_SIZE-1)].getBoundingClientRect();
+  const ref = zellen[Math.min(r,RASTER_SIZE-1)][Math.min(c,RASTER_SIZE-1)].getBoundingClientRect();
   const popup = document.createElement('div');
   popup.className = 'score-popup';
   popup.textContent = `+${n}`;
-  popup.style.left = `${ref.left + ref.width / 2}px`;
+  popup.style.left = `${ref.left + ref.width/2}px`;
   popup.style.top  = `${ref.top + window.scrollY}px`;
   if (linie) popup.style.color = '#FECA57';
   document.body.appendChild(popup);
   popup.addEventListener('animationend', () => popup.remove());
 }
 
-// ── GAME OVER ─────────────────────────────────────
 async function spielEnde() {
   istGameOver = true;
   goScreen.classList.add('show');
   document.getElementById('goScore').textContent = punkte;
-
   const isNeu = punkte > 0 && punkte >= highscore;
   const hsEl  = document.getElementById('goHs');
   hsEl.textContent = isNeu ? '🎉 Neue Bestleistung!' : `Bestleistung: ${highscore}`;
   hsEl.className   = `go-hs${isNeu ? ' new-record' : ''}`;
-
   let nutzername = null;
   try {
     const { data: { user } } = await PZ.supabase.auth.getUser();
     if (user) {
       await PZ.saveGameData('block-blast', punkte, 1, {});
-      const { data } = await PZ.supabase
-        .from('spieler_profile').select('benutzername').eq('id', user.id).single();
+      const { data } = await PZ.supabase.from('spieler_profile').select('benutzername').eq('id', user.id).single();
       if (data) nutzername = data.benutzername;
     }
   } catch (_) {}
-
   const lbEl = document.getElementById('goLbList');
   try {
     const lb = await PZ.getLeaderboard('block-blast', 5);
@@ -764,11 +711,11 @@ async function spielEnde() {
     } else {
       lbEl.innerHTML = lb.map((e, i) => {
         const istIch = nutzername && e.benutzername === nutzername;
-        const medal  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
-        return `<div class="lb-row${istIch ? ' me' : ''}">
+        const medal  = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+        return `<div class="lb-row${istIch?' me':''}">
           <span class="lb-rank">${medal}</span>
-          <span class="lb-name">${e.benutzername || 'Unbekannt'}</span>
-          <span class="lb-score">${e.punkte ?? e.score ?? 0}</span>
+          <span class="lb-name">${e.benutzername||'Unbekannt'}</span>
+          <span class="lb-score">${e.punkte??e.score??0}</span>
         </div>`;
       }).join('');
     }

@@ -208,7 +208,8 @@ main { padding-top: 64px; }
 .t-minesweeper { background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); }
 .t-pixeldrop { background: linear-gradient(135deg, #3b82f6 0%, #f97316 100%); }
 .t-factory   { background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%); }
-.t-pixelfall { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0ea5e9 100%); }
+.t-pixelfall   { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0ea5e9 100%); }
+.t-blockblast  { background: linear-gradient(135deg, #312e81 0%, #6366f1 60%, #a78bfa 100%); }
 
 /* Dekorative Elemente auf den Thumbnails */
 .t-pixel::before {

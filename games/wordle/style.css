@@ -130,6 +130,7 @@ h1.spiel-titel {
   display: grid;
   grid-template-rows: repeat(6, 1fr);
   gap: 5px;
+  touch-action: manipulation;
 }
 
 .reihe {
@@ -229,6 +230,7 @@ h1.spiel-titel {
   transition: background .15s, color .15s, transform .1s;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .taste:active { transform: scale(.93); }
 .taste:focus-visible {

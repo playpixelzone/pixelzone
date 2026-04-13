@@ -711,7 +711,11 @@ function berechnePPK() {
   const klickSpeed = talentLevel('tal_klick_speed');
   if (klickSpeed > 0) ppk *= (1 + klickSpeed * 0.25);
 
-  // Talent: PPS-zu-PPK Synergie (+1% der PPS als PPK pro Stufe)
+  // Basis-Synergie: Klicken gibt immer 5% der Passivproduktion pro Klick.
+  // → Bei 5 Klicks/s = +25% Einkommen; Klicken bleibt auf allen Stufen relevant.
+  ppk += berechneteStats.pps * 0.05;
+
+  // Talent: PPS-zu-PPK Synergie (+1% der PPS als PPK pro Stufe, stapelt sich)
   const ppsToPpk = talentLevel('tal_sp_pps_klick');
   if (ppsToPpk > 0) ppk += berechneteStats.pps * ppsToPpk * 0.01;
 

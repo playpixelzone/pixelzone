@@ -371,6 +371,78 @@ const PZ = {
   },
 
   /**
+   * Prüft ob ein Spiel aktiv ist. Zeigt sofort einen Lade-Overlay;
+   * bei aktivem Spiel wird er entfernt, bei deaktiviertem bleibt er sichtbar.
+   * Aufruf in index.html: <script>PZ.pruefeSpielStatus('pixel-jump');</script>
+   * @param {string} gameId  z.B. 'pixel-jump', 'space-blaster'
+   */
+  async pruefeSpielStatus(gameId) {
+    // CSS einmalig injizieren
+    if (!document.getElementById('pzStatusCss')) {
+      const s = document.createElement('style');
+      s.id = 'pzStatusCss';
+      s.textContent = `
+        @keyframes pz-overlay-in { from { opacity:0 } to { opacity:1 } }
+        @keyframes pz-spin { to { transform:rotate(360deg) } }
+        #pz-game-overlay { animation: pz-overlay-in .18s ease; }
+      `;
+      document.head.appendChild(s);
+    }
+
+    // Overlay sofort einblenden (Lade-Zustand)
+    const overlay = document.createElement('div');
+    overlay.id = 'pz-game-overlay';
+    overlay.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:99999',
+      'background:#f0f7ff', 'display:flex',
+      'align-items:center', 'justify-content:center',
+    ].join(';');
+    overlay.innerHTML = `
+      <div style="text-align:center;font-family:'Nunito',sans-serif;color:#aaa;">
+        <div style="width:32px;height:32px;border:3px solid #d1d5db;border-top-color:#3a86ff;
+                    border-radius:50%;animation:pz-spin .7s linear infinite;margin:0 auto 12px;"></div>
+        <div style="font-size:.9rem;font-weight:700;">Wird geladen…</div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    try {
+      const { data, error } = await this.db
+        .from('games')
+        .select('is_active, disabled_message')
+        .eq('id', gameId)
+        .single();
+
+      if (!error && data && !data.is_active) {
+        // Spiel deaktiviert — Nachricht anzeigen
+        const msg  = this._esc(data.disabled_message || 'Dieses Spiel ist vorübergehend nicht verfügbar.');
+        const base = this._basePath();
+        overlay.innerHTML = `
+          <div style="text-align:center;max-width:440px;padding:2.5rem 1.5rem;
+                      font-family:'Nunito',sans-serif;">
+            <div style="font-size:3.5rem;margin-bottom:1rem;">🚧</div>
+            <h2 style="font-size:1.45rem;font-weight:900;color:#1a1a2e;margin-bottom:.7rem;">
+              Vorübergehend nicht verfügbar
+            </h2>
+            <p style="font-size:.95rem;color:#555;line-height:1.65;
+                      font-weight:600;margin-bottom:1.75rem;">${msg}</p>
+            <a href="${base}index.html"
+               style="display:inline-block;padding:.75rem 2rem;background:#3a86ff;
+                      color:#fff;border-radius:12px;text-decoration:none;
+                      font-weight:800;font-size:.95rem;">
+              ← Zurück zur Übersicht
+            </a>
+          </div>`;
+      } else {
+        // Spiel aktiv — Overlay entfernen, Spiel startet normal
+        overlay.remove();
+      }
+    } catch (e) {
+      // Netzwerkfehler: Spiel trotzdem starten
+      overlay.remove();
+    }
+  },
+
+  /**
    * Weiterleitung zu login.html wenn nicht eingeloggt.
    * In geschützten Seiten aufrufen.
    */

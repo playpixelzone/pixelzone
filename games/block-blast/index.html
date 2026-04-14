@@ -14,42 +14,56 @@
     <div class="logo-mark">🕹</div>
     <span>PIXELZONE</span>
   </a>
-  <div id="navAuth"><a href="../../login.html" class="nav-login-btn">Anmelden</a></div>
+  <div class="header-actions">
+    <button type="button" class="btn-neustart" id="btnNeustart" title="Neustart">Neustart</button>
+    <div id="navAuth"><a href="../../login.html" class="nav-login-btn">Anmelden</a></div>
+  </div>
 </header>
 
 <main class="game-wrap">
   <section class="score-bar" aria-label="Punktestand">
     <div class="score-item">
-      <div class="score-icon">👑</div>
+      <span class="score-label">Punkte</span>
       <div class="score-val" id="scoreDisp">0</div>
     </div>
+    <div class="score-item combo-wrap">
+      <span class="score-label">Combo</span>
+      <div class="score-val combo-val" id="comboDisp">×1</div>
+    </div>
     <div class="score-item">
-      <div class="score-icon">🏆</div>
+      <span class="score-label">Best</span>
       <div class="score-val" id="highscoreDisp">0</div>
     </div>
   </section>
-  <section class="grid-container" aria-label="Spielfeld">
-    <div id="grid"></div>
+
+  <section class="board-wrap" aria-label="Spielfeld">
+    <canvas id="boardCanvas" width="320" height="320" aria-label="8×8 Raster"></canvas>
   </section>
+
   <section class="tray" id="tray" aria-label="Steinauswahl">
-    <div class="tray-slot" id="slot0"></div>
-    <div class="tray-slot" id="slot1"></div>
-    <div class="tray-slot" id="slot2"></div>
+    <div class="tray-slot" id="slot0" data-slot="0"></div>
+    <div class="tray-slot" id="slot1" data-slot="1"></div>
+    <div class="tray-slot" id="slot2" data-slot="2"></div>
   </section>
+
+  <aside class="debug-panel versteckt" id="debugPanel" aria-live="polite">
+    <div class="debug-title">Debug (D zum Umschalten)</div>
+    <pre id="debugText" class="debug-pre"></pre>
+  </aside>
 </main>
 
 <div id="ghost"></div>
 
 <div id="gameOverScreen">
   <div class="go-card">
-    <div class="go-title">Game Over</div>
+    <div class="go-title">Keine Züge mehr</div>
     <div class="go-score" id="goScore">0</div>
     <div class="go-hs" id="goHs">Bestleistung: 0</div>
     <div class="go-lb">
       <div class="go-lb-title">Top 5</div>
       <div id="goLbList"><div class="lb-empty">Laden…</div></div>
     </div>
-    <button class="go-btn" onclick="spielStart()">Nochmal spielen</button>
+    <button type="button" class="go-btn" id="btnNochmal">Nochmal spielen</button>
   </div>
 </div>
 

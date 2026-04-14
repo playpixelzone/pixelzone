@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pixel Phone – PIXELZONE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-bg: #f5f8ff;
+      --pp-card: #ffffff;
+      --pp-primary: #5b7cfa;
+      --pp-primary-dark: #3d5ae0;
+      --pp-accent: #ff8fab;
+      --pp-mint: #7ee8c5;
+      --pp-sun: #ffd966;
+      --pp-text: #1e293b;
+      --pp-muted: #64748b;
+      --pp-radius: 18px;
+      --pp-shadow: 0 8px 28px rgba(91, 124, 250, 0.12);
+      --canvas-w: 560px;
+      --canvas-h: 400px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: 'Nunito', sans-serif;
+      background: linear-gradient(165deg, #eef3ff 0%, #fff5f8 50%, #f0fff8 100%);
+      color: var(--pp-text);
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px; background: rgba(255,255,255,.85); backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; font-weight: 900; }
+    main { max-width: 920px; margin: 0 auto; padding: 20px 16px 48px; }
+    h1 { font-size: 1.65rem; margin: 0 0 8px; font-weight: 900; color: #334155; }
+    .sub { color: var(--pp-muted); font-size: .95rem; margin-bottom: 22px; line-height: 1.5; }
+    .panel {
+      background: var(--pp-card); border-radius: var(--pp-radius); padding: 22px;
+      box-shadow: var(--pp-shadow); border: 1.5px solid #e8eeff;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 22px; border: none; border-radius: 14px; font-family: inherit;
+      font-weight: 800; font-size: .95rem; cursor: pointer; transition: transform .12s, box-shadow .12s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: linear-gradient(135deg, var(--pp-primary), var(--pp-primary-dark)); color: #fff; box-shadow: 0 4px 16px rgba(91,124,250,.35); }
+    .btn-secondary { background: #f1f5f9; color: #334155; border: 2px solid #e2e8f0; }
+    .btn-accent { background: linear-gradient(135deg, #ff8fab, #ff6b8a); color: #fff; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    input[type="text"], input[type="number"], select, textarea {
+      font: inherit; padding: 12px 14px; border-radius: 12px; border: 2px solid #e2e8f0;
+      width: 100%; max-width: 280px;
+    }
+    textarea { max-width: 100%; min-height: 100px; resize: vertical; }
+    .code-big { font-size: 2rem; letter-spacing: .35em; font-weight: 900; color: var(--pp-primary); }
+    .player-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+    .player-pill {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; background: linear-gradient(90deg, #f8faff, #fff); border-radius: 14px;
+      border: 1.5px solid #e8eeff; font-weight: 700;
+    }
+    .player-pill .ok { color: #16a34a; font-size: 1.2rem; }
+    .host-badge { background: var(--pp-sun); color: #7c5e00; font-size: .72rem; padding: 3px 10px; border-radius: 20px; font-weight: 900; }
+    .hidden { display: none !important; }
+    .game-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .timer {
+      font-size: 1.75rem; font-weight: 900; font-variant-numeric: tabular-nums;
+      color: var(--pp-primary); min-width: 5ch;
+    }
+    .timer.warn { color: #dc2626; animation: pulse 1s ease infinite; }
+    @keyframes pulse { 50% { opacity: .65; } }
+    .canvas-wrap {
+      width: 100%; max-width: var(--canvas-w); margin: 0 auto; background: #fff;
+      border-radius: 16px; overflow: hidden; border: 3px solid #dbe4ff;
+      box-shadow: inset 0 2px 12px rgba(0,0,0,.04); touch-action: none;
+    }
+    #pp-canvas { display: block; width: 100%; height: auto; vertical-align: middle; cursor: crosshair; }
+    .tools {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px;
+      padding: 12px; background: #f8faff; border-radius: 14px; border: 1.5px solid #e8eeff;
+    }
+    .color-dot {
+      width: 32px; height: 32px; border-radius: 50%; border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.12); cursor: pointer;
+    }
+    .color-dot.on { outline: 3px solid var(--pp-primary); }
+    .reveal-stage { text-align: center; padding: 24px 12px; }
+    .reveal-stage img { max-width: 100%; border-radius: 16px; border: 3px solid #dbe4ff; }
+    .reveal-text { font-size: 1.35rem; font-weight: 800; margin: 16px 0; line-height: 1.4; }
+    .hint { font-size: .85rem; color: var(--pp-muted); margin-top: 8px; }
+    @media (min-width: 640px) {
+      h1 { font-size: 1.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="../../index.html" class="logo"><span>🕹</span><span>PIXELZONE</span></a>
+  <div id="navAuth"></div>
+</header>
+
+<main id="pp-main">
+  <h1>📞 Pixel Phone</h1>
+  <p class="sub">Stille Post mit Zeichnen &amp; Schreiben — wie Gartic Phone. 2–12 Spieler, Echtzeit über Supabase.</p>
+
+  <section id="pp-gate" class="panel hidden">
+    <p>Bitte melde dich an, um Pixel Phone zu spielen.</p>
+    <a class="btn btn-primary" id="pp-login-link" href="../../login.html">Zur Anmeldung</a>
+  </section>
+
+  <section id="pp-home" class="panel hidden">
+    <div class="row" style="margin-bottom:16px;">
+      <button type="button" class="btn btn-primary" id="pp-btn-create">Raum erstellen (Host)</button>
+      <button type="button" class="btn btn-secondary" id="pp-btn-join">Code eingeben</button>
+    </div>
+    <div id="pp-join-row" class="hidden row">
+      <input type="text" id="pp-code-input" placeholder="6-stelliger Code" maxlength="6" inputmode="numeric" pattern="[0-9]*">
+      <button type="button" class="btn btn-accent" id="pp-join-submit">Beitreten</button>
+    </div>
+    <p class="hint" id="pp-home-msg"></p>
+  </section>
+
+  <section id="pp-lobby" class="panel hidden">
+    <p>Code für Freunde:</p>
+    <p class="code-big" id="pp-display-code">------</p>
+    <div id="pp-host-settings" class="hidden" style="margin:18px 0;">
+      <div class="row">
+        <label>Zeichenzeit (Sek.):</label>
+        <select id="pp-draw-sec">
+          <option value="30">30</option>
+          <option value="60" selected>60</option>
+          <option value="90">90</option>
+          <option value="120">120</option>
+        </select>
+      </div>
+      <p class="hint">Schreibzeit ist fest 60 Sekunden.</p>
+    </div>
+    <h2 style="font-size:1.1rem;margin:16px 0 8px;">Spieler</h2>
+    <div class="player-list" id="pp-player-list"></div>
+    <div class="row" style="margin-top:18px;">
+      <button type="button" class="btn btn-primary hidden" id="pp-start">Spiel starten</button>
+      <p class="hint" id="pp-lobby-hint"></p>
+    </div>
+  </section>
+
+  <section id="pp-play" class="panel hidden">
+    <div class="game-top">
+      <div>Runde <strong id="pp-round-num">1</strong> · <span id="pp-round-label">Schreiben</span></div>
+      <div class="timer" id="pp-timer">0:00</div>
+    </div>
+    <div class="player-list" id="pp-ready-row" aria-label="Wer ist fertig"></div>
+    <p id="pp-task-hint" style="font-weight:700;margin-bottom:10px;"></p>
+    <div id="pp-write-ui" class="hidden">
+      <p class="hint" id="pp-prev-draw-wrap">Vorlage: <span id="pp-prev-draw-label"></span></p>
+      <div id="pp-prev-img-container" class="hidden" style="text-align:center;margin-bottom:12px;"></div>
+      <textarea id="pp-text-input" maxlength="500" placeholder="Was siehst du? Schreibe einen kurzen Satz …"></textarea>
+    </div>
+    <div id="pp-draw-ui" class="hidden">
+      <p class="hint" id="pp-draw-prompt"></p>
+      <div class="canvas-wrap">
+        <canvas id="pp-canvas" width="560" height="400"></canvas>
+      </div>
+      <div class="tools">
+        <span>Werkzeug:</span>
+        <button type="button" class="btn btn-secondary" id="pp-tool-pen" style="padding:8px 14px;">Stift</button>
+        <button type="button" class="btn btn-secondary" id="pp-tool-eraser" style="padding:8px 14px;">Radierer</button>
+        <span>Farbe:</span>
+        <div id="pp-colors"></div>
+        <label>Größe <input type="range" id="pp-size" min="2" max="24" value="4"></label>
+        <button type="button" class="btn btn-secondary" id="pp-undo" style="padding:8px 14px;">↩ Rückgängig</button>
+      </div>
+    </div>
+    <div class="row" style="margin-top:18px;">
+      <button type="button" class="btn btn-accent" id="pp-fertig">Fertig ✓</button>
+      <span class="hint" id="pp-fertig-hint"></span>
+    </div>
+  </section>
+
+  <section id="pp-reveal" class="panel hidden">
+    <h2 style="margin-top:0;">Auflösung</h2>
+    <p class="hint">Nur der Host klickt weiter — alle sehen dasselbe.</p>
+    <div class="reveal-stage" id="pp-reveal-body"></div>
+    <div class="row" style="justify-content:center;margin-top:16px;">
+      <button type="button" class="btn btn-primary hidden" id="pp-reveal-next">Weiter ▶</button>
+      <button type="button" class="btn btn-secondary hidden" id="pp-reveal-done">Fertig 🎉</button>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../auth.js"></script>
+<script>
+'use strict';
+
+/** Feste Leinwand-Logikgröße (alle Geräte gleicher Inhalt, CSS skaliert) */
+const CANVAS_W = 560;
+const CANVAS_H = 400;
+
+const PP = {
+  db: null,
+  roomId: null,
+  code: null,
+  hostId: null,
+  userId: null,
+  username: null,
+  channel: null,
+  pollTimer: null,
+  uiTimer: null,
+  // Zeichnen
+  tool: 'pen',
+  color: '#2d3748',
+  lineSize: 4,
+  drawing: false,
+  lastPt: null,
+  strokes: [],
+  undone: [],
+  /** Wechsel der Spielrunde erkennen (kein Reset bei Realtime-Polling) */
+  playRoundKey: null,
+};
+
+const COLORS = ['#2d3748', '#e53e3e', '#38a169', '#3182ce', '#d69e2e', '#805ad5', '#dd6b20', '#000000'];
+
+function $(id) { return document.getElementById(id); }
+
+function show(id, on) {
+  const el = typeof id === 'string' ? $(id) : id;
+  if (el) el.classList.toggle('hidden', !on);
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+async function initAuth() {
+  PP.db = PZ.db;
+  const session = await PZ.getSession();
+  if (!session) {
+    show('pp-gate', true);
+    show('pp-home', false);
+    const back = encodeURIComponent(location.href);
+    $('pp-login-link').href = '../../login.html?back=' + back;
+    await PZ.updateNavbar();
+    return false;
+  }
+  PP.userId = session.user.id;
+  PP.username = await PZ.getUsername(session.user.id) || 'Spieler';
+  show('pp-gate', false);
+  show('pp-home', true);
+  await PZ.updateNavbar();
+  return true;
+}
+
+function genCode() {
+  let c = '';
+  for (let i = 0; i < 6; i++) c += String(Math.floor(Math.random() * 10));
+  return c;
+}
+
+async function createRoom() {
+  $('pp-home-msg').textContent = '';
+  const code = genCode();
+  const { data: room, error } = await PP.db.from('pixel_phone_rooms').insert({
+    code,
+    host_user_id: PP.userId,
+    draw_seconds: 60,
+    write_seconds: 60,
+    status: 'lobby',
+  }).select().single();
+  if (error) {
+    $('pp-home-msg').textContent = 'Fehler: ' + error.message;
+    return;
+  }
+  const { error: e2 } = await PP.db.from('pixel_phone_players').insert({
+    room_id: room.id,
+    user_id: PP.userId,
+    username: PP.username,
+  });
+  if (e2) {
+    $('pp-home-msg').textContent = 'Fehler Spieler: ' + e2.message;
+    return;
+  }
+  PP.roomId = room.id;
+  PP.code = code;
+  PP.hostId = PP.userId;
+  PP.playRoundKey = null;
+  enterLobbyUI();
+  subscribeRoom();
+}
+
+async function joinRoomByCode() {
+  const raw = $('pp-code-input').value.replace(/\D/g, '').slice(0, 6);
+  $('pp-home-msg').textContent = '';
+  if (raw.length !== 6) {
+    $('pp-home-msg').textContent = 'Bitte 6 Ziffern eingeben.';
+    return;
+  }
+  const { data: room, error } = await PP.db.from('pixel_phone_rooms').select('*').eq('code', raw).maybeSingle();
+  if (error || !room) {
+    $('pp-home-msg').textContent = 'Raum nicht gefunden.';
+    return;
+  }
+  if (room.status !== 'lobby') {
+    $('pp-home-msg').textContent = 'Spiel läuft bereits oder ist beendet.';
+    return;
+  }
+  const { count } = await PP.db.from('pixel_phone_players').select('*', { count: 'exact', head: true }).eq('room_id', room.id);
+  if (count >= 12) {
+    $('pp-home-msg').textContent = 'Raum ist voll (max. 12).';
+    return;
+  }
+  const { error: e2 } = await PP.db.from('pixel_phone_players').insert({
+    room_id: room.id,
+    user_id: PP.userId,
+    username: PP.username,
+  });
+  if (e2) {
+    if (e2.code === '23505') {
+      // schon drin — ok
+    } else {
+      $('pp-home-msg').textContent = e2.message;
+      return;
+    }
+  }
+  PP.roomId = room.id;
+  PP.code = room.code;
+  PP.hostId = room.host_user_id;
+  PP.playRoundKey = null;
+  enterLobbyUI();
+  subscribeRoom();
+}
+
+function enterLobbyUI() {
+  show('pp-home', false);
+  show('pp-lobby', true);
+  $('pp-display-code').textContent = PP.code;
+  const isHost = PP.userId === PP.hostId;
+  show('pp-host-settings', isHost);
+  show('pp-start', isHost);
+  $('pp-lobby-hint').textContent = isHost
+    ? 'Mindestens 2 Spieler. Wenn alle da sind: Start.'
+    : 'Warte auf den Host …';
+  loadLobbyPlayers();
+}
+
+async function loadLobbyPlayers() {
+  const { data: players } = await PP.db.from('pixel_phone_players')
+    .select('*').eq('room_id', PP.roomId).order('joined_at');
+  const { data: room } = await PP.db.from('pixel_phone_rooms').select('*').eq('id', PP.roomId).single();
+  if (room && PP.hostId !== room.host_user_id) PP.hostId = room.host_user_id;
+  const list = $('pp-player-list');
+  list.innerHTML = '';
+  (players || []).forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'player-pill';
+    div.innerHTML = `<span>${esc(p.username)}${p.user_id === PP.hostId ? ' <span class="host-badge">Host</span>' : ''}</span>`;
+    list.appendChild(div);
+  });
+  if (PP.userId === PP.hostId && room?.status === 'lobby') {
+    $('pp-draw-sec').value = String(room.draw_seconds || 60);
+  }
+}
+
+async function saveHostSettings() {
+  const ds = parseInt($('pp-draw-sec').value, 10);
+  await PP.db.from('pixel_phone_rooms').update({
+    draw_seconds: ds,
+    write_seconds: 60,
+  }).eq('id', PP.roomId).eq('host_user_id', PP.userId);
+}
+
+async function startGame() {
+  const { data: players } = await PP.db.from('pixel_phone_players')
+    .select('*').eq('room_id', PP.roomId).order('joined_at');
+  if (!players || players.length < 2) {
+    alert('Mindestens 2 Spieler nötig.');
+    return;
+  }
+  await saveHostSettings();
+  const shuffled = [...players].sort(() => Math.random() - 0.5);
+  const n = shuffled.length;
+  for (let i = 0; i < n; i++) {
+    await PP.db.from('pixel_phone_players').update({ seat_index: i }).eq('id', shuffled[i].id);
+  }
+  const { data: r } = await PP.db.from('pixel_phone_rooms').select('draw_seconds').eq('id', PP.roomId).single();
+  const drawSec = r?.draw_seconds || 60;
+  const deadline = new Date(Date.now() + 60 * 1000).toISOString();
+  await PP.db.from('pixel_phone_rooms').update({
+    status: 'playing',
+    player_count: n,
+    current_round: 1,
+    round_kind: 'write',
+    deadline_at: deadline,
+    reveal_owner_idx: 0,
+    reveal_step: 0,
+  }).eq('id', PP.roomId);
+  PP.playRoundKey = null;
+}
+
+/** Sitzplatz des Users */
+async function getMySeat() {
+  const { data } = await PP.db.from('pixel_phone_players')
+    .select('seat_index').eq('room_id', PP.roomId).eq('user_id', PP.userId).maybeSingle();
+  return data?.seat_index ?? -1;
+}
+
+/** Heft-Index für Spieler seat in Runde r (0-basiert): (seat - r + N) % N */
+function bookletForSeat(seat, r, n) {
+  return ((seat - r) % n + n) % n;
+}
+
+async function loadSubmissions(roundNum) {
+  const { data } = await PP.db.from('pixel_phone_submissions')
+    .select('*').eq('room_id', PP.roomId).eq('round_number', roundNum);
+  return data || [];
+}
+
+async function loadAllSubmissions() {
+  const { data } = await PP.db.from('pixel_phone_submissions')
+    .select('*').eq('room_id', PP.roomId).order('round_number');
+  return data || [];
+}
+
+async function loadReady(roundNum) {
+  const { data } = await PP.db.from('pixel_phone_ready')
+    .select('*').eq('room_id', PP.roomId).eq('round_number', roundNum);
+  return data || [];
+}
+
+async function fetchRoom() {
+  const { data } = await PP.db.from('pixel_phone_rooms').select('*').eq('id', PP.roomId).maybeSingle();
+  return data;
+}
+
+function roundKindFromIndex(r0, n) {
+  return (r0 % 2 === 0) ? 'write' : 'draw';
+}
+
+async function renderPlayUI() {
+  const room = await fetchRoom();
+  if (!room || room.status !== 'playing') return;
+  const n = room.player_count;
+  const r1 = room.current_round;
+  const r0 = r1 - 1;
+  const kind = room.round_kind;
+  const roundKey = `${r1}|${kind}|${room.deadline_at || ''}`;
+  const isNewRound = PP.playRoundKey !== roundKey;
+
+  $('pp-round-num').textContent = String(r1);
+  $('pp-round-label').textContent = kind === 'write' ? 'Schreiben' : 'Zeichnen';
+  const mySeat = await getMySeat();
+  const booklet = bookletForSeat(mySeat, r0, n);
+
+  $('pp-task-hint').textContent = kind === 'write'
+    ? 'Beschreibe, was du siehst (oder schreib deinen Startsatz in Runde 1).'
+    : 'Zeichne den Satz — ohne Worte, nur Bild!';
+
+  show('pp-write-ui', kind === 'write');
+  show('pp-draw-ui', kind === 'draw');
+
+  if (isNewRound) {
+    PP.playRoundKey = roundKey;
+    if (kind === 'write') {
+      $('pp-text-input').value = '';
+      if (r1 === 1) {
+        $('pp-prev-draw-wrap').classList.add('hidden');
+        $('pp-prev-img-container').classList.add('hidden');
+        $('pp-text-input').placeholder = 'Schreib einen kurzen Satz oder Begriff …';
+      } else {
+        $('pp-prev-draw-wrap').classList.remove('hidden');
+        $('pp-prev-img-container').classList.remove('hidden');
+        const subs = await loadSubmissions(r1 - 1);
+        const prev = subs.find(s => s.booklet_owner_index === booklet && s.kind === 'drawing');
+        const box = $('pp-prev-img-container');
+        box.innerHTML = '';
+        if (prev?.content) {
+          const img = document.createElement('img');
+          img.src = prev.content;
+          img.alt = 'Vorlage';
+          img.style.maxWidth = '100%';
+          img.style.borderRadius = '12px';
+          box.appendChild(img);
+        } else {
+          box.innerHTML = '<p class="hint">(Keine Zeichnung — frei beschreiben.)</p>';
+        }
+        $('pp-prev-draw-label').textContent = 'Vorherige Zeichnung';
+      }
+    } else {
+      const subsPrev = await loadSubmissions(r1 - 1);
+      const textSub = subsPrev.find(s => s.booklet_owner_index === booklet && s.kind === 'text');
+      $('pp-draw-prompt').textContent = textSub?.content
+        ? 'Zeichne: „' + textSub.content.slice(0, 200) + '“'
+        : 'Zeichne passend zum Thema (Text fehlt).';
+      resetCanvas();
+    }
+    const readyRowsNew = await loadReady(r1);
+    const imReadyNew = readyRowsNew.some(r => r.user_id === PP.userId && r.ready);
+    $('pp-fertig').disabled = imReadyNew;
+    $('pp-fertig-hint').textContent = imReadyNew ? 'Warte auf andere …' : '';
+    startLocalTimer(room.deadline_at, kind === 'draw' ? room.draw_seconds : room.write_seconds);
+  } else {
+    const readyRows = await loadReady(r1);
+    const imReady = readyRows.some(r => r.user_id === PP.userId && r.ready);
+    $('pp-fertig').disabled = imReady;
+  }
+
+  await updateReadyList(room);
+}
+
+async function updateReadyList(room) {
+  const readyRows = await loadReady(room.current_round);
+  const { data: players } = await PP.db.from('pixel_phone_players')
+    .select('user_id, username, seat_index').eq('room_id', PP.roomId).order('seat_index', { ascending: true });
+  const readySet = new Set(readyRows.filter(r => r.ready).map(r => r.user_id));
+  const fertigHint = $('pp-fertig-hint');
+  fertigHint.textContent = `${readySet.size} / ${players?.length || 0} fertig`;
+  const readyRow = $('pp-ready-row');
+  if (readyRow) {
+    let html = '';
+    (players || []).forEach(p => {
+      html += `<div class="player-pill"><span>${esc(p.username)}</span>${readySet.has(p.user_id) ? '<span class="ok">✓</span>' : '<span class="hint">…</span>'}</div>`;
+    });
+    readyRow.innerHTML = html;
+  }
+}
+
+let lastRoomSnap = null;
+
+async function syncFromRoom() {
+  const room = await fetchRoom();
+  if (!room) return;
+  lastRoomSnap = room;
+  if (room.status === 'lobby') {
+    show('pp-play', false);
+    show('pp-reveal', false);
+    show('pp-lobby', true);
+    loadLobbyPlayers();
+    return;
+  }
+  if (room.status === 'playing') {
+    show('pp-lobby', false);
+    show('pp-reveal', false);
+    show('pp-play', true);
+    await tryAdvanceRound(room);
+    await renderPlayUI();
+    return;
+  }
+  if (room.status === 'reveal') {
+    clearTimers();
+    show('pp-lobby', false);
+    show('pp-play', false);
+    show('pp-reveal', true);
+    await renderReveal(room);
+    return;
+  }
+  if (room.status === 'closed') {
+    location.reload();
+  }
+}
+
+/** Prüft ob alle fertig oder Deadline → nächste Runde (Host steuert) */
+async function tryAdvanceRound(room) {
+  if (PP.userId !== PP.hostId) return;
+  const n = room.player_count;
+  const r1 = room.current_round;
+  const readyRows = await loadReady(r1);
+  const { data: players } = await PP.db.from('pixel_phone_players').select('user_id').eq('room_id', PP.roomId);
+  const need = (players || []).length;
+  const readyCount = readyRows.filter(r => r.ready).length;
+  const deadlineMs = room.deadline_at ? new Date(room.deadline_at).getTime() : 0;
+  const timeUp = Date.now() >= deadlineMs;
+  if (!timeUp && readyCount < need) return;
+
+  const subs = await loadSubmissions(r1);
+  // Fehlende Submissions: Platzhalter
+  for (const p of players || []) {
+    const has = subs.some(s => s.author_user_id === p.user_id);
+    if (has) continue;
+    const { data: pl } = await PP.db.from('pixel_phone_players').select('seat_index').eq('room_id', PP.roomId).eq('user_id', p.user_id).single();
+    const seat = pl?.seat_index ?? 0;
+    const r0 = r1 - 1;
+    const booklet = bookletForSeat(seat, r0, n);
+    const kind = room.round_kind;
+    if (kind === 'write') {
+      await PP.db.from('pixel_phone_submissions').insert({
+        room_id: PP.roomId,
+        round_number: r1,
+        booklet_owner_index: booklet,
+        author_user_id: p.user_id,
+        kind: 'text',
+        content: '…',
+      });
+    } else {
+      const blank = await makeBlankDataUrl();
+      await PP.db.from('pixel_phone_submissions').insert({
+        room_id: PP.roomId,
+        round_number: r1,
+        booklet_owner_index: booklet,
+        author_user_id: p.user_id,
+        kind: 'drawing',
+        content: blank,
+      });
+    }
+  }
+
+  await PP.db.from('pixel_phone_ready').delete().eq('room_id', PP.roomId).eq('round_number', r1);
+
+  if (r1 >= n) {
+    await PP.db.from('pixel_phone_rooms').update({
+      status: 'reveal',
+      reveal_owner_idx: 0,
+      reveal_step: 0,
+    }).eq('id', PP.roomId);
+    return;
+  }
+
+  const nextR = r1 + 1;
+  const nextKind = roundKindFromIndex(nextR - 1, n);
+  const sec = nextKind === 'draw' ? room.draw_seconds : room.write_seconds;
+  const nextDeadline = new Date(Date.now() + sec * 1000).toISOString();
+  await PP.db.from('pixel_phone_rooms').update({
+    current_round: nextR,
+    round_kind: nextKind,
+    deadline_at: nextDeadline,
+  }).eq('id', PP.roomId);
+}
+
+async function makeBlankDataUrl() {
+  const c = document.createElement('canvas');
+  c.width = CANVAS_W; c.height = CANVAS_H;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  return c.toDataURL('image/png');
+}
+
+function clearTimers() {
+  if (PP.uiTimer) { clearInterval(PP.uiTimer); PP.uiTimer = null; }
+}
+
+function startLocalTimer(deadlineIso, maxSec) {
+  clearTimers();
+  const dl = deadlineIso ? new Date(deadlineIso).getTime() : Date.now() + maxSec * 1000;
+  const tick = () => {
+    const left = Math.max(0, Math.floor((dl - Date.now()) / 1000));
+    const m = Math.floor(left / 60);
+    const s = left % 60;
+    const el = $('pp-timer');
+    el.textContent = `${m}:${String(s).padStart(2, '0')}`;
+    el.classList.toggle('warn', left <= 10);
+  };
+  tick();
+  PP.uiTimer = setInterval(tick, 250);
+}
+
+async function submitCurrentRound() {
+  const room = await fetchRoom();
+  if (!room || room.status !== 'playing') return;
+  const n = room.player_count;
+  const r1 = room.current_round;
+  const r0 = r1 - 1;
+  const mySeat = await getMySeat();
+  const booklet = bookletForSeat(mySeat, r0, n);
+  const kind = room.round_kind;
+
+  if (kind === 'write') {
+    let txt = $('pp-text-input').value.trim();
+    if (r1 === 1 && !txt) txt = '…';
+    if (r1 > 1 && !txt) txt = '…';
+    await PP.db.from('pixel_phone_submissions').upsert({
+      room_id: PP.roomId,
+      round_number: r1,
+      booklet_owner_index: booklet,
+      author_user_id: PP.userId,
+      kind: 'text',
+      content: txt.slice(0, 2000),
+    }, { onConflict: 'room_id,round_number,author_user_id' });
+  } else {
+    const c = $('pp-canvas');
+    const dataUrl = c.toDataURL('image/png');
+    await PP.db.from('pixel_phone_submissions').upsert({
+      room_id: PP.roomId,
+      round_number: r1,
+      booklet_owner_index: booklet,
+      author_user_id: PP.userId,
+      kind: 'drawing',
+      content: dataUrl,
+    }, { onConflict: 'room_id,round_number,author_user_id' });
+  }
+}
+
+async function setReady() {
+  const room = await fetchRoom();
+  if (!room) return;
+  await submitCurrentRound();
+  await PP.db.from('pixel_phone_ready').upsert({
+    room_id: PP.roomId,
+    round_number: room.current_round,
+    user_id: PP.userId,
+    ready: true,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'room_id,round_number,user_id' });
+  $('pp-fertig').disabled = true;
+  $('pp-fertig-hint').textContent = 'Warte auf andere …';
+  if (PP.userId === PP.hostId) {
+    setTimeout(async () => {
+      await tryAdvanceRound(await fetchRoom());
+    }, 400);
+  }
+}
+
+function initCanvas() {
+  const c = $('pp-canvas');
+  const ctx = c.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  c.width = CANVAS_W * dpr;
+  c.height = CANVAS_H * dpr;
+  c.style.width = '100%';
+  c.style.height = 'auto';
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  const loc = (e) => {
+    const r = c.getBoundingClientRect();
+    const x = ((e.clientX ?? e.touches?.[0]?.clientX) - r.left) * (CANVAS_W / r.width);
+    const y = ((e.clientY ?? e.touches?.[0]?.clientY) - r.top) * (CANVAS_H / r.height);
+    return { x, y };
+  };
+  const start = (e) => {
+    e.preventDefault();
+    PP.drawing = true;
+    PP.lastPt = loc(e);
+    PP.undone = [];
+  };
+  const move = (e) => {
+    if (!PP.drawing) return;
+    e.preventDefault();
+    const p = loc(e);
+    const ctx2 = c.getContext('2d');
+    ctx2.lineCap = 'round';
+    ctx2.lineJoin = 'round';
+    ctx2.lineWidth = PP.lineSize;
+    if (PP.tool === 'eraser') {
+      ctx2.globalCompositeOperation = 'destination-out';
+      ctx2.strokeStyle = 'rgba(0,0,0,1)';
+    } else {
+      ctx2.globalCompositeOperation = 'source-over';
+      ctx2.strokeStyle = PP.color;
+    }
+    ctx2.beginPath();
+    ctx2.moveTo(PP.lastPt.x, PP.lastPt.y);
+    ctx2.lineTo(p.x, p.y);
+    ctx2.stroke();
+    PP.strokes.push({ tool: PP.tool, color: PP.color, size: PP.lineSize, from: { ...PP.lastPt }, to: { ...p } });
+    PP.lastPt = p;
+  };
+  const end = (e) => {
+    e.preventDefault();
+    PP.drawing = false;
+  };
+  c.addEventListener('pointerdown', start);
+  c.addEventListener('pointermove', move);
+  c.addEventListener('pointerup', end);
+  c.addEventListener('pointerleave', end);
+}
+
+function resetCanvas() {
+  const c = $('pp-canvas');
+  const ctx = c.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const dpr = c.width / CANVAS_W;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  PP.strokes = [];
+  PP.undone = [];
+}
+
+$('pp-undo').addEventListener('click', () => {
+  // Letzter Strich entfernen: Neu zeichnen aus strokes ohne letztes Segment — vereinfacht: Snapshot
+  if (PP.strokes.length === 0) return;
+  PP.strokes.pop();
+  const c = $('pp-canvas');
+  const ctx = c.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const dpr = c.width / CANVAS_W;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  PP.strokes.forEach(seg => {
+    ctx.lineWidth = seg.size;
+    if (seg.tool === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.strokeStyle = '#000';
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = seg.color;
+    }
+    ctx.beginPath();
+    ctx.moveTo(seg.from.x, seg.from.y);
+    ctx.lineTo(seg.to.x, seg.to.y);
+    ctx.stroke();
+  });
+});
+
+function setupColors() {
+  const box = $('pp-colors');
+  COLORS.forEach((col, i) => {
+    const d = document.createElement('button');
+    d.type = 'button';
+    d.className = 'color-dot' + (i === 0 ? ' on' : '');
+    d.style.background = col;
+    d.addEventListener('click', () => {
+      box.querySelectorAll('.color-dot').forEach(x => x.classList.remove('on'));
+      d.classList.add('on');
+      PP.color = col;
+      PP.tool = 'pen';
+    });
+    box.appendChild(d);
+  });
+}
+
+$('pp-tool-pen').addEventListener('click', () => { PP.tool = 'pen'; });
+$('pp-tool-eraser').addEventListener('click', () => { PP.tool = 'eraser'; });
+$('pp-size').addEventListener('input', () => { PP.lineSize = +$('pp-size').value; });
+
+async function renderReveal(room) {
+  const subs = await loadAllSubmissions();
+  const n = room.player_count;
+  const owner = room.reveal_owner_idx;
+  const step = room.reveal_step;
+  const chain = subs.filter(s => s.booklet_owner_index === owner).sort((a, b) => a.round_number - b.round_number);
+  const { data: players } = await PP.db.from('pixel_phone_players').select('*').eq('room_id', PP.roomId);
+  const name = players?.find(p => p.seat_index === owner)?.username || '?';
+  const body = $('pp-reveal-body');
+  if (step >= chain.length || chain.length === 0) {
+    body.innerHTML = `<p>Kette von <strong>${esc(name)}</strong> ${chain.length === 0 ? '(leer)' : 'beendet'}.</p>`;
+  } else {
+    const item = chain[step];
+    if (item.kind === 'text') {
+      body.innerHTML = `<p class="reveal-text">${esc(item.content)}</p>`;
+    } else {
+      body.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = item.content;
+      img.alt = 'Zeichnung';
+      body.appendChild(img);
+    }
+  }
+  const isHost = PP.userId === PP.hostId;
+  const lastSlide = chain.length > 0 && owner === n - 1 && step === chain.length - 1;
+  const hasMore = chain.length > 0 && !lastSlide;
+  $('pp-reveal-next').classList.toggle('hidden', !isHost || !hasMore);
+  $('pp-reveal-done').classList.toggle('hidden', !isHost || !lastSlide);
+}
+
+$('pp-reveal-next').addEventListener('click', async () => {
+  const room = await fetchRoom();
+  const subs = await loadAllSubmissions();
+  const n = room.player_count;
+  const owner = room.reveal_owner_idx;
+  const step = room.reveal_step;
+  const chain = subs.filter(s => s.booklet_owner_index === owner).sort((a, b) => a.round_number - b.round_number);
+  if (step + 1 < chain.length) {
+    await PP.db.from('pixel_phone_rooms').update({ reveal_step: step + 1 }).eq('id', PP.roomId);
+  } else if (owner + 1 < n) {
+    await PP.db.from('pixel_phone_rooms').update({ reveal_owner_idx: owner + 1, reveal_step: 0 }).eq('id', PP.roomId);
+  }
+});
+
+$('pp-reveal-done').addEventListener('click', async () => {
+  await PP.db.from('pixel_phone_rooms').update({ status: 'closed' }).eq('id', PP.roomId);
+});
+
+function subscribeRoom() {
+  if (PP.channel) PP.channel.unsubscribe();
+  PP.channel = PP.db.channel('pp-' + PP.roomId)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'pixel_phone_rooms', filter: `id=eq.${PP.roomId}` }, () => syncFromRoom())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'pixel_phone_players', filter: `room_id=eq.${PP.roomId}` }, () => syncFromRoom())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'pixel_phone_submissions', filter: `room_id=eq.${PP.roomId}` }, () => syncFromRoom())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'pixel_phone_ready', filter: `room_id=eq.${PP.roomId}` }, () => syncFromRoom())
+    .subscribe();
+  if (PP.pollTimer) clearInterval(PP.pollTimer);
+  PP.pollTimer = setInterval(syncFromRoom, 2500);
+}
+
+// —— Events ——
+$('pp-btn-create').addEventListener('click', createRoom);
+$('pp-btn-join').addEventListener('click', () => $('pp-join-row').classList.toggle('hidden'));
+$('pp-join-submit').addEventListener('click', joinRoomByCode);
+$('pp-start').addEventListener('click', startGame);
+$('pp-draw-sec').addEventListener('change', saveHostSettings);
+$('pp-fertig').addEventListener('click', setReady);
+
+(async () => {
+  const ok = await initAuth();
+  if (!ok) return;
+  initCanvas();
+  setupColors();
+  $('pp-btn-create').disabled = false;
+  $('pp-btn-join').disabled = false;
+})();
+</script>
+</body>
+</html>

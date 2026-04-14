@@ -35,10 +35,22 @@
     </div>
     <div class="hud-right">
       <button class="hud-btn" id="btn-neustart" title="Neustart">🔄</button>
-      <button class="hud-btn" id="btn-settings" title="Einstellungen">⚙</button>
+      <button class="hud-btn" id="btn-settings" title="Thema wechseln">🎨</button>
     </div>
   </div>
   <canvas id="c"></canvas>
+
+  <!-- EXP-Leiste -->
+  <div id="exp-leiste-wrap">
+    <span id="level-badge">Lv.1</span>
+    <div id="exp-bar-track">
+      <div id="exp-bar"></div>
+    </div>
+    <span id="exp-label">0 / 200 EXP</span>
+  </div>
+
+  <!-- Level-Up Toast -->
+  <div id="level-up-toast" class="hidden">Level 2 erreicht! ⭐</div>
 </div>
 
 <!-- ── GAME OVER ─────────────────────────────── -->

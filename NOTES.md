@@ -1,5 +1,64 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Heutiger Stand (2026-04-14)
+
+### Ranglisten-Bugs, Space Blaster, Balancing, EXP-System ✅
+
+#### 1. Ranglisten-Bug – Block Blast
+- **Root Cause**: `PZ.supabase.auth.getUser()` → `PZ.supabase` existiert nicht (auth.js nutzt `PZ.db`). TypeError wurde still von `catch (_) {}` verschluckt.
+- **Fix**: ersetzt durch `PZ.getUser()` + `PZ.getUsername()`. Korrekte Feldnamen (`e.punkte` statt `e.score`).
+- **Zusatz**: `console.error` in allen catch-Blöcken ergänzt.
+
+#### 1. Ranglisten-Bug – Pixel Drop (Sand-Tetris)
+- **Root Cause**: `ranglisteHTML()` nutzte `e.username` + `e.score`, aber Supabase RPC `get_leaderboard` gibt `benutzername` + `punkte` zurück.
+- **Fix**: Feldnamen korrigiert auf `e.benutzername` + `e.punkte`. `console.error` ergänzt.
+
+#### 2. Block Blast – Blöcke-Generierung
+- `aktuelleFormen()` schloss `FORMEN_LEICHT` nach 30 Punkten komplett aus → nur große/mittlere Blöcke → schnell unspielbar.
+- **Fix**: FORMEN_LEICHT ist jetzt immer Teil des Pools. Neue Schwellwerte: <50 nur LEICHT, <150 2×LEICHT+MITTEL, <400 LEICHT+2×MITTEL, ≥400 alle Gruppen.
+
+#### 3. Space Blaster – Bug 1: Ecken-Schaden
+- Gegnerschüsse flogen gerade nach unten (`dx:0`) → Spieler in Ecken nie getroffen.
+- **Fix**: Schüsse zielen jetzt auf aktuelle Spieler-Position (`Math.hypot` + Normierung).
+
+#### 3. Space Blaster – Bug 2: Punkte nur per Boss
+- `gegnerTod()` addierte nie Score. `e.points` war definiert aber nie genutzt.
+- **Fix**: `score += e.points; hudAktualisieren();` in `gegnerTod()` ergänzt.
+
+#### 3. Space Blaster – Bug 3: Pausemenü
+- Neu implementiert: P/Escape-Taste + mobiler Pause-Button im HUD
+- `paused`-Variable stoppt `requestAnimationFrame`-Loop
+- Pausemenü: helle weiße Karte, "Pausiert", Weiterspielen, Neustart
+- Dateien: `game.js`, `index.html`, `style.css`
+
+#### 4. Pixel Factory – Balancing
+- Prestige-Schwelle: 1000 → **5000** Pixel (5× höher, ersten Prestige dauert viel länger)
+- QP-Berechnung: `lifetimePixel / 1e8` → `/ 5e8` (5× mehr Pixel nötig für gleiche QP-Ausbeute)
+- QP-Upgrade-Preise: ca. **2× erhöht** (Quanten-Fabrik I: 1→2 QP, II: 3→6 QP, etc.)
+
+#### 5. Pixel Drop – EXP/Level-System
+- **Farbthemen**: 5 Themen (Standard immer, Pastell Lv.5, Neon Lv.10, Erde Lv.20, Glitter Lv.35)
+- Thema-Wechsel: 🎨-Button im HUD (früher: Einstellungen-Platzhalter)
+- **EXP**: Stein platziert +5 EXP; 1 Farbe verbunden +100, 2 Farben +250, 3+ Farben +500
+- **Level 1–50**: Level N braucht N×200 EXP
+- Level-Up: weißer Toast "Level X erreicht! ⭐" für 2,2 s + Leiste blinkt lila
+- **EXP-Leiste**: am unteren Bildschirmrand, zeigt Lv.X + Fortschrittsbalken + EXP-Zähler
+- Gespeichert in `extra_daten` (kein Schema-Change nötig, `level`-Spalte schon vorhanden)
+- Dateien: `game.js`, `index.html`, `style.css`
+
+### Was als nächstes zu tun ist
+- Spieltests aller geänderten Spiele im Browser
+
+### Veränderte Dateien (2026-04-14)
+- `games/block-blast/index.html` — Ranglisten-Bug fix, Block-Generierung
+- `games/pixel-drop/game.js` — Ranglisten-Bug fix, EXP/Level-System
+- `games/pixel-drop/index.html` — EXP-Leiste HTML
+- `games/pixel-drop/style.css` — EXP-Leiste + Level-Up Toast CSS
+- `games/space-blaster/game.js` — Punkte, Ecken-Schaden, Pause-Logik
+- `games/space-blaster/index.html` — Pause-Button + Pausemenü HTML
+- `games/space-blaster/style.css` — Pause-Button + Pausemenü CSS
+- `games/pixel-factory/game.js` — Balancing: Prestige-Schwelle, QP-Berechnung, QP-Preise
+
 ## Heutiger Stand (2026-04-13)
 
 ### Bug-Fixes & Login-Hint Redesign ✅

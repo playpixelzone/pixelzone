@@ -325,10 +325,11 @@ const goScreen = document.getElementById('gameOverScreen');
 const ghost    = document.getElementById('ghost');
 
 function aktuelleFormen() {
-  if (punkte < 30)  return FORMEN_LEICHT;
-  if (punkte < 100) return [...FORMEN_LEICHT, ...FORMEN_MITTEL];
-  if (punkte < 300) return [...FORMEN_MITTEL, ...FORMEN_SCHWER];
-  return [...FORMEN_MITTEL, ...FORMEN_MITTEL, ...FORMEN_SCHWER];
+  // Kleine Blöcke sind immer dabei – verhindert unspielbare Kombinationen
+  if (punkte < 50)  return FORMEN_LEICHT;
+  if (punkte < 150) return [...FORMEN_LEICHT, ...FORMEN_LEICHT, ...FORMEN_MITTEL];
+  if (punkte < 400) return [...FORMEN_LEICHT, ...FORMEN_MITTEL, ...FORMEN_MITTEL];
+  return [...FORMEN_LEICHT, ...FORMEN_MITTEL, ...FORMEN_MITTEL, ...FORMEN_SCHWER];
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -696,13 +697,18 @@ async function spielEnde() {
   hsEl.className   = `go-hs${isNeu ? ' new-record' : ''}`;
   let nutzername = null;
   try {
-    const { data: { user } } = await PZ.supabase.auth.getUser();
+    const user = await PZ.getUser().catch(() => null);
     if (user) {
-      await PZ.saveGameData('block-blast', punkte, 1, {});
-      const { data } = await PZ.supabase.from('spieler_profile').select('benutzername').eq('id', user.id).single();
-      if (data) nutzername = data.benutzername;
+      const saveResult = await PZ.saveGameData('block-blast', punkte, 1, {});
+      if (saveResult?.error) console.error('[Block Blast] Speichern fehlgeschlagen:', saveResult.error);
+      nutzername = await PZ.getUsername(user.id).catch(err => {
+        console.error('[Block Blast] Benutzername laden fehlgeschlagen:', err);
+        return null;
+      });
     }
-  } catch (_) {}
+  } catch (err) {
+    console.error('[Block Blast] spielEnde Fehler:', err);
+  }
   const lbEl = document.getElementById('goLbList');
   try {
     const lb = await PZ.getLeaderboard('block-blast', 5);
@@ -715,11 +721,12 @@ async function spielEnde() {
         return `<div class="lb-row${istIch?' me':''}">
           <span class="lb-rank">${medal}</span>
           <span class="lb-name">${e.benutzername||'Unbekannt'}</span>
-          <span class="lb-score">${e.punkte??e.score??0}</span>
+          <span class="lb-score">${e.punkte??0}</span>
         </div>`;
       }).join('');
     }
-  } catch (_) {
+  } catch (err) {
+    console.error('[Block Blast] Rangliste laden fehlgeschlagen:', err);
     lbEl.innerHTML = '<div class="lb-empty">Keine Verbindung</div>';
   }
 }

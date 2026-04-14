@@ -29,9 +29,19 @@
     <div class="hud-item"><span class="hud-label">Welle</span><span class="hud-val" id="hud-wave">1</span></div>
     <div class="hud-item hud-lives"><span class="hud-label">Leben</span><div id="hud-lives-icons"></div></div>
     <div class="hud-item"><span class="hud-label">Münzen</span><span class="hud-val" id="hud-coins">0</span></div>
+    <button class="pause-btn" id="pause-btn" onclick="pauseUmschalten()" aria-label="Pause">⏸</button>
   </div>
   <div id="pw-timers"></div>
   <canvas id="c"></canvas>
+
+  <!-- Pausemenü -->
+  <div id="pause-menu" class="hidden">
+    <div class="pause-card">
+      <div class="pause-title">Pausiert</div>
+      <button class="btn btn-primary" onclick="spielFortsetzen()">▶ Weiterspielen</button>
+      <button class="btn btn-secondary" onclick="spielStarten()">↺ Neustart</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── GAME OVER ─────────────────────────────── -->

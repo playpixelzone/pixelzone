@@ -22,6 +22,7 @@ let wave          = 1;
 let lives         = 3;
 let gameCoins     = 0;
 let running       = false;
+let paused        = false;  // Pause-Zustand
 let waveClearing  = false;
 let bossWave      = false;
 let bossDeathAnim = 0;
@@ -58,6 +59,11 @@ let touchX  = null;
 document.addEventListener('keydown', e => {
   keys[e.key] = true;
   if (['ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+  // Pause mit P oder Escape
+  if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && running) {
+    e.preventDefault();
+    pauseUmschalten();
+  }
 });
 document.addEventListener('keyup', e => { keys[e.key] = false; });
 
@@ -119,9 +125,26 @@ function spielerBewegen() {
   }
 }
 
+// ── Pause ──────────────────────────────────────────────────────────────────────
+function pauseUmschalten() {
+  if (!running) return;
+  paused = !paused;
+  const menu = document.getElementById('pause-menu');
+  if (menu) menu.classList.toggle('hidden', !paused);
+  if (!paused) tick(); // Loop neu starten wenn fortgesetzt
+}
+
+function spielFortsetzen() {
+  if (!paused) return;
+  paused = false;
+  const menu = document.getElementById('pause-menu');
+  if (menu) menu.classList.add('hidden');
+  tick();
+}
+
 // ── Game Loop ──────────────────────────────────────────────────────────────────
 function tick() {
-  if (!running) return;
+  if (!running || paused) return;
   loopId = requestAnimationFrame(tick);
   update();
   draw();
@@ -393,6 +416,7 @@ function spielStarten() {
   lives        = 3 + (pdata.upgrades?.maxLives || 0);
   gameCoins    = 0;
   running      = true;
+  paused       = false;
   waveClearing = false;
   boss         = null;
   bossWave     = false;
@@ -543,9 +567,17 @@ function gegnerSchiessen() {
 
   // Zufälligen Gegner auswählen – immer nur EINER schießt auf einmal
   const e = enemies[Math.floor(Math.random() * enemies.length)];
+  // Schuss zielt auf aktuelle Spieler-Position (fair in allen Ecken)
+  const zielX = player ? player.x : CW / 2;
+  const zielY = player ? player.y : CH - 80;
+  const distX = zielX - e.x;
+  const distY = zielY - (e.y + e.h / 2);
+  const dist  = Math.hypot(distX, distY) || 1;
+  const speed = 5 + wave * 0.1;
   bullets.push({
     x: e.x, y: e.y + e.h / 2,
-    dx: 0, dy: 5 + wave * 0.1,
+    dx: (distX / dist) * speed,
+    dy: (distY / dist) * speed,
     w: 4, h: 10,
     color: '#f43f5e',
     type: 'enemy',
@@ -560,6 +592,9 @@ function gegnerTod(e, idx) {
   partikelSpawnen(e.x, e.y, e.color, 10);
   enemies.splice(idx, 1);
   formation.enemies = enemies;
+  // Punkte für jeden besiegten Gegner
+  score += e.points;
+  hudAktualisieren();
   muenzenSpawnen(e.x, e.y);
   if (Math.random() < 0.12) powerupSpawnen(e.x, e.y);
   welleAbgeschlossenPruefen();

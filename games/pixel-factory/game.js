@@ -143,23 +143,23 @@ const UPGRADES = [...KLICK_UPGRADES, ...PPS_UPGRADES, ...GEBAEUDE_UPGRADES, ...O
 // === PRESTIGE-UPGRADES (mit Quantum-Pixel kaufbar) ===
 // Kein 'bedingung'-Feld – sie sind immer sichtbar (nur QP-Preis entscheidet)
 const PRESTIGE_UPGRADES = [
-  // Globale Multiplikatoren (10 Stück)
-  { id: 'qp_global_1',  name: 'Quanten-Fabrik I',    beschreibung: 'Alle Produktion ×1,5',   preisQP: 1,    typ: 'qp_global_mult', wert: 1.5  },
-  { id: 'qp_global_2',  name: 'Quanten-Fabrik II',   beschreibung: 'Alle Produktion ×2',     preisQP: 3,    typ: 'qp_global_mult', wert: 2    },
-  { id: 'qp_global_3',  name: 'Quanten-Fabrik III',  beschreibung: 'Alle Produktion ×3',     preisQP: 8,    typ: 'qp_global_mult', wert: 3    },
-  { id: 'qp_global_4',  name: 'Quanten-Fabrik IV',   beschreibung: 'Alle Produktion ×5',     preisQP: 20,   typ: 'qp_global_mult', wert: 5    },
-  { id: 'qp_global_5',  name: 'Quanten-Fabrik V',    beschreibung: 'Alle Produktion ×10',    preisQP: 50,   typ: 'qp_global_mult', wert: 10   },
-  { id: 'qp_global_6',  name: 'Quanten-Fabrik VI',   beschreibung: 'Alle Produktion ×25',    preisQP: 100,  typ: 'qp_global_mult', wert: 25   },
-  { id: 'qp_global_7',  name: 'Quanten-Fabrik VII',  beschreibung: 'Alle Produktion ×50',    preisQP: 200,  typ: 'qp_global_mult', wert: 50   },
-  { id: 'qp_global_8',  name: 'Quanten-Fabrik VIII', beschreibung: 'Alle Produktion ×100',   preisQP: 500,  typ: 'qp_global_mult', wert: 100  },
-  { id: 'qp_global_9',  name: 'Quanten-Fabrik IX',   beschreibung: 'Alle Produktion ×250',   preisQP: 1000, typ: 'qp_global_mult', wert: 250  },
-  { id: 'qp_global_10', name: 'Quanten-Fabrik X',    beschreibung: 'Alle Produktion ×1000',  preisQP: 2500, typ: 'qp_global_mult', wert: 1000 },
-  // Klick-Multiplikatoren (5 Stück)
-  { id: 'qp_klick_1', name: 'Quanten-Klick I',   beschreibung: 'Klick-Leistung ×2',   preisQP: 2,   typ: 'qp_klick_mult', wert: 2   },
-  { id: 'qp_klick_2', name: 'Quanten-Klick II',  beschreibung: 'Klick-Leistung ×5',   preisQP: 10,  typ: 'qp_klick_mult', wert: 5   },
-  { id: 'qp_klick_3', name: 'Quanten-Klick III', beschreibung: 'Klick-Leistung ×20',  preisQP: 40,  typ: 'qp_klick_mult', wert: 20  },
-  { id: 'qp_klick_4', name: 'Quanten-Klick IV',  beschreibung: 'Klick-Leistung ×100', preisQP: 150, typ: 'qp_klick_mult', wert: 100 },
-  { id: 'qp_klick_5', name: 'Quanten-Klick V',   beschreibung: 'Klick-Leistung ×500', preisQP: 500, typ: 'qp_klick_mult', wert: 500 },
+  // Globale Multiplikatoren (10 Stück) – Preise ~2× erhöht für bessere Balance
+  { id: 'qp_global_1',  name: 'Quanten-Fabrik I',    beschreibung: 'Alle Produktion ×1,5',   preisQP: 2,    typ: 'qp_global_mult', wert: 1.5  },
+  { id: 'qp_global_2',  name: 'Quanten-Fabrik II',   beschreibung: 'Alle Produktion ×2',     preisQP: 6,    typ: 'qp_global_mult', wert: 2    },
+  { id: 'qp_global_3',  name: 'Quanten-Fabrik III',  beschreibung: 'Alle Produktion ×3',     preisQP: 15,   typ: 'qp_global_mult', wert: 3    },
+  { id: 'qp_global_4',  name: 'Quanten-Fabrik IV',   beschreibung: 'Alle Produktion ×5',     preisQP: 40,   typ: 'qp_global_mult', wert: 5    },
+  { id: 'qp_global_5',  name: 'Quanten-Fabrik V',    beschreibung: 'Alle Produktion ×10',    preisQP: 100,  typ: 'qp_global_mult', wert: 10   },
+  { id: 'qp_global_6',  name: 'Quanten-Fabrik VI',   beschreibung: 'Alle Produktion ×25',    preisQP: 200,  typ: 'qp_global_mult', wert: 25   },
+  { id: 'qp_global_7',  name: 'Quanten-Fabrik VII',  beschreibung: 'Alle Produktion ×50',    preisQP: 400,  typ: 'qp_global_mult', wert: 50   },
+  { id: 'qp_global_8',  name: 'Quanten-Fabrik VIII', beschreibung: 'Alle Produktion ×100',   preisQP: 1000, typ: 'qp_global_mult', wert: 100  },
+  { id: 'qp_global_9',  name: 'Quanten-Fabrik IX',   beschreibung: 'Alle Produktion ×250',   preisQP: 2000, typ: 'qp_global_mult', wert: 250  },
+  { id: 'qp_global_10', name: 'Quanten-Fabrik X',    beschreibung: 'Alle Produktion ×1000',  preisQP: 5000, typ: 'qp_global_mult', wert: 1000 },
+  // Klick-Multiplikatoren (5 Stück) – Preise ~2× erhöht
+  { id: 'qp_klick_1', name: 'Quanten-Klick I',   beschreibung: 'Klick-Leistung ×2',   preisQP: 4,   typ: 'qp_klick_mult', wert: 2   },
+  { id: 'qp_klick_2', name: 'Quanten-Klick II',  beschreibung: 'Klick-Leistung ×5',   preisQP: 20,  typ: 'qp_klick_mult', wert: 5   },
+  { id: 'qp_klick_3', name: 'Quanten-Klick III', beschreibung: 'Klick-Leistung ×20',  preisQP: 80,  typ: 'qp_klick_mult', wert: 20  },
+  { id: 'qp_klick_4', name: 'Quanten-Klick IV',  beschreibung: 'Klick-Leistung ×100', preisQP: 300, typ: 'qp_klick_mult', wert: 100 },
+  { id: 'qp_klick_5', name: 'Quanten-Klick V',   beschreibung: 'Klick-Leistung ×500', preisQP: 1000,typ: 'qp_klick_mult', wert: 500 },
   // Goldene Pixel (3 Stück)
   { id: 'qp_golden_1', name: 'Goldene Augen I',   beschreibung: 'Goldene Pixel erscheinen 2× häufiger', preisQP: 5,  typ: 'qp_golden_freq',  wert: 2 },
   { id: 'qp_golden_2', name: 'Goldene Augen II',  beschreibung: 'Goldene Pixel geben 3× mehr Bonus',    preisQP: 15, typ: 'qp_golden_bonus', wert: 3 },
@@ -736,8 +736,8 @@ function maxOfflineStunden() {
 }
 
 function berechneQPGewinn() {
-  // Basis: Wurzel aus lifetime-Pixel + Prestige-Bonus (je 5 Prestige +1 QP)
-  const basisQP = Math.max(1, Math.floor(Math.sqrt(zustand.lifetimePixel / 1e8)) + 1);
+  // Abgeschwächte Skalierung: 5× mehr Pixel nötig für gleiche QP-Ausbeute
+  const basisQP = Math.max(1, Math.floor(Math.sqrt(zustand.lifetimePixel / 5e8)) + 1);
   const prestigeBonus = Math.floor(zustand.prestige / 5);
   // Talent: QP-Bonus (+1 pro Prestige pro Stufe)
   const talentBonus = talentLevel('tal_pre_qp');
@@ -1448,7 +1448,8 @@ function prestigeUpgradeKaufen(up) {
 // ╚══════════════════════════════════════════════════════════╝
 
 function berechnePrestizeSchwelle() {
-  let schwelle = zustand.prestige === 0 ? 1000 : 1000 * Math.pow(10, zustand.prestige);
+  // 5× höhere Schwelle damit Prestige nicht zu früh kommt
+  let schwelle = zustand.prestige === 0 ? 5000 : 5000 * Math.pow(10, zustand.prestige);
   // Talent: Frühes Prestige (−10% pro Stufe)
   const schwell = talentLevel('tal_pre_schwelle');
   if (schwell > 0) schwelle *= Math.pow(1 - 0.10, schwell);

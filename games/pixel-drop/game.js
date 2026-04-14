@@ -9,12 +9,36 @@ const PHYS_HOEHE   = GRID_HOEHE  * BLOCK_SCALE; // 140
 const PANEL_B      = 144;
 const GEFAHREN_Z   = 2;                       // visuelle Gefahrenzeilen
 const FARBEN_NAMEN = ['rot', 'gruen', 'blau', 'orange'];
-const FARBEN_HEX   = {
-  rot:    '#ef4444',
-  gruen:  '#22c55e',
-  blau:   '#3b82f6',
-  orange: '#f97316',
-};
+
+// ── Farbthemen (5 Stück, per Level freigeschaltet) ────────────────────────────
+const THEMEN = [
+  { name: 'Standard', farben: { rot: '#ef4444', gruen: '#22c55e', blau: '#3b82f6', orange: '#f97316' } }, // immer
+  { name: 'Pastell',  farben: { rot: '#f9a8d4', gruen: '#a7f3d0', blau: '#bae6fd', orange: '#fde68a' } }, // Lv. 5
+  { name: 'Neon',     farben: { rot: '#ff2d78', gruen: '#00ff88', blau: '#00e0ff', orange: '#ffaa00' } }, // Lv. 10
+  { name: 'Erde',     farben: { rot: '#b45309', gruen: '#65a30d', blau: '#0369a1', orange: '#c2410c' } }, // Lv. 20
+  { name: 'Glitter',  farben: { rot: '#db2777', gruen: '#059669', blau: '#7c3aed', orange: '#d97706' } }, // Lv. 35
+];
+const THEMA_LEVEL = [0, 5, 10, 20, 35]; // ab welchem Level ein Thema freigeschaltet wird
+
+// Für Abwärtskompatibilität – wird durch aktiveFarben() ersetzt
+const FARBEN_HEX   = THEMEN[0].farben;
+
+// ── EXP / Level ───────────────────────────────────────────────────────────────
+const MAX_LEVEL        = 50;
+const EXP_STEIN        = 5;    // EXP pro platziertem Stein
+const EXP_LINIE_1      = 100;  // 1 Farbe verbunden
+const EXP_LINIE_2      = 250;  // 2 Farben gleichzeitig
+const EXP_LINIE_MULTI  = 500;  // 3+ Farben gleichzeitig
+
+let spielerLevel          = 1;
+let spielerExp            = 0;
+let freigeschalteteThemen = [0];
+let aktivesThema          = 0;
+
+function expFuerLevel(n) { return n * 200; } // Level N braucht N*200 EXP
+
+// Gibt die Farben des aktiven Themas zurück
+function aktiveFarben() { return THEMEN[aktivesThema].farben; }
 const MEILENSTEINE = [500, 1500, 3000, 5000, 10000];
 
 // ── Block-Formen ──────────────────────────────────────────────────────────────
@@ -198,7 +222,7 @@ function spielfeldZeichnen() {
   for (let z = 0; z < PHYS_HOEHE; z++) {
     for (let s = 0; s < PHYS_BREITE; s++) {
       if (physGitter[z][s]) {
-        ctx.fillStyle = FARBEN_HEX[physGitter[z][s]];
+        ctx.fillStyle = aktiveFarben()[physGitter[z][s]];
         ctx.fillRect(gitOffX + s * subGr, gitOffY + z * subGr, subGr, subGr);
       }
     }
@@ -211,7 +235,7 @@ function subPixelZeichnen(physSpalte, physZeile, farbe, alpha) {
   const y = gitOffY + physZeile  * subGr;
   ctx.save();
   if (alpha !== undefined) ctx.globalAlpha = alpha;
-  ctx.fillStyle = FARBEN_HEX[farbe];
+  ctx.fillStyle = aktiveFarben()[farbe];
   ctx.fillRect(x, y, subGr, subGr);
   ctx.restore();
 }
@@ -489,9 +513,98 @@ function verbindungsPruefen() {
     score += Math.round((totalPixel / (BLOCK_SCALE * BLOCK_SCALE)) * 10 * multi);
     if (score > highscore) highscore = score;
     hudAktualisieren();
+    // EXP für Verbindungen vergeben
+    const expGewinn = farbZaehler >= 3 ? EXP_LINIE_MULTI
+                    : farbZaehler === 2 ? EXP_LINIE_2
+                    : EXP_LINIE_1;
+    expVerdienen(expGewinn);
     return true;
   }
   return false;
+}
+
+// ── EXP & Level ───────────────────────────────────────────────────────────────
+function expVerdienen(menge) {
+  if (spielerLevel >= MAX_LEVEL) return;
+  spielerExp += menge;
+
+  let levelUpGeschehen = false;
+  while (spielerLevel < MAX_LEVEL && spielerExp >= expFuerLevel(spielerLevel)) {
+    spielerExp -= expFuerLevel(spielerLevel);
+    spielerLevel++;
+    levelUpGeschehen = true;
+    themaFreischaltenPruefen(spielerLevel);
+  }
+  if (spielerLevel >= MAX_LEVEL) spielerExp = 0;
+
+  expBarAktualisieren();
+  if (levelUpGeschehen) {
+    levelUpToastZeigen(spielerLevel);
+    expSpeichern();
+  }
+}
+
+function themaFreischaltenPruefen(level) {
+  THEMA_LEVEL.forEach((minLv, idx) => {
+    if (level >= minLv && !freigeschalteteThemen.includes(idx)) {
+      freigeschalteteThemen.push(idx);
+    }
+  });
+}
+
+function levelUpToastZeigen(level) {
+  const toast = document.getElementById('level-up-toast');
+  if (!toast) return;
+  toast.textContent = `Level ${level} erreicht! ⭐`;
+  toast.classList.remove('hidden');
+  // Kurzes Aufleuchten im EXP-Bereich
+  const wrap = document.getElementById('exp-leiste-wrap');
+  if (wrap) { wrap.classList.add('level-up-blink'); setTimeout(() => wrap.classList.remove('level-up-blink'), 600); }
+  setTimeout(() => toast.classList.add('hidden'), 2200);
+}
+
+function expBarAktualisieren() {
+  const badge   = document.getElementById('level-badge');
+  const bar     = document.getElementById('exp-bar');
+  const label   = document.getElementById('exp-label');
+  if (!badge || !bar || !label) return;
+
+  badge.textContent = spielerLevel >= MAX_LEVEL ? `Lv.MAX` : `Lv.${spielerLevel}`;
+
+  if (spielerLevel >= MAX_LEVEL) {
+    bar.style.width = '100%';
+    label.textContent = 'MAX';
+  } else {
+    const noetig = expFuerLevel(spielerLevel);
+    const pct    = Math.min(100, (spielerExp / noetig) * 100).toFixed(1);
+    bar.style.width    = `${pct}%`;
+    label.textContent  = `${spielerExp} / ${noetig} EXP`;
+  }
+
+  // Theme-Button aktualisieren
+  const themaBtn = document.getElementById('btn-thema');
+  if (themaBtn) themaBtn.textContent = `🎨 ${THEMEN[aktivesThema].name}`;
+}
+
+async function expSpeichern() {
+  const user = await PZ.getUser().catch(() => null);
+  if (!user || adminModus) return;
+  try {
+    await PZ.saveGameData('pixel-drop', score, spielerLevel, {
+      exp:           spielerExp,
+      thema:         aktivesThema,
+      freigeschaltet: freigeschalteteThemen,
+    });
+  } catch (err) { console.error('[Pixel Drop] EXP speichern fehlgeschlagen:', err); }
+}
+
+function themaWechseln() {
+  // Nächstes freigeschaltetes Thema aktivieren
+  const verfuegbar = freigeschalteteThemen.filter(i => i < THEMEN.length);
+  const aktuellIdx = verfuegbar.indexOf(aktivesThema);
+  aktivesThema = verfuegbar[(aktuellIdx + 1) % verfuegbar.length];
+  expBarAktualisieren();
+  expSpeichern();
 }
 
 // ── Drag-Events ────────────────────────────────────────────────────────────────
@@ -556,6 +669,7 @@ function blockPlatzieren(panelIdx, startVisSpalte) {
 
   block.gesetzt  = true;
   gesetzteAnzahl++;
+  expVerdienen(EXP_STEIN); // +5 EXP pro platziertem Stein
   if (gesetzteAnzahl >= 3) neuesBloeckeGenerieren();
 }
 
@@ -617,6 +731,7 @@ function spielStarten() {
   physikAccum    = 0;
 
   hudAktualisieren();
+  expBarAktualisieren();
   neuesBloeckeGenerieren();
 
   if (loopId) cancelAnimationFrame(loopId);
@@ -654,12 +769,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   ]);
 
   if (!adminModus) {
-    // Highscore laden
+    // Spielstand + EXP/Level laden
     try {
       const data = await PZ.loadScore('pixel-drop');
-      if (data?.score) highscore = data.score;
-    } catch (_) {}
+      if (data) {
+        highscore              = data.punkte || 0;
+        spielerLevel           = data.level  || 1;
+        spielerExp             = data.extra_daten?.exp            || 0;
+        aktivesThema           = data.extra_daten?.thema          || 0;
+        freigeschalteteThemen  = data.extra_daten?.freigeschaltet || [0];
+      }
+    } catch (err) { console.error('[Pixel Drop] Laden fehlgeschlagen:', err); }
   }
+
+  // Alle bereits verdienten Themen freischalten
+  themaFreischaltenPruefen(spielerLevel);
+  expBarAktualisieren();
 
   document.getElementById('btn-play').addEventListener('click', spielStarten);
   document.getElementById('btn-lb-title').addEventListener('click', () => rangliste_zeigen('screen-title'));
@@ -667,7 +792,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-retry').addEventListener('click', spielStarten);
   document.getElementById('btn-lb-go').addEventListener('click', () => rangliste_zeigen('screen-gameover'));
   document.getElementById('btn-lb-back').addEventListener('click', () => screenZeigen(lbVorher));
-  document.getElementById('btn-settings').addEventListener('click', () => {/* Platzhalter */});
+  // Settings-Button → Thema wechseln
+  document.getElementById('btn-settings').addEventListener('click', themaWechseln);
+
+  // Thema-Button (falls vorhanden)
+  const themaBtn = document.getElementById('btn-thema');
+  if (themaBtn) themaBtn.addEventListener('click', themaWechseln);
 });
 
 // ── HUD ────────────────────────────────────────────────────────────────────────
@@ -699,7 +829,8 @@ async function rangliste_zeigen(vorher) {
   try {
     const eintraege = await PZ.getLeaderboard('pixel-drop', 10);
     content.innerHTML = ranglisteHTML(eintraege);
-  } catch (_) {
+  } catch (err) {
+    console.error('[Pixel Drop] Rangliste laden fehlgeschlagen:', err);
     content.innerHTML = '<p class="lb-empty">Konnte nicht geladen werden.</p>';
   }
 }
@@ -715,8 +846,8 @@ function ranglisteHTML(lb) {
     const cls  = klassen[i]  || '';
     h += `<tr>
       <td class="lb-rank ${cls}">${rang}</td>
-      <td class="lb-name">${e.username ?? '—'}</td>
-      <td class="lb-score">${e.score ?? 0}</td>
+      <td class="lb-name">${e.benutzername ?? '—'}</td>
+      <td class="lb-score">${e.punkte ?? 0}</td>
     </tr>`;
   });
   return h + '</tbody></table>';
@@ -735,7 +866,14 @@ async function spielEnde() {
   const loginHint = document.getElementById('go-login-hint');
   if (user && !adminModus) {
     if (loginHint) loginHint.style.display = 'none';
-    try { await PZ.saveGameData('pixel-drop', score, 1, {}); } catch (_) {}
+    try {
+      const r = await PZ.saveGameData('pixel-drop', score, spielerLevel, {
+        exp:           spielerExp,
+        thema:         aktivesThema,
+        freigeschaltet: freigeschalteteThemen,
+      });
+      if (r?.error) console.error('[Pixel Drop] Speichern fehlgeschlagen:', r.error);
+    } catch (err) { console.error('[Pixel Drop] spielEnde Fehler:', err); }
   } else {
     if (loginHint) loginHint.style.display = 'block';
   }

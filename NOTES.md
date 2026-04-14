@@ -5,7 +5,7 @@
 ### Block Blast – Canvas, Engine, smarter Generator ✅
 - **8×8**, drei Steine, **Canvas**-Raster, DOM-Tray; **BlockGenerator** mit gewichteter Zufallsauswahl, Verwerfen unsolvabler Triple, Merit nach Clear-Potenzial, Notfall drei 1er.
 - **Trennung**: `Board`-Klasse, `BlockGenerator`-Klasse, Rendering `boardZeichnen`; **Debug**: `?debug=1` oder Taste **D** (gültige Felder, Generator-Text).
-- **UX**: Neustart-Button, Combo-Anzeige, weiche Farben; **Kein** React (Vanilla laut CLAUDE.md).
+- **Fix (Apr. 14)**: Rettungs-Regeneration wenn keine der restlichen Formen passt; Tray-`pointerdown`-Delegation; Snap an Form-Schwerpunkt; dunkles Mobile-Design (Prompt-Optik, nicht Startseiten-CLAUDE-Look).
 
 ## Heutiger Stand (2026-04-14) — Pixel Factory Voll-Optimierung
 

@@ -244,6 +244,11 @@ class BlockGenerator {
     };
   }
 
+  /** Öffentlich: frischer 1×1-Stein (für Rettungslogik). */
+  einzelblock() {
+    return this._teilKopie(this.mono);
+  }
+
   notfallTriple(board, debug) {
     if (board.leereZellen() === 0) {
       debug.grund = 'Brett voll';
@@ -346,8 +351,10 @@ function pixelZuRaster(px, py) {
   const rect = canvas.getBoundingClientRect();
   const x = px - rect.left;
   const y = py - rect.top;
-  const c = Math.floor((x - rasterOffsetX) / (zellenPixel + GAP));
-  const r = Math.floor((y - rasterOffsetY) / (zellenPixel + GAP));
+  let c = Math.floor((x - rasterOffsetX) / (zellenPixel + GAP));
+  let r = Math.floor((y - rasterOffsetY) / (zellenPixel + GAP));
+  r = Math.max(0, Math.min(RASTER - 1, r));
+  c = Math.max(0, Math.min(RASTER - 1, c));
   return { r, c };
 }
 
@@ -360,20 +367,18 @@ function boardZeichnen() {
     for (let c = 0; c < RASTER; c += 1) {
       const { x, y } = rasterZuPixel(r, c);
       const z = board.zellen[r][c];
-      ctx.fillStyle = z ? z.farbe : '#e8edf5';
-      if (!z) {
-        ctx.fillStyle = '#e8edf5';
-      }
-      rundesRechteck(ctx, x, y, zellenPixel, zellenPixel, 6);
+      ctx.fillStyle = z ? z.farbe : '#2a2d3a';
+      if (!z) ctx.fillStyle = '#2a2d3a';
+      rundesRechteck(ctx, x, y, zellenPixel, zellenPixel, 5);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
       ctx.lineWidth = 1;
       ctx.stroke();
       if (z) {
         ctx.save();
-        ctx.globalAlpha = 0.35;
-        ctx.fillStyle = 'rgba(255,255,255,0.5)';
-        ctx.fillRect(x + 2, y + 2, zellenPixel * 0.7, zellenPixel * 0.25);
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.fillRect(x + 2, y + 2, zellenPixel * 0.65, zellenPixel * 0.22);
         ctx.restore();
       }
     }
@@ -452,6 +457,7 @@ function effZellGroesseTray() {
 }
 
 let dragIdx = -1;
+let dragPointerId = null;
 let dragCS = 15;
 
 function dragStart(e, idx) {
@@ -459,6 +465,10 @@ function dragStart(e, idx) {
   const slot = document.getElementById(`slot${idx}`);
   if (slot.classList.contains('cant-fit') || slot.classList.contains('used')) return;
   e.preventDefault();
+  dragPointerId = e.pointerId;
+  try {
+    slot.setPointerCapture(e.pointerId);
+  } catch (_) { /* ältere Browser */ }
   dragIdx = idx;
   const s = stuecke[idx];
   dragStueck = s;
@@ -520,20 +530,26 @@ function rasterPosAusPointer(cx, cy) {
   const s = stuecke[dragIdx];
   if (!s) return { r0: 0, c0: 0 };
   const rect = canvas.getBoundingClientRect();
-  const { r, c } = pixelZuRaster(cx, cy);
-  const zielR = r;
-  const zielC = c;
+  const px = cx - rect.left;
+  const py = cy - rect.top;
   let bestR = 0;
   let bestC = 0;
   let bestD = Infinity;
   for (let r0 = 0; r0 < RASTER; r0 += 1) {
     for (let c0 = 0; c0 < RASTER; c0 += 1) {
       if (!board.kannSetzen(s.zellen, r0, c0)) continue;
-      const { y } = rasterZuPixel(r0, c0);
-      const { x } = rasterZuPixel(r0, c0);
-      const cx0 = rect.left + x + zellenPixel / 2;
-      const cy0 = rect.top + y + zellenPixel / 2;
-      const d = (cx - cx0) ** 2 + (cy - cy0) ** 2;
+      let sx = 0;
+      let sy = 0;
+      let n = 0;
+      for (const [dr, dc] of s.zellen) {
+        const { x, y } = rasterZuPixel(r0 + dr, c0 + dc);
+        sx += x + zellenPixel / 2;
+        sy += y + zellenPixel / 2;
+        n += 1;
+      }
+      sx /= n;
+      sy /= n;
+      const d = (px - sx) ** 2 + (py - sy) ** 2;
       if (d < bestD) {
         bestD = d;
         bestR = r0;
@@ -542,7 +558,8 @@ function rasterPosAusPointer(cx, cy) {
     }
   }
   if (bestD === Infinity) {
-    return { r0: zielR, c0: zielC };
+    const { r, c } = pixelZuRaster(cx, cy);
+    return { r0: r, c0: c };
   }
   return { r0: bestR, c0: bestC };
 }
@@ -561,6 +578,11 @@ function dragAbort() {
   document.removeEventListener('pointerup', dragEnd);
   document.removeEventListener('pointercancel', dragAbort);
   ghost.style.display = 'none';
+  const prevSlot = dragIdx >= 0 ? document.getElementById(`slot${dragIdx}`) : null;
+  if (prevSlot && dragPointerId != null) {
+    try { prevSlot.releasePointerCapture(dragPointerId); } catch (_) { /* noop */ }
+  }
+  dragPointerId = null;
   dragIdx = -1;
   vorschauAus();
   debugPlatzierungen = [];
@@ -574,29 +596,77 @@ async function dragEnd(e) {
   document.removeEventListener('pointercancel', dragAbort);
   ghost.style.display = 'none';
   const idx = dragIdx;
+  const slotEl = document.getElementById(`slot${idx}`);
+  const pid = dragPointerId != null ? dragPointerId : e.pointerId;
+  try {
+    if (slotEl && pid != null) slotEl.releasePointerCapture(pid);
+  } catch (_) { /* noop */ }
+  dragPointerId = null;
   const s = stuecke[idx];
   dragIdx = -1;
   vorschauAus();
   debugPlatzierungen = [];
   const { r0, c0 } = rasterPosAusPointer(e.clientX, e.clientY);
-  if (!board.kannSetzen(s.zellen, r0, c0)) return;
+  if (!s || !board.kannSetzen(s.zellen, r0, c0)) return;
   await steinSetzen(idx, r0, c0);
 }
 
-function passFormPruefen() {
-  const noch = stuecke.map((s, i) => ({ s, i })).filter((x) => x.s);
-  if (noch.length === 0) return;
-  let moeglich = false;
-  for (const { s, i } of noch) {
-    const slot = document.getElementById(`slot${i}`);
-    if (board.gueltigePositionen(s.zellen).length > 0) {
-      moeglich = true;
-      slot.classList.remove('cant-fit');
-    } else {
-      slot.classList.add('cant-fit');
-    }
+function mindestensEinStiftLegbar() {
+  for (let i = 0; i < 3; i += 1) {
+    const s = stuecke[i];
+    if (!s) continue;
+    if (board.gueltigePositionen(s.zellen).length > 0) return true;
   }
-  if (!moeglich) setTimeout(() => spielEnde(), 450);
+  return false;
+}
+
+/**
+ * Wenn die restlichen Steine nirgends passen: neue Steine erzeugen (bis zu 100 Versuche),
+ * sonst nur 1×1-Retter. Verhindert frühes „Game Over“ durch ungünstige Kombination.
+ */
+function retterSteineErsetzen() {
+  const offen = [0, 1, 2].filter((i) => stuecke[i]);
+  if (offen.length === 0) return false;
+  for (let versuch = 0; versuch < 100; versuch += 1) {
+    const { teile } = generator.generiere(board, punkte);
+    for (let j = 0; j < offen.length; j += 1) {
+      stuecke[offen[j]] = teile[j];
+    }
+    if (mindestensEinStiftLegbar()) return true;
+  }
+  for (const i of offen) {
+    stuecke[i] = generator.einzelblock();
+  }
+  return mindestensEinStiftLegbar();
+}
+
+function passFormPruefen() {
+  if (istGameOver) return;
+  for (let i = 0; i < 3; i += 1) {
+    const slot = document.getElementById(`slot${i}`);
+    const s = stuecke[i];
+    if (!s) {
+      slot.classList.add('used');
+      slot.classList.remove('cant-fit');
+      continue;
+    }
+    slot.classList.remove('used');
+    const passt = board.gueltigePositionen(s.zellen).length > 0;
+    slot.classList.toggle('cant-fit', !passt);
+  }
+  if (mindestensEinStiftLegbar()) return;
+  if (board.leereZellen() === 0) {
+    setTimeout(() => spielEnde(), 400);
+    return;
+  }
+  if (retterSteineErsetzen()) {
+    letzteGeneratorDebug = { grund: 'Rettung: neue Steine (kein Platz für alte Formen)' };
+    debugPanelAktualisieren();
+    trayRendern();
+    passFormPruefen();
+    return;
+  }
+  setTimeout(() => spielEnde(), 400);
 }
 
 function neuePiecesGenerieren() {
@@ -644,7 +714,6 @@ function trayRendern() {
       }
     }
     slot.appendChild(mg);
-    slot.onpointerdown = (ev) => dragStart(ev, i);
   }
 }
 
@@ -655,7 +724,6 @@ async function steinSetzen(idx, r0, c0) {
   board.setzen(s.zellen, r0, c0, farbe);
   punkte += s.zellen.length;
   stuecke[idx] = null;
-  document.getElementById(`slot${idx}`).classList.add('used');
   comboRendern();
   punkteRendern();
   boardZeichnen();
@@ -694,6 +762,7 @@ async function steinSetzen(idx, r0, c0) {
   if (stuecke.every((p) => p === null)) {
     neuePiecesGenerieren();
   } else {
+    trayRendern();
     passFormPruefen();
   }
 }
@@ -757,12 +826,12 @@ function debugPanelAktualisieren() {
   const el = document.getElementById('debugText');
   if (!el || !letzteGeneratorDebug) return;
   const d = letzteGeneratorDebug;
-  el.textContent = [
-    `Schwierigkeit: ${d.schwierigkeit.toFixed(3)}`,
-    `Versuche: ${d.versuche} (verworfen: ${d.verworfen})`,
-    d.grund || '',
-    `Leere Felder: ${board.leereZellen()}`,
-  ].join('\n');
+  const zeilen = [];
+  if (d.schwierigkeit != null) zeilen.push(`Schwierigkeit: ${d.schwierigkeit.toFixed(3)}`);
+  if (d.versuche != null) zeilen.push(`Versuche: ${d.versuche} (verworfen: ${d.verworfen ?? 0})`);
+  if (d.grund) zeilen.push(d.grund);
+  zeilen.push(`Leere Felder: ${board.leereZellen()}`);
+  el.textContent = zeilen.join('\n');
 }
 
 function spielStart() {
@@ -823,6 +892,16 @@ async function spielEnde() {
   }
 }
 
+function trayPointerDown(e) {
+  if (istAnimiert || istGameOver) return;
+  const slot = e.target.closest('.tray-slot');
+  if (!slot || slot.classList.contains('used')) return;
+  const i = Number(slot.dataset.slot);
+  if (!Number.isInteger(i) || i < 0 || i > 2) return;
+  if (!stuecke[i] || slot.classList.contains('cant-fit')) return;
+  dragStart(e, i);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   PZ.updateNavbar();
   try {
@@ -849,6 +928,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('btnNeustart').addEventListener('click', () => spielStart());
   document.getElementById('btnNochmal').addEventListener('click', () => spielStart());
+  document.getElementById('tray').addEventListener('pointerdown', trayPointerDown);
 
   window.addEventListener('resize', () => {
     canvasGroesseAnpassen();

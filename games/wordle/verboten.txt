@@ -316,4 +316,14 @@ PENIS
 SPAST
 SPACK
 KACKE
+# Häufige Schimpfwörter (Korpus/Filmsprache, 5 Buchst.; HUREN oben)
+BITCH
+COCKS
+CUNTS
+DICKS
+FICKT
+FUCKS
+SHITS
+SLUTS
+WHORE
 # Ende Basisliste — Zusatznamen siehe build-wordlists.mjs (NAMEN_ZUSATZ)

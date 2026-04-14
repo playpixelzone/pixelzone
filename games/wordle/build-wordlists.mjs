@@ -75,6 +75,21 @@ function loadFrequencyOrder() {
   return words;
 }
 
+/** Alle 5-Buchstaben-A–Z-Formen aus dem Sprachkorpus (Filter gegen reine Lexikon-Eigen-/Fachwörter) */
+function loadKorpus5Ascii() {
+  const raw = fs.readFileSync(FREQ, 'utf8');
+  const s = new Set();
+  for (const line of raw.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    const w = line.split(/\s+/)[0].toLowerCase();
+    if (!w || w.length !== 5) continue;
+    if (!/^[a-z]{5}$/.test(w)) continue;
+    if (/[äöüß]/.test(w)) continue;
+    s.add(w.toUpperCase());
+  }
+  return s;
+}
+
 const VERBOTEN = loadVerbotenFromFile();
 for (const w of NAMEN_ZUSATZ_RAW) VERBOTEN.add(w);
 
@@ -100,14 +115,28 @@ for (const w of freq) {
 
 if (!loesung.includes('LEGAT')) loesung.push('LEGAT');
 
-const gueltigArr = [...valid].filter((w) => !VERBOTEN.has(w)).sort();
+const korpus5 = loadKorpus5Ascii();
+
+// Nur Wörter, die im Korpus vorkommen UND im Hunspell stehen: weniger Eigennamen/Fachlexikon
+const gueltigArr = [...valid]
+  .filter((w) => korpus5.has(w) && !VERBOTEN.has(w))
+  .sort();
+
+const gueltigSetCheck = new Set(gueltigArr);
+for (const w of loesung) {
+  if (!gueltigSetCheck.has(w)) {
+    console.error('Konsistenz: Lösungswort fehlt in GUELTIGE_WOERTER:', w);
+    process.exitCode = 1;
+  }
+}
+
 const verbotenArr = [...VERBOTEN].sort();
 
 let out = `'use strict';
 // Automatisch generiert (build-wordlists.mjs): Hunspell, nur 5 Buchstaben A–Z
-// LOESUNGSWOERTER: Korpus + Hunspell, ohne Einträge aus verboten.txt
-// GUELTIGE_WOERTER: Hunspell minus verboten.txt (+ Zusatznamen im Build)
-// VERBOTENE_WOERTER: für explizite Prüfung (Hinweistext)
+// LOESUNGSWOERTER: Korpus + Hunspell, ohne verboten.txt
+// GUELTIGE_WOERTER: (Hunspell ∩ Korpus de_50k) minus verboten.txt — keine reinen Lexikon-Sonderformen
+// VERBOTENE_WOERTER: explizite Sperre + Meldung im Spiel
 
 const LOESUNGSWOERTER = ${JSON.stringify(loesung)};
 
@@ -120,7 +149,8 @@ const GUELTIGE_WOERTER = new Set(GUELTIGE_WOERTER_ARRAY);
 
 fs.writeFileSync(path.join(__dirname, 'wordlists.js'), out, 'utf8');
 console.log('Hunspell 5-buchstabig A–Z (roh):', valid.size);
+console.log('Korpus 5 Buchst. A–Z:', korpus5.size);
 console.log('Verboten:', VERBOTEN.size);
-console.log('Gültige Eingaben:', gueltigArr.length);
+console.log('Gültige Eingaben (Hunspell ∩ Korpus − Verboten):', gueltigArr.length);
 console.log('Lösungswörter:', loesung.length);
 console.log('wordlists.js geschrieben.');

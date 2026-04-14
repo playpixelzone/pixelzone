@@ -275,6 +275,22 @@ html, body {
 /* Canvas muss Platz für EXP-Leiste lassen */
 #c { bottom: 32px; }
 
+/* ── Stau-Warnung ────────────────────────── */
+#stau-warnung {
+  font-size: .75rem; font-weight: 800;
+  padding: .1rem .45rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: background .2s, color .2s;
+}
+.stau-ok    { background: transparent; color: transparent; }
+.stau-warn1 { background: #fef3c7; color: #b45309; }
+.stau-warn2 { background: #fee2e2; color: #dc2626; animation: stauBlink .5s ease-in-out infinite alternate; }
+@keyframes stauBlink {
+  from { opacity: 1; }
+  to   { opacity: .6; }
+}
+
 /* ── Responsive ──────────────────────────── */
 @media (max-height: 600px) {
   :root { --hud-h: 40px; }

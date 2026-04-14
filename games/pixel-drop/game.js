@@ -8,20 +8,15 @@ const PHYS_BREITE  = GRID_BREITE * BLOCK_SCALE; // 70
 const PHYS_HOEHE   = GRID_HOEHE  * BLOCK_SCALE; // 140
 const PANEL_B      = 144;
 const GEFAHREN_Z   = 2;                       // visuelle Gefahrenzeilen
-const FARBEN_NAMEN = ['rot', 'gruen', 'blau', 'orange'];
-
-// ── Farbthemen (5 Stück, per Level freigeschaltet) ────────────────────────────
-const THEMEN = [
-  { name: 'Standard', farben: { rot: '#ef4444', gruen: '#22c55e', blau: '#3b82f6', orange: '#f97316' } }, // immer
-  { name: 'Pastell',  farben: { rot: '#f9a8d4', gruen: '#a7f3d0', blau: '#bae6fd', orange: '#fde68a' } }, // Lv. 5
-  { name: 'Neon',     farben: { rot: '#ff2d78', gruen: '#00ff88', blau: '#00e0ff', orange: '#ffaa00' } }, // Lv. 10
-  { name: 'Erde',     farben: { rot: '#b45309', gruen: '#65a30d', blau: '#0369a1', orange: '#c2410c' } }, // Lv. 20
-  { name: 'Glitter',  farben: { rot: '#db2777', gruen: '#059669', blau: '#7c3aed', orange: '#d97706' } }, // Lv. 35
-];
-const THEMA_LEVEL = [0, 5, 10, 20, 35]; // ab welchem Level ein Thema freigeschaltet wird
-
-// Für Abwärtskompatibilität – wird durch aktiveFarben() ersetzt
-const FARBEN_HEX   = THEMEN[0].farben;
+// 5 Farben: mehr Vielfalt → Verbindungen schwerer zu bauen
+const FARBEN_NAMEN = ['rot', 'gruen', 'blau', 'orange', 'lila'];
+const FARBEN_HEX   = {
+  rot:    '#ef4444',
+  gruen:  '#22c55e',
+  blau:   '#3b82f6',
+  orange: '#f97316',
+  lila:   '#a855f7',
+};
 
 // ── EXP / Level ───────────────────────────────────────────────────────────────
 const MAX_LEVEL        = 50;
@@ -30,15 +25,16 @@ const EXP_LINIE_1      = 100;  // 1 Farbe verbunden
 const EXP_LINIE_2      = 250;  // 2 Farben gleichzeitig
 const EXP_LINIE_MULTI  = 500;  // 3+ Farben gleichzeitig
 
-let spielerLevel          = 1;
-let spielerExp            = 0;
-let freigeschalteteThemen = [0];
-let aktivesThema          = 0;
+let spielerLevel = 1;
+let spielerExp   = 0;
 
 function expFuerLevel(n) { return n * 200; } // Level N braucht N*200 EXP
 
-// Gibt die Farben des aktiven Themas zurück
-function aktiveFarben() { return THEMEN[aktivesThema].farben; }
+// ── Stau-System ───────────────────────────────────────────────────────────────
+// Nach STAU_SCHWELLE Runden ohne Verbindung → Müll-Reihe von unten
+const STAU_SCHWELLE    = 3;
+let rundenOhneVerbindung = 0;  // Runden-Counter (reset bei jeder Verbindung)
+let verbindungInRunde    = false; // wurde in dieser Runde eine Verbindung gemacht?
 const MEILENSTEINE = [500, 1500, 3000, 5000, 10000];
 
 // ── Block-Formen ──────────────────────────────────────────────────────────────
@@ -70,8 +66,9 @@ function zufallsBlock() {
   return { name: form.name, zellen: form.zellen, farbe, gesetzt: false };
 }
 
-// 3 neue Panel-Blöcke generieren
-function neuesBloeckeGenerieren() {
+// 3 neue Panel-Blöcke generieren (erstStart=true beim allerersten Aufruf)
+function neuesBloeckeGenerieren(erstStart = false) {
+  if (!erstStart) stauPruefen(); // Runde abgeschlossen → Stau-Check
   panelBloecke   = [zufallsBlock(), zufallsBlock(), zufallsBlock()];
   gesetzteAnzahl = 0;
 }
@@ -222,7 +219,7 @@ function spielfeldZeichnen() {
   for (let z = 0; z < PHYS_HOEHE; z++) {
     for (let s = 0; s < PHYS_BREITE; s++) {
       if (physGitter[z][s]) {
-        ctx.fillStyle = aktiveFarben()[physGitter[z][s]];
+        ctx.fillStyle = FARBEN_HEX[physGitter[z][s]];
         ctx.fillRect(gitOffX + s * subGr, gitOffY + z * subGr, subGr, subGr);
       }
     }
@@ -235,7 +232,7 @@ function subPixelZeichnen(physSpalte, physZeile, farbe, alpha) {
   const y = gitOffY + physZeile  * subGr;
   ctx.save();
   if (alpha !== undefined) ctx.globalAlpha = alpha;
-  ctx.fillStyle = aktiveFarben()[farbe];
+  ctx.fillStyle = FARBEN_HEX[farbe];
   ctx.fillRect(x, y, subGr, subGr);
   ctx.restore();
 }
@@ -506,6 +503,7 @@ function verbindungsPruefen() {
   physikAccum  = 0;
 
   if (farbZaehler > 0) {
+    verbindungInRunde = true; // für Stau-System merken
     const multi = farbZaehler === 1 ? 1
                 : farbZaehler === 2 ? 1.5
                 : farbZaehler === 3 ? 2.0
@@ -533,23 +531,14 @@ function expVerdienen(menge) {
     spielerExp -= expFuerLevel(spielerLevel);
     spielerLevel++;
     levelUpGeschehen = true;
-    themaFreischaltenPruefen(spielerLevel);
   }
   if (spielerLevel >= MAX_LEVEL) spielerExp = 0;
 
   expBarAktualisieren();
   if (levelUpGeschehen) {
     levelUpToastZeigen(spielerLevel);
-    expSpeichern();
+    expSpeichernStill();
   }
-}
-
-function themaFreischaltenPruefen(level) {
-  THEMA_LEVEL.forEach((minLv, idx) => {
-    if (level >= minLv && !freigeschalteteThemen.includes(idx)) {
-      freigeschalteteThemen.push(idx);
-    }
-  });
 }
 
 function levelUpToastZeigen(level) {
@@ -557,54 +546,88 @@ function levelUpToastZeigen(level) {
   if (!toast) return;
   toast.textContent = `Level ${level} erreicht! ⭐`;
   toast.classList.remove('hidden');
-  // Kurzes Aufleuchten im EXP-Bereich
   const wrap = document.getElementById('exp-leiste-wrap');
   if (wrap) { wrap.classList.add('level-up-blink'); setTimeout(() => wrap.classList.remove('level-up-blink'), 600); }
   setTimeout(() => toast.classList.add('hidden'), 2200);
 }
 
 function expBarAktualisieren() {
-  const badge   = document.getElementById('level-badge');
-  const bar     = document.getElementById('exp-bar');
-  const label   = document.getElementById('exp-label');
+  const badge = document.getElementById('level-badge');
+  const bar   = document.getElementById('exp-bar');
+  const label = document.getElementById('exp-label');
   if (!badge || !bar || !label) return;
 
-  badge.textContent = spielerLevel >= MAX_LEVEL ? `Lv.MAX` : `Lv.${spielerLevel}`;
+  badge.textContent = spielerLevel >= MAX_LEVEL ? 'Lv.MAX' : `Lv.${spielerLevel}`;
 
   if (spielerLevel >= MAX_LEVEL) {
-    bar.style.width = '100%';
+    bar.style.width   = '100%';
     label.textContent = 'MAX';
   } else {
     const noetig = expFuerLevel(spielerLevel);
-    const pct    = Math.min(100, (spielerExp / noetig) * 100).toFixed(1);
-    bar.style.width    = `${pct}%`;
-    label.textContent  = `${spielerExp} / ${noetig} EXP`;
+    bar.style.width   = `${Math.min(100, (spielerExp / noetig) * 100).toFixed(1)}%`;
+    label.textContent = `${spielerExp} / ${noetig} EXP`;
   }
-
-  // Theme-Button aktualisieren
-  const themaBtn = document.getElementById('btn-thema');
-  if (themaBtn) themaBtn.textContent = `🎨 ${THEMEN[aktivesThema].name}`;
 }
 
-async function expSpeichern() {
+async function expSpeichernStill() {
   const user = await PZ.getUser().catch(() => null);
   if (!user || adminModus) return;
   try {
-    await PZ.saveGameData('pixel-drop', score, spielerLevel, {
-      exp:           spielerExp,
-      thema:         aktivesThema,
-      freigeschaltet: freigeschalteteThemen,
-    });
+    await PZ.saveGameData('pixel-drop', score, spielerLevel, { exp: spielerExp });
   } catch (err) { console.error('[Pixel Drop] EXP speichern fehlgeschlagen:', err); }
 }
 
-function themaWechseln() {
-  // Nächstes freigeschaltetes Thema aktivieren
-  const verfuegbar = freigeschalteteThemen.filter(i => i < THEMEN.length);
-  const aktuellIdx = verfuegbar.indexOf(aktivesThema);
-  aktivesThema = verfuegbar[(aktuellIdx + 1) % verfuegbar.length];
-  expBarAktualisieren();
-  expSpeichern();
+// ── Stau-System: Müll-Reihe von unten ────────────────────────────────────────
+function stauPruefen() {
+  if (verbindungInRunde) {
+    rundenOhneVerbindung = 0; // Verbindung gemacht → Stau-Counter reset
+  } else {
+    rundenOhneVerbindung++;
+  }
+  verbindungInRunde = false;
+
+  // Stau-Warnung aktualisieren
+  stauWarnungZeigen(rundenOhneVerbindung);
+
+  if (rundenOhneVerbindung >= STAU_SCHWELLE) {
+    rundenOhneVerbindung = 0;
+    muellZeileHinzufuegen();
+  }
+}
+
+function muellZeileHinzufuegen() {
+  // Alle Zeilen um BLOCK_SCALE Reihen nach oben verschieben
+  for (let z = 0; z < PHYS_HOEHE - BLOCK_SCALE; z++) {
+    for (let s = 0; s < PHYS_BREITE; s++) {
+      physGitter[z][s] = physGitter[z + BLOCK_SCALE][s];
+    }
+  }
+  // Unterste BLOCK_SCALE Zeilen mit zufälligen Farben füllen (85% Dichte, Lücken für Strategie)
+  for (let z = PHYS_HOEHE - BLOCK_SCALE; z < PHYS_HOEHE; z++) {
+    for (let s = 0; s < PHYS_BREITE; s++) {
+      physGitter[z][s] = Math.random() < 0.85
+        ? FARBEN_NAMEN[Math.floor(Math.random() * FARBEN_NAMEN.length)]
+        : null;
+    }
+  }
+  // Physik-Flags zurücksetzen damit der neue Stand geprüft wird
+  physikWarRuhig = false;
+  stabileFrames  = 0;
+}
+
+function stauWarnungZeigen(zaehler) {
+  const el = document.getElementById('stau-warnung');
+  if (!el) return;
+  if (zaehler === 0) {
+    el.textContent = '';
+    el.className   = 'stau-ok';
+  } else if (zaehler === 1) {
+    el.textContent = '⚠ Stau';
+    el.className   = 'stau-warn1';
+  } else if (zaehler >= 2) {
+    el.textContent = '🚨 Stau!';
+    el.className   = 'stau-warn2';
+  }
 }
 
 // ── Drag-Events ────────────────────────────────────────────────────────────────
@@ -721,18 +744,21 @@ function spielStarten() {
   ctx          = canvas.getContext('2d');
   layoutBerechnen();
   gitterInit();
-  score          = 0;
-  pruefeGerade   = false;
-  physikWarRuhig = false;
-  stabileFrames  = 0;
-  drag.aktiv     = false;
-  running        = true;
-  lastTickTime   = 0;
-  physikAccum    = 0;
+  score                = 0;
+  pruefeGerade         = false;
+  physikWarRuhig       = false;
+  stabileFrames        = 0;
+  drag.aktiv           = false;
+  running              = true;
+  lastTickTime         = 0;
+  physikAccum          = 0;
+  rundenOhneVerbindung = 0;
+  verbindungInRunde    = false;
+  stauWarnungZeigen(0);
 
   hudAktualisieren();
   expBarAktualisieren();
-  neuesBloeckeGenerieren();
+  neuesBloeckeGenerieren(true); // erstStart: kein Stau-Check beim Spielbeginn
 
   if (loopId) cancelAnimationFrame(loopId);
   tick();
@@ -773,17 +799,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const data = await PZ.loadScore('pixel-drop');
       if (data) {
-        highscore              = data.punkte || 0;
-        spielerLevel           = data.level  || 1;
-        spielerExp             = data.extra_daten?.exp            || 0;
-        aktivesThema           = data.extra_daten?.thema          || 0;
-        freigeschalteteThemen  = data.extra_daten?.freigeschaltet || [0];
+        highscore    = data.punkte || 0;
+        spielerLevel = data.level  || 1;
+        spielerExp   = data.extra_daten?.exp || 0;
       }
     } catch (err) { console.error('[Pixel Drop] Laden fehlgeschlagen:', err); }
   }
 
-  // Alle bereits verdienten Themen freischalten
-  themaFreischaltenPruefen(spielerLevel);
   expBarAktualisieren();
 
   document.getElementById('btn-play').addEventListener('click', spielStarten);
@@ -792,12 +814,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-retry').addEventListener('click', spielStarten);
   document.getElementById('btn-lb-go').addEventListener('click', () => rangliste_zeigen('screen-gameover'));
   document.getElementById('btn-lb-back').addEventListener('click', () => screenZeigen(lbVorher));
-  // Settings-Button → Thema wechseln
-  document.getElementById('btn-settings').addEventListener('click', themaWechseln);
-
-  // Thema-Button (falls vorhanden)
-  const themaBtn = document.getElementById('btn-thema');
-  if (themaBtn) themaBtn.addEventListener('click', themaWechseln);
 });
 
 // ── HUD ────────────────────────────────────────────────────────────────────────
@@ -868,9 +884,7 @@ async function spielEnde() {
     if (loginHint) loginHint.style.display = 'none';
     try {
       const r = await PZ.saveGameData('pixel-drop', score, spielerLevel, {
-        exp:           spielerExp,
-        thema:         aktivesThema,
-        freigeschaltet: freigeschalteteThemen,
+        exp: spielerExp,
       });
       if (r?.error) console.error('[Pixel Drop] Speichern fehlgeschlagen:', r.error);
     } catch (err) { console.error('[Pixel Drop] spielEnde Fehler:', err); }

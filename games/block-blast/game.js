@@ -333,10 +333,14 @@ let rasterOffsetY = 0;
 /** 0 = keine Lücken zwischen den Zellen (wie klassisches Block-Puzzle) */
 const GAP = 0;
 
-/** Canvas-Größe und Zellmaß aus Container */
+/** Canvas-Größe und Zellmaß aus Container (Inhaltsbreite minus Padding – symmetrischer Rand) */
 function canvasGroesseAnpassen() {
   const wrap = canvas.parentElement;
-  const max = Math.min(340, wrap.clientWidth || 320);
+  const cs = getComputedStyle(wrap);
+  const pl = parseFloat(cs.paddingLeft) || 0;
+  const pr = parseFloat(cs.paddingRight) || 0;
+  const contentBreite = Math.max(1, (wrap.clientWidth || 320) - pl - pr);
+  const max = Math.min(340, Math.floor(contentBreite));
   const dpr = window.devicePixelRatio || 1;
   canvas.style.width = `${max}px`;
   canvas.style.height = `${max}px`;
@@ -536,11 +540,10 @@ function vorschauAus() {
 
 const ghost = document.getElementById('ghost');
 
-/** Loslassen über der Steinauswahl = Zug abbrechen, andere Figur wählbar (wie Original). */
-function istUeberTray(cx, cy) {
-  const tr = document.getElementById('tray');
-  if (!tr) return false;
-  const r = tr.getBoundingClientRect();
+/** Zeiger liegt über dem 8×8-Canvas (Spielfeld). Außerhalb = Zug abbrechen, andere Figur möglich. */
+function istImSpielfeld(cx, cy) {
+  if (!canvas) return false;
+  const r = canvas.getBoundingClientRect();
   return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom;
 }
 
@@ -692,7 +695,7 @@ function dragMove(e) {
   e.preventDefault();
   ghostPositionieren(e.clientX, e.clientY);
   const s = stuecke[dragIdx];
-  if (istUeberTray(e.clientX, e.clientY)) {
+  if (!istImSpielfeld(e.clientX, e.clientY)) {
     if (vorschauAktiv) {
       vorschauAktiv = false;
       boardZeichnen();
@@ -726,7 +729,7 @@ async function dragEnd(e) {
   debugPlatzierungen = [];
   const cx = e.clientX;
   const cy = e.clientY;
-  if (istUeberTray(cx, cy)) return;
+  if (!istImSpielfeld(cx, cy)) return;
   const { r0, c0 } = rasterPosAusPointer(cx, cy, s);
   if (!s || !board.kannSetzen(s.zellen, r0, c0)) return;
   await steinSetzen(idx, r0, c0);

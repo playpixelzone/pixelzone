@@ -25,12 +25,79 @@ html, body {
 }
 
 .bb-page .site-header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.12);
   border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   padding: 0.45rem 1rem;
 }
 
-.bb-page .logo { color: #fff; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; font-weight: 800; font-size: 0.95rem; }
+.bb-page .logo {
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 800;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.bb-page #navAuth {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+/* Eingeloggt: auth.js fügt .nav-user ein – ohne Flex sitzt alles in einer Zeile schlecht */
+.bb-page .nav-user {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.bb-page .nav-username {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #fff;
+  max-width: 8.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bb-page .nav-logout-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  border-radius: 9px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bb-page .nav-login-btn {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+  color: #304878;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 .bb-page .logo-mark { font-size: 1.1rem; }
 
 .game-wrap {
@@ -106,6 +173,9 @@ html, body {
 .bb-restart:active { transform: scale(0.96); }
 
 .board-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background: var(--bb-board);
   border-radius: var(--bb-radius);
   padding: 10px;
@@ -116,8 +186,12 @@ html, body {
 
 #boardCanvas {
   display: block;
+  flex: 0 0 auto;
+  margin: 0;
   width: 100%;
+  max-width: 100%;
   height: auto;
+  aspect-ratio: 1 / 1;
   border-radius: calc(var(--bb-radius) - 4px);
   touch-action: none;
   user-select: none;

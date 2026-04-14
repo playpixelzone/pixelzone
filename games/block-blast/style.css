@@ -160,11 +160,12 @@ html, body {
 .mini-piece {
   transform: scale(0.58);
   transform-origin: center center;
+  gap: 0;
 }
 
 .mini-grid {
   display: grid;
-  gap: 2px;
+  gap: 0;
 }
 
 .mini-cell {

@@ -330,7 +330,8 @@ const ctx = canvas.getContext('2d');
 let zellenPixel = 36;
 let rasterOffsetX = 0;
 let rasterOffsetY = 0;
-const GAP = 2;
+/** 0 = keine Lücken zwischen den Zellen (wie klassisches Block-Puzzle) */
+const GAP = 0;
 
 /** Canvas-Größe und Zellmaß aus Container */
 function canvasGroesseAnpassen() {
@@ -342,10 +343,9 @@ function canvasGroesseAnpassen() {
   canvas.width = Math.floor(max * dpr);
   canvas.height = Math.floor(max * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const inner = max - GAP * (RASTER + 1);
-  zellenPixel = inner / RASTER;
-  rasterOffsetX = GAP;
-  rasterOffsetY = GAP;
+  zellenPixel = max / RASTER;
+  rasterOffsetX = 0;
+  rasterOffsetY = 0;
   boardZeichnen();
 }
 
@@ -360,8 +360,9 @@ function pixelZuRaster(px, py) {
   const rect = canvas.getBoundingClientRect();
   const x = px - rect.left;
   const y = py - rect.top;
-  let c = Math.floor((x - rasterOffsetX) / (zellenPixel + GAP));
-  let r = Math.floor((y - rasterOffsetY) / (zellenPixel + GAP));
+  const step = zellenPixel + GAP;
+  let c = Math.floor((x - rasterOffsetX) / step);
+  let r = Math.floor((y - rasterOffsetY) / step);
   r = Math.max(0, Math.min(RASTER - 1, r));
   c = Math.max(0, Math.min(RASTER - 1, c));
   return { r, c };
@@ -376,10 +377,10 @@ function hexZuRgb(hex) {
   };
 }
 
-/** 3D-Bevel wie Referenz: hell oben/links, dunkel unten/rechts – kein Drop-Shadow */
+/** 3D-Bevel: bei lückenlosem Raster etwas flachere Ecken, damit benachbarte Steine zusammenwirken */
 function bevelZelle(c, x, y, size, fillHex, alpha = 1) {
   const { r, g, b } = hexZuRgb(fillHex);
-  const rad = Math.min(5, size * 0.14);
+  const rad = Math.min(3, size * 0.1);
   c.save();
   c.globalAlpha = alpha;
   c.fillStyle = fillHex;
@@ -432,39 +433,39 @@ function boardZeichnen() {
       const z = board.zellen[r][c];
       if (!z) {
         ctx.fillStyle = '#2a2e42';
-        rundesRechteck(ctx, x, y, zellenPixel, zellenPixel, 4);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        ctx.fillRect(x, y, zellenPixel, zellenPixel);
       } else {
         bevelZelle(ctx, x, y, zellenPixel, z.farbe, 1);
       }
     }
   }
 
-  /* Feine Gitterlinien + kleine Punkte an den Kreuzungen (in den Lücken zwischen Zellen) */
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.22)';
-  ctx.lineWidth = 0.6;
-  for (let i = 0; i <= RASTER; i += 1) {
-    const px = rasterOffsetX + i * (zellenPixel + GAP) - GAP / 2;
+  /* Dünne Trennlinien auf den inneren Zellgrenzen */
+  const gridRight = rasterOffsetX + RASTER * zellenPixel;
+  const gridBottom = rasterOffsetY + RASTER * zellenPixel;
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.28)';
+  ctx.lineWidth = 1;
+  for (let i = 1; i < RASTER; i += 1) {
+    const px = rasterOffsetX + i * zellenPixel;
     ctx.beginPath();
-    ctx.moveTo(px, rasterOffsetY);
-    ctx.lineTo(px, rasterOffsetY + RASTER * (zellenPixel + GAP) - GAP);
-    ctx.stroke();
-    const py = rasterOffsetY + i * (zellenPixel + GAP) - GAP / 2;
-    ctx.beginPath();
-    ctx.moveTo(rasterOffsetX, py);
-    ctx.lineTo(rasterOffsetX + RASTER * (zellenPixel + GAP) - GAP, py);
+    ctx.moveTo(px + 0.5, rasterOffsetY);
+    ctx.lineTo(px + 0.5, gridBottom);
     ctx.stroke();
   }
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-  for (let i = 0; i <= RASTER; i += 1) {
-    for (let j = 0; j <= RASTER; j += 1) {
-      const px = rasterOffsetX + j * (zellenPixel + GAP) - GAP / 2;
-      const py = rasterOffsetY + i * (zellenPixel + GAP) - GAP / 2;
+  for (let i = 1; i < RASTER; i += 1) {
+    const py = rasterOffsetY + i * zellenPixel;
+    ctx.beginPath();
+    ctx.moveTo(rasterOffsetX, py + 0.5);
+    ctx.lineTo(gridRight, py + 0.5);
+    ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+  for (let i = 1; i < RASTER; i += 1) {
+    for (let j = 1; j < RASTER; j += 1) {
+      const px = rasterOffsetX + j * zellenPixel;
+      const py = rasterOffsetY + i * zellenPixel;
       ctx.beginPath();
-      ctx.arc(px, py, 1.1, 0, Math.PI * 2);
+      ctx.arc(px, py, 0.75, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -535,6 +536,14 @@ function vorschauAus() {
 
 const ghost = document.getElementById('ghost');
 
+/** Loslassen über der Steinauswahl = Zug abbrechen, andere Figur wählbar (wie Original). */
+function istUeberTray(cx, cy) {
+  const tr = document.getElementById('tray');
+  if (!tr) return false;
+  const r = tr.getBoundingClientRect();
+  return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom;
+}
+
 function effZellGroesseTray() {
   return 15;
 }
@@ -583,7 +592,7 @@ function dragStart(e, idx) {
   const cols = s.bc;
   ghost.style.gridTemplateColumns = `repeat(${cols}, ${dragCS}px)`;
   ghost.style.gridTemplateRows = `repeat(${rows}, ${dragCS}px)`;
-  ghost.style.gap = '2px';
+  ghost.style.gap = '0px';
   const occ = new Set(s.zellen.map(([r, c]) => `${r},${c}`));
   for (let r = 0; r < rows; r += 1) {
     for (let c = 0; c < cols; c += 1) {
@@ -630,8 +639,8 @@ function dragAbmelden() {
 function ghostPositionieren(cx, cy) {
   const s = stuecke[dragIdx];
   if (!s) return;
-  const w = s.bc * dragCS + (s.bc - 1) * 2;
-  const h = s.br * dragCS + (s.br - 1) * 2;
+  const w = s.bc * dragCS;
+  const h = s.br * dragCS;
   ghost.style.left = `${cx - w / 2}px`;
   ghost.style.top = `${cy - h - dragCS * 1.2}px`;
 }
@@ -680,9 +689,17 @@ function rasterPosAusPointer(cx, cy, teil) {
 
 function dragMove(e) {
   if (dragIdx < 0 || !stuecke[dragIdx]) return;
+  e.preventDefault();
   ghostPositionieren(e.clientX, e.clientY);
   const s = stuecke[dragIdx];
-  const { r0, c0 } = rasterPosAusPointer(e.clientX, e.clientY);
+  if (istUeberTray(e.clientX, e.clientY)) {
+    if (vorschauAktiv) {
+      vorschauAktiv = false;
+      boardZeichnen();
+    }
+    return;
+  }
+  const { r0, c0 } = rasterPosAusPointer(e.clientX, e.clientY, s);
   const gueltig = board.kannSetzen(s.zellen, r0, c0);
   vorschauSetzen(s, r0, c0, gueltig);
 }
@@ -709,6 +726,7 @@ async function dragEnd(e) {
   debugPlatzierungen = [];
   const cx = e.clientX;
   const cy = e.clientY;
+  if (istUeberTray(cx, cy)) return;
   const { r0, c0 } = rasterPosAusPointer(cx, cy, s);
   if (!s || !board.kannSetzen(s.zellen, r0, c0)) return;
   await steinSetzen(idx, r0, c0);
@@ -803,7 +821,7 @@ function trayRendern() {
     const mg = document.createElement('div');
     mg.className = 'mini-piece';
     mg.style.display = 'grid';
-    mg.style.gap = '2px';
+    mg.style.gap = '0px';
     mg.style.gridTemplateColumns = `repeat(${s.bc}, 11px)`;
     mg.style.gridTemplateRows = `repeat(${s.br}, 11px)`;
     const occ = new Set(s.zellen.map(([r, c]) => `${r},${c}`));

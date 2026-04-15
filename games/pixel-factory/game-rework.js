@@ -159,6 +159,8 @@ const runtime = {
   autosaveTimer: 0,
   currentTab: "gebaeude",
   missionRerollCooldownUntil: 0,
+  nextShopRenderAt: 0,
+  forceShopRender: true,
 };
 
 const el = {};
@@ -519,6 +521,20 @@ function applyOfflineBonus(lastVisitMs) {
 
 function buildDynamicUi() {
   const actions = document.querySelector(".aktionen");
+  const helpPanel = document.createElement("div");
+  helpPanel.className = "rework-panel help-panel";
+  helpPanel.innerHTML = `
+    <div class="rework-head"><strong>So funktioniert das Rework</strong></div>
+    <ul class="help-list">
+      <li><strong>Missionen:</strong> Erfülle Ziele für Pixel, Saisonpunkte und Boosts.</li>
+      <li><strong>Events:</strong> Alle paar Minuten erscheint eine Entscheidung mit Risiko/Belohnung.</li>
+      <li><strong>Minigame:</strong> Über den 🎯 Button Timing-Boost starten (mit Cooldown).</li>
+      <li><strong>Prestige:</strong> Bei Prestige wählst du 1 Mutation für den nächsten Run.</li>
+      <li><strong>Pfade:</strong> Im Upgrade-Tab zwischen Speed, Efficiency und Automation wählen.</li>
+    </ul>
+  `;
+  actions.appendChild(helpPanel);
+
   const missionPanel = document.createElement("div");
   missionPanel.className = "rework-panel";
   missionPanel.innerHTML = `
@@ -599,6 +615,8 @@ function bindEvents() {
     addPixels(state, gain);
     state.session.clicksThisRun += 1;
     maybeCompleteMissions();
+    renderMissions();
+    renderStats();
   });
 
   el.prestigeBtn.addEventListener("click", openPrestigeModal);
@@ -704,6 +722,7 @@ function renderShop() {
       if (state.economy.pixel < cost) return;
       state.economy.pixel -= cost;
       state.economy.buildingCount[building.id] += 1;
+      runtime.forceShopRender = true;
       renderShop();
       renderStats();
     });
@@ -716,6 +735,7 @@ function renderShop() {
       if (state.economy.pixel < upgrade.cost) return;
       state.economy.pixel -= upgrade.cost;
       applyUpgrade(upgrade);
+      runtime.forceShopRender = true;
       renderShop();
       renderStats();
     });
@@ -796,6 +816,15 @@ function tickEffects() {
   state.session.activeEffects = state.session.activeEffects.filter((e) => e.endsAt > now);
 }
 
+function maybeRenderShopSlowly() {
+  const now = Date.now();
+  if (runtime.forceShopRender || now >= runtime.nextShopRenderAt) {
+    renderShop();
+    runtime.forceShopRender = false;
+    runtime.nextShopRenderAt = now + 800;
+  }
+}
+
 function tickMinigame(dtSec) {
   if (!state.session.minigameActive) return;
   const speed = 0.9;
@@ -857,7 +886,7 @@ function frame(ts) {
 
   renderStats();
   renderMissions();
-  renderShop();
+  maybeRenderShopSlowly();
   updateTopActions();
   requestAnimationFrame(frame);
 }
@@ -891,6 +920,9 @@ async function init() {
   }
 
   runtime.running = true;
+  renderStats();
+  renderMissions();
+  renderShop();
   requestAnimationFrame(frame);
   setInterval(() => saveGame(false), 120000);
 

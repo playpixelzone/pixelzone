@@ -669,7 +669,59 @@ async function loadGame() {
     return;
   }
 
-  Object.assign(state, incoming);
+  const fresh = makeDefaultState();
+  state.economy = {
+    ...fresh.economy,
+    ...(incoming.economy || {}),
+    buildings: {
+      ...fresh.economy.buildings,
+      ...((incoming.economy && incoming.economy.buildings) || {}),
+    },
+    boughtUpgrades: Array.isArray(incoming.economy?.boughtUpgrades)
+      ? incoming.economy.boughtUpgrades
+      : fresh.economy.boughtUpgrades,
+  };
+  state.meta = {
+    ...fresh.meta,
+    ...(incoming.meta || {}),
+    lineLevels: {
+      ...fresh.meta.lineLevels,
+      ...(incoming.meta?.lineLevels || {}),
+      speed: { ...fresh.meta.lineLevels.speed, ...(incoming.meta?.lineLevels?.speed || {}) },
+      efficiency: { ...fresh.meta.lineLevels.efficiency, ...(incoming.meta?.lineLevels?.efficiency || {}) },
+      automation: { ...fresh.meta.lineLevels.automation, ...(incoming.meta?.lineLevels?.automation || {}) },
+    },
+    mutationIds: Array.isArray(incoming.meta?.mutationIds)
+      ? incoming.meta.mutationIds
+      : fresh.meta.mutationIds,
+    claimedSeasonTiers: Array.isArray(incoming.meta?.claimedSeasonTiers)
+      ? incoming.meta.claimedSeasonTiers
+      : fresh.meta.claimedSeasonTiers,
+  };
+  state.session = {
+    ...fresh.session,
+    ...(incoming.session || {}),
+    discoveredBuildings: {
+      ...fresh.session.discoveredBuildings,
+      ...(incoming.session?.discoveredBuildings || {}),
+    },
+    discoveredUpgrades: {
+      ...fresh.session.discoveredUpgrades,
+      ...(incoming.session?.discoveredUpgrades || {}),
+    },
+    missions: Array.isArray(incoming.session?.missions)
+      ? incoming.session.missions
+      : fresh.session.missions,
+    activeEffects: Array.isArray(incoming.session?.activeEffects)
+      ? incoming.session.activeEffects
+      : fresh.session.activeEffects,
+  };
+  state.cosmetics = {
+    ...fresh.cosmetics,
+    ...(incoming.cosmetics || {}),
+  };
+  state.schemaVersion = SAVE_SCHEMA_VERSION;
+
   if (!Array.isArray(state.session.missions) || state.session.missions.length === 0) randomMissionSet();
   recomputeMetaFromLineAndMutations();
   applyOfflineBonus(state.session.lastSaveAt);

@@ -40,6 +40,8 @@ const state = {
   aiTarget: CANVAS_H / 2,
   hostSyncAt: 0,
   guestPaddleSyncAt: 0,
+  hostSyncInFlight: false,
+  guestSyncInFlight: false,
   lastTs: 0,
   game: createBaseGameState(),
 };
@@ -334,8 +336,8 @@ async function fetchRoom() {
   return data || null;
 }
 
-async function syncRoomAndLobby() {
-  const room = await fetchRoom();
+async function syncRoomAndLobby(roomSnapshot = null) {
+  const room = roomSnapshot || await fetchRoom();
   if (!room) {
     leaveRoomLocal();
     return;
@@ -343,9 +345,9 @@ async function syncRoomAndLobby() {
   state.currentRoom = room;
   state.isHost = room.host_user_id === state.userId;
   $('room-code-display').textContent = room.code || '------';
-  await renderLobbyPlayers(room);
 
   if (room.status === 'lobby') {
+    await renderLobbyPlayers(room);
     showScreen('screen-lobby');
     $('lobby-hint').textContent = room.guest_user_id ? 'Beide Spieler da. Host kann starten.' : 'Warte auf zweiten Spieler ...';
     $('btn-start-multi').classList.toggle('hidden', !state.isHost);
@@ -525,8 +527,10 @@ function leaveRoomLocal() {
 async function subscribeRoom() {
   if (state.channel) state.channel.unsubscribe();
   state.channel = PZ.db.channel(`pong-${state.roomId}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'pong_rooms', filter: `id=eq.${state.roomId}` }, async () => {
-      await syncRoomAndLobby();
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'pong_rooms', filter: `id=eq.${state.roomId}` }, async (payload) => {
+      // Realtime-Payload direkt nutzen, um zusätzliche Fetch-Roundtrips zu vermeiden
+      const room = payload?.new || null;
+      await syncRoomAndLobby(room);
     })
     .subscribe();
 }
@@ -557,23 +561,33 @@ async function syncMultiplayerToDb() {
   // Host ist autoritativ für Ball + Score, Gast sendet nur eigenes Paddle
   if (!state.currentRoom || state.currentRoom.status !== 'playing') return;
   const now = performance.now();
-  if (state.isHost && now - state.hostSyncAt > 66) {
+  if (state.isHost && !state.hostSyncInFlight && now - state.hostSyncAt > 90) {
     state.hostSyncAt = now;
-    await PZ.db.from('pong_rooms').update({
-      host_score: state.game.leftScore,
-      guest_score: state.game.rightScore,
-      host_paddle_y: state.game.leftY,
-      guest_paddle_y: state.game.rightY,
-      ball_x: state.game.ballX,
-      ball_y: state.game.ballY,
-      ball_vx: state.game.ballVx,
-      ball_vy: state.game.ballVy,
-    }).eq('id', state.roomId).eq('host_user_id', state.userId);
-  } else if (!state.isHost && now - state.guestPaddleSyncAt > 90) {
+    state.hostSyncInFlight = true;
+    try {
+      await PZ.db.from('pong_rooms').update({
+        host_score: state.game.leftScore,
+        guest_score: state.game.rightScore,
+        host_paddle_y: state.game.leftY,
+        // Wichtig: guest_paddle_y wird nur vom Gast geschrieben, sonst überschreibt Host dessen Input
+        ball_x: state.game.ballX,
+        ball_y: state.game.ballY,
+        ball_vx: state.game.ballVx,
+        ball_vy: state.game.ballVy,
+      }).eq('id', state.roomId).eq('host_user_id', state.userId);
+    } finally {
+      state.hostSyncInFlight = false;
+    }
+  } else if (!state.isHost && !state.guestSyncInFlight && now - state.guestPaddleSyncAt > 75) {
     state.guestPaddleSyncAt = now;
-    await PZ.db.from('pong_rooms').update({
-      guest_paddle_y: state.game.rightY,
-    }).eq('id', state.roomId).eq('guest_user_id', state.userId);
+    state.guestSyncInFlight = true;
+    try {
+      await PZ.db.from('pong_rooms').update({
+        guest_paddle_y: state.game.rightY,
+      }).eq('id', state.roomId).eq('guest_user_id', state.userId);
+    } finally {
+      state.guestSyncInFlight = false;
+    }
   }
 }
 

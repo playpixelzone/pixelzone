@@ -1,5 +1,60 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Heutiger Plan (2026-04-15) — Next.js SSR Migration
+
+- **Vorhaben:** Startseite von statischem HTML auf Next.js mit Server-Side Rendering umstellen (`getServerSideProps`) und lauffaehiges Basis-Setup im Projekt anlegen.
+- **Schritte:**
+  1. Next.js Grundstruktur erstellen (`package.json`, `next.config.js`, `pages/_app.js`).
+  2. Startseite als `pages/index.js` mit `getServerSideProps` nachbauen.
+  3. Bestehende globale Styles weiterverwenden und Links auf bestehende Spielfiles kompatibel halten.
+  4. NOTES.md mit Ergebnis und geaenderten Dateien aktualisieren.
+
+### Next.js SSR Migration umgesetzt (2026-04-15) ✅
+- Next.js im Projekt eingerichtet:
+  - `package.json` mit `next`, `react`, `react-dom`
+  - `next.config.js` erstellt
+  - `pages/_app.js` erstellt und bestehendes `style.css` global eingebunden
+- Startseite als SSR-Seite migriert:
+  - Neue `pages/index.js` mit `getServerSideProps`
+  - Spieledaten werden serverseitig vorbereitet und als Props gerendert
+  - SEO-Meta-Tags und OG-Tags in `next/head` uebernommen
+- Build verifiziert:
+  - `npm install` erfolgreich
+  - `npm run build` erfolgreich
+
+### Veränderte Dateien (Next.js SSR Migration)
+- `package.json` (neu)
+- `next.config.js` (neu)
+- `pages/_app.js` (neu)
+- `pages/index.js` (neu, SSR via `getServerSideProps`)
+- `NOTES.md`
+
+### Alles auf SSR umgestellt (2026-04-15) ✅
+- Zusaetzliche Catch-all-Route erstellt: `pages/[...route].js`.
+- Jede Anfrage ausserhalb von `/` wird jetzt serverseitig pro Request aus den bestehenden Projektdateien ausgeliefert:
+  - HTML-Seiten (`/login`, `/admin`, `/games/pong/info`, ...)
+  - Asset-Dateien wie CSS/JS/Bilder (`/games/pong/style.css`, `/games/pong/game.js`, ...)
+- Sicherheitscheck gegen Path-Traversal eingebaut (nur Dateien innerhalb des Projektordners).
+- Build erneut getestet: `npm run build` erfolgreich, Routen sind dynamisch serverseitig.
+
+### Veränderte Dateien (SSR komplett)
+- `pages/[...route].js` (neu)
+- `NOTES.md`
+
+### SSR Setup weiter stabilisiert (2026-04-15) ✅
+- SSR-Auslieferung auf festen Inhaltsordner `ssr-content/` begrenzt (statt Projekt-Root).
+- Automatischen Sync eingebaut:
+  - neues Script `scripts/sync-ssr-content.mjs`
+  - `predev`, `prebuild`, `prestart` fuehren den Sync automatisch aus.
+- Build auf Webpack umgestellt (`next build --webpack`), damit keine Turbopack-Tracing-Warnung mehr erscheint.
+- Verifiziert: `npm run build` erfolgreich, alle Routen weiterhin SSR (`/` und `/[...route]` dynamisch).
+
+### Veränderte Dateien (SSR Stabilisierung)
+- `package.json`
+- `scripts/sync-ssr-content.mjs` (neu)
+- `pages/[...route].js`
+- `NOTES.md`
+
 ## Heutiger Plan (2026-04-15) — Pong (Singleplayer + Online-Multiplayer)
 
 - **Vorhaben:** Vollständiges Pong-Spiel in PIXELZONE bauen (Canvas, KI-Schwierigkeiten, Ranglisten je Schwierigkeit, Online-2P mit Raum-Code via Supabase Realtime).

@@ -1,5 +1,8 @@
 .superpowers/
 docs/superpowers/
+node_modules/
+.next/
+ssr-content/
 
 # Wordle: große Quellen für build-wordlists.mjs (optional lokal)
 games/wordle/_de_*_frami.dic

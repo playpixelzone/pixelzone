@@ -1,0 +1,19 @@
+{
+  "name": "pixelzone-next",
+  "private": true,
+  "scripts": {
+    "sync:ssr-content": "node scripts/sync-ssr-content.mjs",
+    "predev": "npm run sync:ssr-content",
+    "prebuild": "npm run sync:ssr-content",
+    "prestart": "npm run sync:ssr-content",
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  }
+}

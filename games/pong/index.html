@@ -31,7 +31,7 @@
     <section id="screen-home" class="panel">
       <h2>Startmenü</h2>
       <p class="hint">Wähle deinen Spielmodus.</p>
-      <div class="row">
+      <div class="menu-stack">
         <button id="btn-mode-single" class="btn btn-primary" type="button">Singleplayer</button>
         <button id="btn-mode-multi" class="btn btn-secondary" type="button">Multiplayer</button>
         <button id="btn-mode-board" class="btn btn-secondary" type="button">Rangliste</button>
@@ -54,10 +54,18 @@
 
     <section id="screen-leaderboard" class="panel hidden">
       <h2>Rangliste</h2>
-      <p class="hint">Hier siehst du die Spieler mit den meisten gewonnenen Spielen.</p>
+      <p class="hint">Top-Spieler je Schwierigkeitsstufe.</p>
       <div class="board-wrap">
-        <h3>Gewonnene Spiele (Top 20)</h3>
-        <div id="wins-leaderboard" class="leaderboard">Lade Rangliste ...</div>
+        <h3>Einfach</h3>
+        <div id="board-easy" class="leaderboard">Lade Rangliste ...</div>
+      </div>
+      <div class="board-wrap">
+        <h3>Mittel</h3>
+        <div id="board-medium" class="leaderboard">Lade Rangliste ...</div>
+      </div>
+      <div class="board-wrap">
+        <h3>Schwer</h3>
+        <div id="board-hard" class="leaderboard">Lade Rangliste ...</div>
       </div>
       <div class="row">
         <button id="btn-refresh-board" class="btn btn-secondary" type="button">Aktualisieren</button>

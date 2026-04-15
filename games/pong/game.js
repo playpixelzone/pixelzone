@@ -18,7 +18,6 @@ const DIFF_GAME_KEYS = {
   medium: 'pong-medium',
   hard: 'pong-hard',
 };
-const WINS_GAME_KEY = 'pong-wins';
 
 const state = {
   mode: null,
@@ -139,30 +138,15 @@ async function loadSingleLeaderboard() {
   return entries || [];
 }
 
-async function loadWinsLeaderboard() {
-  const entries = await PZ.getLeaderboard(WINS_GAME_KEY, 20);
-  $('wins-leaderboard').innerHTML = renderLeaderboardRows(entries || []);
-}
-
-async function addWinForCurrentUser() {
-  if (!state.userId) return;
-  const best = await PZ.loadScore(WINS_GAME_KEY);
-  const wins = (best?.punkte || 0) + 1;
-  await PZ.saveGameData(WINS_GAME_KEY, wins, 1, {
-    wins,
-    spiel: 'pong',
-  });
-}
-
-async function handleWinTracking(winner) {
-  // Gewinnerzählung zählt für Singleplayer und Multiplayer
-  if (winner === 'left' && state.mode === 'single') {
-    await addWinForCurrentUser();
-    await saveSingleScore();
-  } else if (state.mode === 'multi') {
-    const playerWon = (state.isHost && winner === 'left') || (!state.isHost && winner === 'right');
-    if (playerWon) await addWinForCurrentUser();
-  }
+async function loadDifficultyBoards() {
+  const [easy, medium, hard] = await Promise.all([
+    PZ.getLeaderboard(DIFF_GAME_KEYS.easy, 10),
+    PZ.getLeaderboard(DIFF_GAME_KEYS.medium, 10),
+    PZ.getLeaderboard(DIFF_GAME_KEYS.hard, 10),
+  ]);
+  $('board-easy').innerHTML = renderLeaderboardRows(easy || []);
+  $('board-medium').innerHTML = renderLeaderboardRows(medium || []);
+  $('board-hard').innerHTML = renderLeaderboardRows(hard || []);
 }
 
 function escapeHtml(value) {
@@ -263,7 +247,6 @@ function simulateBall(dt) {
     g.rightScore += 1;
     if (g.rightScore >= TARGET_SCORE) {
       finishRound('right');
-      handleWinTracking('right').catch(() => {});
       if (state.mode === 'multi' && state.isHost) hostFinishMatch('right');
       return;
     }
@@ -272,7 +255,7 @@ function simulateBall(dt) {
     g.leftScore += 1;
     if (g.leftScore >= TARGET_SCORE) {
       finishRound('left');
-      handleWinTracking('left').catch(() => {});
+      if (state.mode === 'single') saveSingleScore();
       if (state.mode === 'multi' && state.isHost) hostFinishMatch('left');
       return;
     }
@@ -621,13 +604,13 @@ function bindEvents() {
   });
   $('btn-mode-board').addEventListener('click', async () => {
     showScreen('screen-leaderboard');
-    await loadWinsLeaderboard();
+    await loadDifficultyBoards();
   });
   $('btn-mode-multi').addEventListener('click', () => showScreen('screen-multi'));
   $('btn-back-single').addEventListener('click', () => showScreen('screen-home'));
   $('btn-back-multi').addEventListener('click', () => showScreen('screen-home'));
   $('btn-back-board').addEventListener('click', () => showScreen('screen-home'));
-  $('btn-refresh-board').addEventListener('click', loadWinsLeaderboard);
+  $('btn-refresh-board').addEventListener('click', loadDifficultyBoards);
 
   document.querySelectorAll('.diff-btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
@@ -671,7 +654,35 @@ function bindEvents() {
     const y = ((event.clientY - rect.top) / rect.height) * CANVAS_H;
     state.pointerY = clamp(y, 0, CANVAS_H);
   });
+  canvas.addEventListener('pointerdown', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const y = ((event.clientY - rect.top) / rect.height) * CANVAS_H;
+    state.pointerY = clamp(y, 0, CANVAS_H);
+  });
   canvas.addEventListener('pointerleave', () => {
+    state.pointerY = null;
+  });
+  // iPad/Safari-Fallback: falls Pointer Events nicht sauber feuern, direkt Touch-Events nutzen
+  canvas.addEventListener('touchstart', (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    const rect = canvas.getBoundingClientRect();
+    const y = ((touch.clientY - rect.top) / rect.height) * CANVAS_H;
+    state.pointerY = clamp(y, 0, CANVAS_H);
+    event.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener('touchmove', (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    const rect = canvas.getBoundingClientRect();
+    const y = ((touch.clientY - rect.top) / rect.height) * CANVAS_H;
+    state.pointerY = clamp(y, 0, CANVAS_H);
+    event.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener('touchend', () => {
+    state.pointerY = null;
+  });
+  canvas.addEventListener('touchcancel', () => {
     state.pointerY = null;
   });
 }

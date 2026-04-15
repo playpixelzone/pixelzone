@@ -72,6 +72,15 @@ h2 { margin-top: 0; }
   gap: 10px;
   margin: 12px 0;
 }
+.menu-stack {
+  display: grid;
+  gap: 10px;
+  max-width: 320px;
+}
+.menu-stack .btn {
+  width: 100%;
+  justify-self: start;
+}
 
 .btn {
   border: none;

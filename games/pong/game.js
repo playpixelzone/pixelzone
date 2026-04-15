@@ -7,6 +7,8 @@ const PADDLE_H = 96;
 const BALL_SIZE = 14;
 const TARGET_SCORE = 7;
 const ROOM_POLL_MS = 900;
+const BROADCAST_FRAME_MS = 33;
+const DB_SYNC_MS = 450;
 
 const DIFFICULTIES = {
   easy: { label: 'Einfach', botSpeed: 260, reaction: 0.22, error: 44, maxAngle: 0.85 },
@@ -45,6 +47,9 @@ const state = {
   guestSyncInFlight: false,
   lastRoomUpdatedAtMs: 0,
   lastRemoteBallKey: '',
+  hostBroadcastAt: 0,
+  guestBroadcastAt: 0,
+  lastHostFrameAt: 0,
   roomPollTimer: null,
   lastTs: 0,
   game: createBaseGameState(),
@@ -476,11 +481,84 @@ function predictGuestBall(dt) {
   }
 }
 
+function applyHostFrame(payload) {
+  if (!payload || state.isHost || state.mode !== 'multi' || !state.running) return;
+  const g = state.game;
+  const rx = Number(payload.ballX);
+  const ry = Number(payload.ballY);
+  const rvx = Number(payload.ballVx);
+  const rvy = Number(payload.ballVy);
+  if (Number.isFinite(rx) && Number.isFinite(ry)) {
+    const dx = rx - g.ballX;
+    const dy = ry - g.ballY;
+    const dist2 = (dx * dx) + (dy * dy);
+    if (dist2 > 6400) {
+      g.ballX = rx;
+      g.ballY = ry;
+    } else {
+      g.ballX += dx * 0.5;
+      g.ballY += dy * 0.5;
+    }
+  }
+  if (Number.isFinite(rvx)) g.ballVx = rvx;
+  if (Number.isFinite(rvy)) g.ballVy = rvy;
+  if (Number.isFinite(payload.leftScore)) g.leftScore = payload.leftScore;
+  if (Number.isFinite(payload.rightScore)) g.rightScore = payload.rightScore;
+  if (Number.isFinite(payload.hostY)) g.leftY = clamp(payload.hostY, 0, CANVAS_H - PADDLE_H);
+  state.lastHostFrameAt = performance.now();
+}
+
+function applyGuestPaddle(payload) {
+  if (!payload || !state.isHost || state.mode !== 'multi' || !state.running) return;
+  if (!Number.isFinite(payload.rightY)) return;
+  state.game.rightY = clamp(payload.rightY, 0, CANVAS_H - PADDLE_H);
+}
+
+function sendHostFrame() {
+  if (!state.channel || !state.isHost || !state.running || state.mode !== 'multi') return;
+  const now = performance.now();
+  if (now - state.hostBroadcastAt < BROADCAST_FRAME_MS) return;
+  state.hostBroadcastAt = now;
+  const g = state.game;
+  state.channel.send({
+    type: 'broadcast',
+    event: 'host_frame',
+    payload: {
+      roomId: state.roomId,
+      ballX: g.ballX,
+      ballY: g.ballY,
+      ballVx: g.ballVx,
+      ballVy: g.ballVy,
+      leftScore: g.leftScore,
+      rightScore: g.rightScore,
+      hostY: g.leftY,
+    },
+  }).catch(() => {});
+}
+
+function sendGuestPaddle() {
+  if (!state.channel || state.isHost || !state.running || state.mode !== 'multi') return;
+  const now = performance.now();
+  if (now - state.guestBroadcastAt < BROADCAST_FRAME_MS) return;
+  state.guestBroadcastAt = now;
+  state.channel.send({
+    type: 'broadcast',
+    event: 'guest_paddle',
+    payload: {
+      roomId: state.roomId,
+      rightY: state.game.rightY,
+    },
+  }).catch(() => {});
+}
+
 function startMultiplayerFromRoom(room) {
   state.mode = 'multi';
   state.running = true;
   state.finished = false;
   state.winner = null;
+  state.hostBroadcastAt = 0;
+  state.guestBroadcastAt = 0;
+  state.lastHostFrameAt = performance.now();
   if (!$('screen-game').classList.contains('hidden')) {
     applyRoomToLocal(room, false);
   } else {
@@ -608,6 +686,14 @@ async function subscribeRoom() {
       const room = payload?.new || null;
       await syncRoomAndLobby(room);
     })
+    .on('broadcast', { event: 'host_frame' }, ({ payload }) => {
+      if (payload?.roomId !== state.roomId) return;
+      applyHostFrame(payload);
+    })
+    .on('broadcast', { event: 'guest_paddle' }, ({ payload }) => {
+      if (payload?.roomId !== state.roomId) return;
+      applyGuestPaddle(payload);
+    })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED' && !subscriptionReady) {
         subscriptionReady = true;
@@ -665,10 +751,10 @@ function updateMultiplayerPaddle(dt) {
 }
 
 async function syncMultiplayerToDb() {
-  // Host ist autoritativ für Ball + Score, Gast sendet nur eigenes Paddle
+  // DB-Sync nur als Backup/Persistenz; Live-Gameplay läuft über Realtime-Broadcast.
   if (!state.currentRoom || state.currentRoom.status !== 'playing') return;
   const now = performance.now();
-  if (state.isHost && !state.hostSyncInFlight && now - state.hostSyncAt > 90) {
+  if (state.isHost && !state.hostSyncInFlight && now - state.hostSyncAt > DB_SYNC_MS) {
     state.hostSyncAt = now;
     state.hostSyncInFlight = true;
     try {
@@ -685,7 +771,7 @@ async function syncMultiplayerToDb() {
     } finally {
       state.hostSyncInFlight = false;
     }
-  } else if (!state.isHost && !state.guestSyncInFlight && now - state.guestPaddleSyncAt > 75) {
+  } else if (!state.isHost && !state.guestSyncInFlight && now - state.guestPaddleSyncAt > DB_SYNC_MS) {
     state.guestPaddleSyncAt = now;
     state.guestSyncInFlight = true;
     try {
@@ -711,7 +797,12 @@ function gameLoop(ts) {
     } else if (state.mode === 'multi') {
       updateMultiplayerPaddle(dt);
       if (state.isHost) simulateBall(dt);
-      else predictGuestBall(dt);
+      else {
+        // Wenn kurz kein Host-Frame ankommt, lokal weiterlaufen lassen.
+        if (performance.now() - state.lastHostFrameAt > 120) predictGuestBall(dt);
+      }
+      sendHostFrame();
+      sendGuestPaddle();
       syncMultiplayerToDb().catch(() => {});
     }
   }

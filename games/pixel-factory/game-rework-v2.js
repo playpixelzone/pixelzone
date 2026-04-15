@@ -1181,6 +1181,11 @@ function applyDelayedEffectSafe(delayMs, cb) {
   }, delayMs);
 }
 
+function removeGameLoadingOverlay() {
+  const overlay = document.getElementById("pz-game-overlay");
+  if (overlay) overlay.remove();
+}
+
 function frame(ts) {
   if (!runtime.running) return;
   if (!runtime.lastTs) runtime.lastTs = ts;
@@ -1230,6 +1235,14 @@ async function init() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await PZ.updateNavbar();
-  await init();
+  try {
+    removeGameLoadingOverlay();
+    if (typeof PZ?.updateNavbar === "function") await PZ.updateNavbar();
+    await init();
+  } catch (err) {
+    console.error("[Pixel Factory] Init-Fehler:", err);
+    removeGameLoadingOverlay();
+    const label = document.getElementById("klickInfo");
+    if (label) label.textContent = "Fehler beim Laden - bitte Seite neu laden.";
+  }
 });

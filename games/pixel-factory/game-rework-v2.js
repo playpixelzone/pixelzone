@@ -6,56 +6,75 @@ const SAVE_SCHEMA_VERSION = 3;
 const AUTOSAVE_MS = 45000;
 const BASE_EVENT_INTERVAL_MS = 210000;
 const COMBO_WINDOW_MS = 1400;
-const MINIGAME_COOLDOWN_MS = 90000;
+const MISSION_ROTATE_MS = 30 * 60 * 1000;
 const PRESTIGE_BASE = 9000;
 const PRESTIGE_GROWTH = 1.5;
 
 const BUILDINGS = [
-  { id: "worker", name: "Pixel-Arbeiter", icon: "🧑‍🏭", baseCost: 15, growth: 1.12, pps: 0.35, unlockAt: 0 },
-  { id: "intern", name: "Praktikant", icon: "🧢", baseCost: 80, growth: 1.13, pps: 1.2, unlockAt: 60 },
-  { id: "printer", name: "Nano-Drucker", icon: "🖨️", baseCost: 350, growth: 1.14, pps: 4.4, unlockAt: 180 },
-  { id: "assembler", name: "Assembler", icon: "⚙️", baseCost: 1200, growth: 1.15, pps: 13, unlockAt: 700 },
-  { id: "robot", name: "Roboterarm", icon: "🤖", baseCost: 4800, growth: 1.16, pps: 40, unlockAt: 2400 },
-  { id: "reactor", name: "Fusion-Reaktor", icon: "⚡", baseCost: 18000, growth: 1.17, pps: 140, unlockAt: 9000 },
-  { id: "cluster", name: "Chip-Cluster", icon: "🧠", baseCost: 70000, growth: 1.19, pps: 520, unlockAt: 32000 },
-  { id: "satellite", name: "Satelliten-Linie", icon: "🛰️", baseCost: 260000, growth: 1.2, pps: 1850, unlockAt: 120000 },
-  { id: "quantumCore", name: "Line-Core", icon: "🌀", baseCost: 950000, growth: 1.21, pps: 6200, unlockAt: 460000 },
-  { id: "matrix", name: "Matrix-Fabrik", icon: "🏭", baseCost: 4200000, growth: 1.22, pps: 23000, unlockAt: 1900000 },
+  { id: "worker", name: "Pixel-Arbeiter", icon: "🧑‍🏭", baseCost: 15, growth: 1.12, pps: 0.4, unlockAt: 0 },
+  { id: "intern", name: "Praktikant", icon: "🧢", baseCost: 70, growth: 1.13, pps: 1.4, unlockAt: 50 },
+  { id: "printer", name: "Nano-Drucker", icon: "🖨️", baseCost: 260, growth: 1.14, pps: 5.6, unlockAt: 170 },
+  { id: "assembler", name: "Assembler", icon: "⚙️", baseCost: 980, growth: 1.15, pps: 16, unlockAt: 650 },
+  { id: "robot", name: "Roboterarm", icon: "🤖", baseCost: 3900, growth: 1.16, pps: 49, unlockAt: 2200 },
+  { id: "reactor", name: "Fusion-Reaktor", icon: "⚡", baseCost: 15000, growth: 1.17, pps: 170, unlockAt: 8800 },
+  { id: "cluster", name: "Chip-Cluster", icon: "🧠", baseCost: 54000, growth: 1.18, pps: 610, unlockAt: 30000 },
+  { id: "satellite", name: "Satelliten-Linie", icon: "🛰️", baseCost: 190000, growth: 1.19, pps: 2100, unlockAt: 110000 },
+  { id: "laserFab", name: "Laser-Fabrik", icon: "🔴", baseCost: 680000, growth: 1.2, pps: 7000, unlockAt: 420000 },
+  { id: "quantumCore", name: "Line-Core", icon: "🌀", baseCost: 2400000, growth: 1.21, pps: 21000, unlockAt: 1500000 },
+  { id: "matrix", name: "Matrix-Fabrik", icon: "🏭", baseCost: 8500000, growth: 1.22, pps: 68000, unlockAt: 5000000 },
+  { id: "arcology", name: "Pixel-Arcology", icon: "🏙️", baseCost: 31000000, growth: 1.23, pps: 210000, unlockAt: 18000000 },
+  { id: "orbitalDock", name: "Orbital-Dock", icon: "🛸", baseCost: 115000000, growth: 1.24, pps: 690000, unlockAt: 70000000 },
 ];
 
 const UPGRADES = [
-  { id: "u_click_1", name: "Präzisions-Klick", desc: "+1 Klickkraft", cost: 90, unlockAt: 60, apply: (s) => { s.economy.clickBase += 1; } },
-  { id: "u_click_2", name: "Servo-Hand", desc: "Klickkraft x1.5", cost: 600, unlockAt: 300, apply: (s) => { s.economy.clickMult *= 1.5; } },
-  { id: "u_click_3", name: "Impuls-Handschuh", desc: "Klickkraft x1.9", cost: 4600, unlockAt: 2500, apply: (s) => { s.economy.clickMult *= 1.9; } },
-  { id: "u_prod_1", name: "Schichtplan", desc: "Produktion x1.35", cost: 460, unlockAt: 250, apply: (s) => { s.economy.prodMult *= 1.35; } },
-  { id: "u_prod_2", name: "Qualitätskette", desc: "Produktion x1.55", cost: 3100, unlockAt: 1800, apply: (s) => { s.economy.prodMult *= 1.55; } },
-  { id: "u_prod_3", name: "Fließband-KI", desc: "Produktion x2.1", cost: 24000, unlockAt: 14000, apply: (s) => { s.economy.prodMult *= 2.1; } },
-  { id: "u_combo_1", name: "Flow-Training", desc: "Kombo stärker (+0.1)", cost: 2400, unlockAt: 1100, apply: (s) => { s.economy.comboBonus += 0.1; } },
-  { id: "u_combo_2", name: "Flow-Reflex", desc: "Kombo-Fenster +300ms", cost: 12000, unlockAt: 7000, apply: (s) => { s.economy.comboWindowBonus += 300; } },
-  { id: "u_offline_1", name: "Nachtprotokoll", desc: "Offline-Effizienz +20%", cost: 18000, unlockAt: 10000, apply: (s) => { s.economy.offlineEff += 0.2; } },
-  { id: "u_offline_2", name: "Auto-Schicht", desc: "Offline-Effizienz +35%", cost: 155000, unlockAt: 90000, apply: (s) => { s.economy.offlineEff += 0.35; } },
-  { id: "u_event_1", name: "Notfallplan", desc: "Events seltener", cost: 38000, unlockAt: 20000, apply: (s) => { s.meta.eventRateMult *= 0.88; } },
-  { id: "u_hybrid", name: "Lean-Core", desc: "Klick + Produktion x1.25", cost: 64000, unlockAt: 34000, apply: (s) => { s.economy.clickMult *= 1.25; s.economy.prodMult *= 1.25; } },
+  { id: "u_click_1", name: "Präzisions-Klick", desc: "+2 Klickkraft", cost: 70, unlockAt: 40, apply: (s) => { s.economy.clickBase += 2; } },
+  { id: "u_click_2", name: "Servo-Hand", desc: "Klickkraft x1.75", cost: 520, unlockAt: 260, apply: (s) => { s.economy.clickMult *= 1.75; } },
+  { id: "u_click_3", name: "Impuls-Handschuh", desc: "Klickkraft x2.15", cost: 3600, unlockAt: 1800, apply: (s) => { s.economy.clickMult *= 2.15; } },
+  { id: "u_click_4", name: "Hyperfinger", desc: "Klickkraft x2.5", cost: 24000, unlockAt: 12000, apply: (s) => { s.economy.clickMult *= 2.5; } },
+  { id: "u_click_5", name: "Neural-Link", desc: "Klickkraft x3.2", cost: 240000, unlockAt: 150000, apply: (s) => { s.economy.clickMult *= 3.2; } },
+  { id: "u_prod_1", name: "Schichtplan", desc: "Produktion x1.35", cost: 360, unlockAt: 220, apply: (s) => { s.economy.prodMult *= 1.35; } },
+  { id: "u_prod_2", name: "Qualitätskette", desc: "Produktion x1.6", cost: 2800, unlockAt: 1600, apply: (s) => { s.economy.prodMult *= 1.6; } },
+  { id: "u_prod_3", name: "Fließband-KI", desc: "Produktion x2.2", cost: 20000, unlockAt: 12000, apply: (s) => { s.economy.prodMult *= 2.2; } },
+  { id: "u_prod_4", name: "Takt-Optimierung", desc: "Produktion x2.6", cost: 180000, unlockAt: 100000, apply: (s) => { s.economy.prodMult *= 2.6; } },
+  { id: "u_prod_5", name: "Parallel-Layer", desc: "Produktion x3.0", cost: 1200000, unlockAt: 800000, apply: (s) => { s.economy.prodMult *= 3.0; } },
+  { id: "u_combo_1", name: "Flow-Training", desc: "Kombo stärker (+0.1)", cost: 1800, unlockAt: 900, apply: (s) => { s.economy.comboBonus += 0.1; } },
+  { id: "u_combo_2", name: "Flow-Reflex", desc: "Kombo-Fenster +420ms", cost: 9000, unlockAt: 5200, apply: (s) => { s.economy.comboWindowBonus += 420; } },
+  { id: "u_combo_3", name: "Burst-Kontrolle", desc: "Kombo stärker (+0.16)", cost: 74000, unlockAt: 42000, apply: (s) => { s.economy.comboBonus += 0.16; } },
+  { id: "u_offline_1", name: "Nachtprotokoll", desc: "Offline-Effizienz +24%", cost: 13000, unlockAt: 7000, apply: (s) => { s.economy.offlineEff += 0.24; } },
+  { id: "u_offline_2", name: "Auto-Schicht", desc: "Offline-Effizienz +40%", cost: 110000, unlockAt: 70000, apply: (s) => { s.economy.offlineEff += 0.4; } },
+  { id: "u_event_1", name: "Notfallplan", desc: "Events seltener", cost: 28000, unlockAt: 18000, apply: (s) => { s.meta.eventRateMult *= 0.9; } },
+  { id: "u_event_2", name: "Puffer-Netz", desc: "Events seltener", cost: 290000, unlockAt: 180000, apply: (s) => { s.meta.eventRateMult *= 0.86; } },
+  { id: "u_hybrid_1", name: "Lean-Core", desc: "Klick + Produktion x1.25", cost: 54000, unlockAt: 30000, apply: (s) => { s.economy.clickMult *= 1.25; s.economy.prodMult *= 1.25; } },
+  { id: "u_hybrid_2", name: "Dual-Stack", desc: "Klick + Produktion x1.45", cost: 360000, unlockAt: 220000, apply: (s) => { s.economy.clickMult *= 1.45; s.economy.prodMult *= 1.45; } },
 ];
 
 const LINE_TREES = {
   speed: [
-    { id: "s1", name: "Overclock", desc: "+30% Produktion", max: 3, cost: 1, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.3 * lvl); } },
-    { id: "s2", name: "Rausch", desc: "+40% Klickkraft", max: 2, cost: 1, req: "s1", effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.4 * lvl); } },
-    { id: "s3", name: "Instabil", desc: "Events +20%, aber +50% Produktion", max: 2, cost: 1, req: "s1", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.5 * lvl); s.meta.eventRateMult *= (1 + 0.2 * lvl); } },
-    { id: "s4", name: "Hyperline", desc: "+80% Produktion", max: 1, cost: 2, req: "s3", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.8 * lvl); } },
+    { id: "s_core", name: "Startkern", desc: "Startpunkt der Speed-Line (+18% Produktion)", max: 1, cost: 1, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.18 * lvl); } },
+    { id: "s_burst_1", name: "Burst-I", desc: "+38% Produktion", max: 2, cost: 1, req: "s_core", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.38 * lvl); } },
+    { id: "s_burst_2", name: "Burst-II", desc: "+55% Produktion", max: 1, cost: 2, req: "s_burst_1", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.55 * lvl); } },
+    { id: "s_click_1", name: "Aggro-Klick", desc: "+42% Klickkraft", max: 2, cost: 1, req: "s_core", effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.42 * lvl); } },
+    { id: "s_click_2", name: "Aggro-Klick II", desc: "+68% Klickkraft", max: 1, cost: 2, req: "s_click_1", effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.68 * lvl); } },
+    { id: "s_risk_1", name: "Risikotakt", desc: "+70% Produktion, Eventrate +20%", max: 1, cost: 2, req: "s_core", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.7 * lvl); s.meta.eventRateMult *= (1 + 0.2 * lvl); } },
+    { id: "s_capstone", name: "Hyperline", desc: "+95% Produktion", max: 1, cost: 3, req: "s_burst_2", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.95 * lvl); } },
   ],
   efficiency: [
-    { id: "e1", name: "Stabilität", desc: "Events -18%", max: 3, cost: 1, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.18 * lvl); } },
-    { id: "e2", name: "Saubere Linie", desc: "+22% Produktion", max: 3, cost: 1, req: "e1", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.22 * lvl); } },
-    { id: "e3", name: "Präzision", desc: "+25% Klickkraft", max: 2, cost: 1, req: "e1", effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.25 * lvl); } },
-    { id: "e4", name: "Null-Verlust", desc: "Offline +60%", max: 1, cost: 2, req: "e2", effect: (s, lvl) => { s.economy.offlineEff += 0.6 * lvl; } },
+    { id: "e_core", name: "Startkern", desc: "Stabile Basis (Events -10%)", max: 1, cost: 1, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.1 * lvl); } },
+    { id: "e_prod_1", name: "Saubere Linie", desc: "+26% Produktion", max: 3, cost: 1, req: "e_core", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.26 * lvl); } },
+    { id: "e_prod_2", name: "Saubere Linie II", desc: "+40% Produktion", max: 1, cost: 2, req: "e_prod_1", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.4 * lvl); } },
+    { id: "e_ctrl_1", name: "Kontrollraum", desc: "Events -16%", max: 2, cost: 1, req: "e_core", effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.16 * lvl); } },
+    { id: "e_ctrl_2", name: "Null-Störung", desc: "Events -24%", max: 1, cost: 2, req: "e_ctrl_1", effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.24 * lvl); } },
+    { id: "e_click", name: "Feinmotorik", desc: "+38% Klickkraft", max: 2, cost: 1, req: "e_core", effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.38 * lvl); } },
+    { id: "e_capstone", name: "Null-Verlust", desc: "Offline +80%", max: 1, cost: 3, req: "e_prod_2", effect: (s, lvl) => { s.economy.offlineEff += 0.8 * lvl; } },
   ],
   automation: [
-    { id: "a1", name: "Auto-Roboter", desc: "+35% Produktion", max: 3, cost: 1, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.35 * lvl); } },
-    { id: "a2", name: "Ghost-Shift", desc: "Offline +35%", max: 3, cost: 1, req: "a1", effect: (s, lvl) => { s.economy.offlineEff += 0.35 * lvl; } },
-    { id: "a3", name: "Predictive AI", desc: "Minigame-Bonus +25%", max: 2, cost: 1, req: "a1", effect: (s, lvl) => { s.meta.minigameMult *= (1 + 0.25 * lvl); } },
-    { id: "a4", name: "Autopilot", desc: "Events -20%, Klick -15%", max: 1, cost: 2, req: "a2", effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.2 * lvl); s.meta.lineClickMult *= (1 - 0.15 * lvl); } },
+    { id: "a_core", name: "Startkern", desc: "Automations-Basis (+24% Produktion)", max: 1, cost: 1, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.24 * lvl); } },
+    { id: "a_prod_1", name: "Auto-Roboter", desc: "+36% Produktion", max: 3, cost: 1, req: "a_core", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.36 * lvl); } },
+    { id: "a_prod_2", name: "Autopilot", desc: "+60% Produktion", max: 1, cost: 2, req: "a_prod_1", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.6 * lvl); } },
+    { id: "a_off_1", name: "Ghost-Shift", desc: "Offline +42%", max: 3, cost: 1, req: "a_core", effect: (s, lvl) => { s.economy.offlineEff += 0.42 * lvl; } },
+    { id: "a_off_2", name: "Nachtschicht-Netz", desc: "Offline +90%", max: 1, cost: 2, req: "a_off_1", effect: (s, lvl) => { s.economy.offlineEff += 0.9 * lvl; } },
+    { id: "a_ctrl", name: "Störfilter", desc: "Events -15%", max: 2, cost: 1, req: "a_core", effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.15 * lvl); } },
+    { id: "a_capstone", name: "Fabriknetz", desc: "+65% Produktion und +25% Klick", max: 1, cost: 3, req: "a_prod_2", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.65 * lvl); s.meta.lineClickMult *= (1 + 0.25 * lvl); } },
   ],
 };
 
@@ -122,11 +141,11 @@ const EVENT_POOL = [
 ];
 
 const MISSIONS = [
-  { id: "m_prod_short", type: "produce", name: "Schichtziel", desc: "Produziere {target} Pixel", baseTarget: 5000, reward: { pixel: 2500, season: 10 } },
-  { id: "m_prod_long", type: "produce", name: "Fokuslauf", desc: "Produziere {target} Pixel", baseTarget: 22000, reward: { pixel: 14000, season: 20 } },
-  { id: "m_click", type: "clicks", name: "Handarbeit", desc: "Mache {target} Klicks", baseTarget: 140, reward: { pixel: 7000, season: 14, timedClick: 1.35 } },
-  { id: "m_event", type: "events", name: "Krisenmanager", desc: "Löse {target} Events", baseTarget: 2, reward: { season: 30 } },
-  { id: "m_mini", type: "minigame", name: "Arcade-Shift", desc: "Gewinne {target} Minigames", baseTarget: 1, reward: { season: 26, timedProd: 1.35 } },
+  { id: "m_prod_short", type: "produce", name: "Schichtziel", desc: "Produziere {target} Pixel", baseTarget: 24000, reward: { pixel: 9000, season: 18 } },
+  { id: "m_prod_long", type: "produce", name: "Fokuslauf", desc: "Produziere {target} Pixel", baseTarget: 140000, reward: { pixel: 65000, season: 32 } },
+  { id: "m_click", type: "clicks", name: "Handarbeit", desc: "Mache {target} Klicks", baseTarget: 380, reward: { pixel: 18000, season: 24, timedClick: 1.55 } },
+  { id: "m_event", type: "events", name: "Krisenmanager", desc: "Löse {target} Events", baseTarget: 4, reward: { season: 46, pixel: 24000 } },
+  { id: "m_combo", type: "combo", name: "Flow-Kette", desc: "Erreiche eine Kombo von {target}", baseTarget: 20, reward: { season: 28, timedProd: 1.45 } },
 ];
 
 const state = makeDefaultState();
@@ -135,7 +154,6 @@ const runtime = {
   lastTs: 0,
   autosave: 0,
   tab: "shop",
-  rerollCdUntil: 0,
   forceShopRender: true,
   nextShopRenderAt: 0,
   recentEvents: [],
@@ -180,7 +198,6 @@ function makeDefaultState() {
       lineClickMult: 1,
       mutationProdMult: 1,
       mutationClickMult: 1,
-      minigameMult: 1,
       missionRewardMult: 1,
       prestigeThresholdMult: 1,
       eventPenaltyMult: 1,
@@ -190,15 +207,14 @@ function makeDefaultState() {
       producedRun: 0,
       clicksRun: 0,
       eventsSolved: 0,
-      minigameWins: 0,
+      maxCombo: 0,
       missions: [],
       activeEffects: [],
       activeEvent: null,
       nextEventAt: Date.now() + BASE_EVENT_INTERVAL_MS,
+      nextMissionRefreshAt: Date.now() + MISSION_ROTATE_MS,
       comboCount: 0,
       comboUntil: 0,
-      minigameCooldownUntil: 0,
-      minigame: null,
       discoveredBuildings: { worker: true },
       discoveredUpgrades: {},
       lastSaveAt: 0,
@@ -248,10 +264,15 @@ function currentPps() {
 }
 
 function currentPpk() {
+  const progressClickBoost =
+    1
+    + Math.log10(state.economy.lifetimePixel + 10) * 0.35
+    + state.meta.prestige * 0.18;
   return state.economy.clickBase
     * state.economy.clickMult
     * state.meta.lineClickMult
     * state.meta.mutationClickMult
+    * progressClickBoost
     * getComboMult()
     * activeMult("click");
 }
@@ -266,7 +287,7 @@ function seasonLevel() {
 
 function missionScaledTarget(base) {
   const p = state.meta.prestige;
-  return Math.floor(base * (1 + p * 0.45));
+  return Math.floor(base * (1 + p * 0.7));
 }
 
 function missionRewardScaled(v) {
@@ -362,7 +383,6 @@ function recomputeMetaFromLineAndMutations() {
   state.meta.lineClickMult = 1;
   state.meta.mutationProdMult = 1;
   state.meta.mutationClickMult = 1;
-  state.meta.minigameMult = 1;
   state.meta.missionRewardMult = 1;
   state.meta.prestigeThresholdMult = 1;
   state.meta.eventPenaltyMult = 1;
@@ -431,13 +451,14 @@ function randomMissionSet() {
     out.push({ ...m, target, progress: 0, done: false });
   }
   state.session.missions = out;
+  state.session.nextMissionRefreshAt = Date.now() + MISSION_ROTATE_MS;
 }
 
 function missionProgress(m) {
   if (m.type === "produce") return state.session.producedRun;
   if (m.type === "clicks") return state.session.clicksRun;
   if (m.type === "events") return state.session.eventsSolved;
-  if (m.type === "minigame") return state.session.minigameWins;
+  if (m.type === "combo") return state.session.maxCombo;
   return 0;
 }
 
@@ -451,6 +472,13 @@ function completeMission(m) {
 }
 
 function updateMissions() {
+  if (!state.session.nextMissionRefreshAt) {
+    state.session.nextMissionRefreshAt = Date.now() + MISSION_ROTATE_MS;
+  }
+  if (Date.now() >= state.session.nextMissionRefreshAt) {
+    randomMissionSet();
+    toast("Neue Missionen sind eingetroffen.");
+  }
   for (const m of state.session.missions) {
     if (m.done) continue;
     m.progress = Math.min(m.target, missionProgress(m));
@@ -491,83 +519,7 @@ function resolveEvent(choiceId) {
   updateMissions();
 }
 
-function randomMinigameType() {
-  const all = ["timing", "rapid", "pick"];
-  return all[Math.floor(Math.random() * all.length)];
-}
-
-function startMinigame() {
-  if (Date.now() < state.session.minigameCooldownUntil) {
-    const sec = Math.ceil((state.session.minigameCooldownUntil - Date.now()) / 1000);
-    toast(`Minigame Cooldown: ${sec}s`);
-    return;
-  }
-  const type = randomMinigameType();
-  state.session.minigame = {
-    type,
-    startedAt: Date.now(),
-    marker: 0.08,
-    dir: 1,
-    taps: 0,
-    pickGood: Math.floor(Math.random() * 3) + 1,
-  };
-  renderMinigame(type);
-  ui.minigameOverlay.classList.remove("versteckt");
-}
-
-function finishMinigame(score01, reason) {
-  const mult = (1 + score01 * 1.2) * state.meta.minigameMult;
-  const sec = Math.floor(18 + score01 * 40);
-  addTimed(state, "prod", mult, sec, `Minigame: ${reason}`);
-  if (score01 >= 0.55) {
-    state.session.minigameWins += 1;
-    addSeasonPoints(Math.floor(10 + score01 * 16), "Minigame");
-  }
-  state.session.minigameCooldownUntil = Date.now() + MINIGAME_COOLDOWN_MS;
-  state.session.minigame = null;
-  ui.minigameOverlay.classList.add("versteckt");
-  updateMissions();
-}
-
-function runTimingTick(dt) {
-  const m = state.session.minigame;
-  if (!m || m.type !== "timing") return;
-  m.marker += m.dir * dt * 1.0;
-  if (m.marker >= 1) { m.marker = 1; m.dir = -1; }
-  if (m.marker <= 0) { m.marker = 0; m.dir = 1; }
-  const marker = document.getElementById("miniMarker");
-  if (marker) marker.style.left = `${m.marker * 100}%`;
-}
-
-function stopTiming() {
-  const m = state.session.minigame;
-  if (!m || m.type !== "timing") return;
-  const dist = Math.abs(0.5 - m.marker);
-  const score = Math.max(0, 1 - dist * 2);
-  finishMinigame(score, "Kalibrierung");
-}
-
-function rapidTap() {
-  const m = state.session.minigame;
-  if (!m || m.type !== "rapid") return;
-  m.taps += 1;
-  const info = document.getElementById("miniRapidInfo");
-  if (info) info.textContent = `Taps: ${m.taps}/24`;
-}
-
-function finishRapid() {
-  const m = state.session.minigame;
-  if (!m || m.type !== "rapid") return;
-  const score = Math.min(1, m.taps / 24);
-  finishMinigame(score, "Rapid Tap");
-}
-
-function pickDoor(n) {
-  const m = state.session.minigame;
-  if (!m || m.type !== "pick") return;
-  const score = n === m.pickGood ? 1 : 0.35;
-  finishMinigame(score, "Door Pick");
-}
+// Minigames wurden bewusst entfernt.
 
 function calcPrestigeGain() {
   return 1;
@@ -749,26 +701,40 @@ function drawPile() {
   ctx.clearRect(0, 0, w, h);
 
   const stage = Math.min(1, Math.log10(state.economy.pixel + 1) / 7);
-  const radius = 42 + stage * 92;
-  const glow = 0.2 + stage * 0.65;
-  const hue = 212 + Math.floor(stage * 70);
+  const radius = 44 + stage * 88;
+  const skin = SKINS.find((s) => s.id === state.cosmetics.skin) || SKINS[0];
+  const time = Date.now() * 0.00045;
+  const toneA = skin.pile?.a || "90,140,255";
+  const toneB = skin.pile?.b || "60,95,220";
+  const glow = 0.22 + stage * 0.5;
 
   ctx.save();
   ctx.translate(w / 2, h / 2 + 14);
-  ctx.fillStyle = `rgba(40,80,180,${glow})`;
+  const g = ctx.createRadialGradient(0, 0, 10, 0, 0, radius + 24);
+  g.addColorStop(0, `rgba(${toneA},${0.3 + stage * 0.25})`);
+  g.addColorStop(1, `rgba(${toneB},0.08)`);
+  ctx.fillStyle = g;
   ctx.beginPath();
-  ctx.arc(0, 0, radius + 18, 0, Math.PI * 2);
+  ctx.arc(0, 0, radius + 20, 0, Math.PI * 2);
   ctx.fill();
 
-  for (let i = 0; i < 130; i += 1) {
-    const a = (Math.PI * 2 * i) / 130;
-    const r = Math.random() * radius;
-    const x = Math.cos(a) * r;
-    const y = Math.sin(a) * r * 0.62;
-    const size = 2 + Math.random() * (2 + stage * 4);
-    ctx.fillStyle = `hsla(${hue + Math.random() * 24},85%,${56 + Math.random() * 20}%,0.88)`;
+  for (let i = 0; i < 120; i += 1) {
+    const a = (Math.PI * 2 * i) / 120 + time * 0.22;
+    const r = ((i * 37) % 97) / 97 * radius;
+    const wobble = Math.sin(time + i * 0.35) * (2 + stage * 2);
+    const x = Math.cos(a) * (r + wobble);
+    const y = Math.sin(a) * (r + wobble) * 0.62;
+    const size = 2 + ((i * 13) % 7) * 0.45 + stage * 1.5;
+    const light = 52 + ((i * 19) % 28);
+    ctx.fillStyle = `hsla(${212 + stage * 68 + (i % 12)},82%,${light}%,${0.72 + glow * 0.2})`;
     ctx.fillRect(x, y, size, size);
   }
+
+  ctx.strokeStyle = `rgba(${toneA},0.55)`;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius + 8 + Math.sin(time * 1.4) * 3, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -795,6 +761,12 @@ function renderStats() {
 }
 
 function renderMissions() {
+  const leftMs = Math.max(0, (state.session.nextMissionRefreshAt || 0) - Date.now());
+  const leftMin = Math.floor(leftMs / 60000);
+  const leftSec = Math.floor((leftMs % 60000) / 1000);
+  const refreshInfo = document.getElementById("missionRefreshInfo");
+  if (refreshInfo) refreshInfo.textContent = `Neu in ${leftMin}:${String(leftSec).padStart(2, "0")}`;
+
   ui.missionList.innerHTML = state.session.missions.map((m) => {
     const ratio = Math.min(1, (m.progress || 0) / m.target);
     const rewards = [];
@@ -845,11 +817,11 @@ function renderUpgradeCards() {
       ${Object.keys(LINE_TREES).map((line) => `
         <button class="path-card ${state.meta.selectedLine === line ? "aktiv" : ""}" data-line-pick="${line}">
           <strong>${line.toUpperCase()}-Line ${state.meta.selectedLine === line ? "(Aktiv)" : ""}</strong>
-          <span>${line === "speed" ? "Offensiv, riskanter" : line === "efficiency" ? "Stabil, kontrolliert" : "Offline/Automatisierung"}</span>
+          <span>${line === "speed" ? "Offensiv mit Burst-Zweigen" : line === "efficiency" ? "Kontrolliert mit Stabilitäts-Zweigen" : "Automatisierung mit Produktions-Zweigen"}</span>
         </button>
       `).join("")}
     </div>
-    <div class="upgrade-text">Linie kann nur nach Prestige neu gewählt werden.</div>
+    <div class="upgrade-text">Jede Line startet mit einem Kern-Upgrade und verzweigt sich danach in mehrere Pfade. Linie kann nur nach Prestige neu gewählt werden.</div>
   `;
 
   const upgrades = UPGRADES.map((u) => {
@@ -897,7 +869,8 @@ function renderLineTree() {
   const nodes = LINE_TREES[line].map((n) => {
     const lvl = levelOfNode(line, n.id);
     const can = canUpgradeLineNode(line, n);
-    const reqTxt = n.req ? ` · Benötigt ${n.req}` : "";
+    const reqNode = n.req ? LINE_TREES[line].find((x) => x.id === n.req) : null;
+    const reqTxt = reqNode ? ` · Benötigt ${reqNode.name}` : "";
     return `
       <button class="upgrade-eintrag ${can ? "leistbar" : "zu-teuer"} ${lvl >= n.max ? "gesperrt" : ""}" data-line-node="${n.id}" ${lvl >= n.max ? "disabled" : ""}>
         <div class="upgrade-name">${n.name} <small>${lvl}/${n.max}</small></div>
@@ -946,43 +919,6 @@ function renderEventModal() {
   ui.eventOverlay.classList.remove("versteckt");
 }
 
-function renderMinigame(type) {
-  const body = document.getElementById("miniBody");
-  if (type === "timing") {
-    body.innerHTML = `
-      <h2>Kalibrierung</h2>
-      <p>Stoppe den Marker möglichst in der Mitte.</p>
-      <div class="mini-bar"><div id="miniMarker"></div><div class="mini-center"></div></div>
-      <button id="miniTimingStop" class="btn-aktion">Stoppen</button>
-    `;
-    document.getElementById("miniTimingStop").addEventListener("click", stopTiming);
-    return;
-  }
-  if (type === "rapid") {
-    body.innerHTML = `
-      <h2>Rapid Tap</h2>
-      <p>Klicke in 8 Sekunden so oft wie möglich (Ziel 24).</p>
-      <div id="miniRapidInfo" class="upgrade-text">Taps: 0/24</div>
-      <button id="miniRapidTap" class="btn-aktion">Tap!</button>
-    `;
-    document.getElementById("miniRapidTap").addEventListener("click", rapidTap);
-    setTimeout(() => {
-      if (state.session.minigame && state.session.minigame.type === "rapid") finishRapid();
-    }, 8000);
-    return;
-  }
-  body.innerHTML = `
-    <h2>Door Pick</h2>
-    <p>Wähle eine Tür. Eine hat den Jackpot.</p>
-    <div class="event-choices">
-      <button class="btn-aktion" data-door="1">Tür 1</button>
-      <button class="btn-aktion" data-door="2">Tür 2</button>
-      <button class="btn-aktion" data-door="3">Tür 3</button>
-    </div>
-  `;
-  body.querySelectorAll("[data-door]").forEach((btn) => btn.addEventListener("click", () => pickDoor(Number(btn.dataset.door))));
-}
-
 async function renderLeaderboard(mode) {
   const rows = await PZ.getLeaderboard(GAME_ID, 60);
   const filtered = rows.filter((r) => r.extra_daten?.schemaVersion === SAVE_SCHEMA_VERSION);
@@ -1013,24 +949,34 @@ function renderSeasonModal() {
   const nextTierPts = (lvl + 1) * 100;
   const nextDiff = nextTierPts - state.meta.seasonPoints;
   const reward = `Nächster Tier-Bonus: +${5 + lvl * 2}% Produktion für diesen Run`;
+  const progressPct = Math.max(0, Math.min(100, Math.floor((state.meta.seasonPoints % 100))));
   document.getElementById("errungenschaftenGrid").innerHTML = `
-    <div class="rework-panel">
-      <div><strong>Saisonpunkte:</strong> ${state.meta.seasonPoints}</div>
-      <div><strong>Saison-Level:</strong> ${lvl}</div>
-      <div><strong>Fortschritt:</strong> ${nextDiff <= 0 ? "Tier bereit!" : `${nextDiff} Punkte bis Tier ${lvl + 1}`}</div>
-      <div class="upgrade-text">${reward}</div>
-      <hr style="margin:10px 0;border:none;border-top:1px solid var(--border);" />
-      <div class="upgrade-text">Saison bringt dir langfristige Run-Boni und Ranglisten-Fortschritt. Punkte bekommst du über Missionen, Events und Minigames.</div>
+    <div class="season-wrap">
+      <div class="season-card">
+        <div class="season-top">
+          <strong>Level ${lvl}</strong>
+          <span>${state.meta.seasonPoints} Punkte</span>
+        </div>
+        <div class="season-bar"><div style="width:${progressPct}%"></div></div>
+        <div class="upgrade-text">${nextDiff <= 0 ? "Tier bereit!" : `${nextDiff} Punkte bis Tier ${lvl + 1}`}</div>
+      </div>
+      <div class="season-grid">
+        <div class="season-card"><strong>Belohnung</strong><div class="upgrade-text">${reward}</div></div>
+        <div class="season-card"><strong>Wie bekomme ich Punkte?</strong><div class="upgrade-text">Missionen abschließen und Event-Entscheidungen meistern.</div></div>
+        <div class="season-card"><strong>Tipp</strong><div class="upgrade-text">Schwere Missionen bringen deutlich mehr Saisonpunkte als kurze Aufgaben.</div></div>
+      </div>
     </div>
   `;
   document.getElementById("errungenschaftenModal").classList.remove("versteckt");
 }
 
 const SKINS = [
-  { id: "default", name: "Standard", vars: { "--primary": "#3a86ff", "--bg": "#f0f7ff", "--surface": "#ffffff", "--text": "#1e293b", "--border": "#dde6f5" } },
-  { id: "sunny", name: "Sonnig", vars: { "--primary": "#f59e0b", "--bg": "#fff7ed", "--surface": "#fffaf0", "--text": "#7c2d12", "--border": "#fed7aa" } },
-  { id: "mint", name: "Mint", vars: { "--primary": "#10b981", "--bg": "#ecfdf5", "--surface": "#ffffff", "--text": "#14532d", "--border": "#bbf7d0" } },
-  { id: "violet", name: "Violett", vars: { "--primary": "#8b5cf6", "--bg": "#f5f3ff", "--surface": "#ffffff", "--text": "#312e81", "--border": "#ddd6fe" } },
+  { id: "default", name: "Standard", pile: { a: "90,140,255", b: "56,98,222" }, vars: { "--primary": "#4f6ef8", "--bg": "#f6f9ff", "--surface": "#ffffff", "--text": "#162033", "--border": "#d7e3fb" } },
+  { id: "sunny", name: "Sonnig", pile: { a: "251,191,36", b: "245,158,11" }, vars: { "--primary": "#ea9b1e", "--bg": "#fff8ea", "--surface": "#ffffff", "--text": "#6e3e0d", "--border": "#f9d59a" } },
+  { id: "mint", name: "Mint", pile: { a: "34,197,164", b: "16,185,129" }, vars: { "--primary": "#10b981", "--bg": "#eefdf7", "--surface": "#ffffff", "--text": "#14453a", "--border": "#baeede" } },
+  { id: "violet", name: "Violett", pile: { a: "167,139,250", b: "124,58,237" }, vars: { "--primary": "#7c4df3", "--bg": "#f6f2ff", "--surface": "#ffffff", "--text": "#32205e", "--border": "#ded2ff" } },
+  { id: "lagoon", name: "Lagune", pile: { a: "56,189,248", b: "14,116,144" }, vars: { "--primary": "#0ea5e9", "--bg": "#eef9ff", "--surface": "#ffffff", "--text": "#12354a", "--border": "#bfe8fb" } },
+  { id: "rose", name: "Rose", pile: { a: "251,113,133", b: "225,29,72" }, vars: { "--primary": "#e11d48", "--bg": "#fff1f5", "--surface": "#ffffff", "--text": "#4a1a2f", "--border": "#fec7d7" } },
 ];
 
 function applySkin(id) {
@@ -1063,6 +1009,7 @@ function handleClick() {
   if (now <= state.session.comboUntil) state.session.comboCount += 1;
   else state.session.comboCount = 1;
   state.session.comboUntil = now + win;
+  state.session.maxCombo = Math.max(state.session.maxCombo || 0, state.session.comboCount);
   ui.klickInfo.textContent = `+${fmtPps(currentPpk())} pro Klick`;
   drawPile();
 }
@@ -1080,7 +1027,7 @@ function maybeRenderTutorial() {
     { icon: "🛒", title: "Shop & Upgrades", text: "Kaufe im Shop Gebäude. Unbekannte Items zeigen ??? und werden automatisch freigeschaltet, sobald du genug Pixel hast." },
     { icon: "🌿", title: "Line-Baum", text: "Mit jedem Prestige bekommst du 1 Prestigepunkt. Investiere ihn in deinen aktiven Linienbaum." },
     { icon: "✦", title: "Prestige-Mutationen", text: "Bei Prestige musst du 1 Mutation wählen. Diese kann den Run stark verändern (stark positiv + klarer Nachteil)." },
-    { icon: "🎮", title: "Minigames & Saison", text: "Mehrere Minigames geben starke Burst-Boni. Saisonpunkte bringen Fortschritt und Rangliste." },
+    { icon: "📅", title: "Saison & Missionen", text: "Missionen werden automatisch alle 30 Minuten neu gemischt. Saisonpunkte bringen Fortschritt und Rangliste." },
   ];
   let idx = 0;
   function render() {
@@ -1121,7 +1068,6 @@ function bindDom() {
   ui.toast = document.getElementById("toastContainer");
   ui.rankContent = document.getElementById("ranglisteInhalt");
   ui.eventOverlay = document.getElementById("eventOverlay");
-  ui.minigameOverlay = document.getElementById("minigameOverlay");
   ui.prestigeModal = document.getElementById("prestigeConfirmModal");
   ui.pcQP = document.getElementById("pcQP");
 }
@@ -1133,7 +1079,7 @@ function setupDynamicUi() {
   missionPanel.innerHTML = `
     <div class="rework-head">
       <strong>Missionen</strong>
-      <button id="missionRerollBtn" class="btn-aktion btn-klein">Neu würfeln</button>
+      <span class="upgrade-text" id="missionRefreshInfo">Neu in 30:00</span>
     </div>
     <div id="missionList"></div>
   `;
@@ -1145,12 +1091,6 @@ function setupDynamicUi() {
   ev.className = "modal-hintergrund versteckt";
   ev.innerHTML = `<div class="modal"><h2 id="eventTitle"></h2><p id="eventText"></p><div id="eventChoices" class="event-choices"></div></div>`;
   document.body.appendChild(ev);
-
-  const mg = document.createElement("div");
-  mg.id = "minigameOverlay";
-  mg.className = "modal-hintergrund versteckt";
-  mg.innerHTML = `<div class="modal" id="miniBody"></div>`;
-  document.body.appendChild(mg);
 
   const mut = document.createElement("div");
   mut.id = "mutationChoices";
@@ -1184,15 +1124,7 @@ function bindEvents() {
   ui.prestigeBtn.addEventListener("click", openPrestigeModal);
   document.getElementById("prestigeConfirmNein").addEventListener("click", () => ui.prestigeModal.classList.add("versteckt"));
 
-  document.getElementById("missionRerollBtn").addEventListener("click", () => {
-    if (Date.now() < runtime.rerollCdUntil) return toast("Reroll noch im Cooldown.");
-    runtime.rerollCdUntil = Date.now() + 35000;
-    randomMissionSet();
-    renderMissions();
-  });
-
-  document.getElementById("talentBtn").textContent = "🎮 Minigames";
-  document.getElementById("talentBtn").addEventListener("click", startMinigame);
+  document.getElementById("talentBtn").classList.add("versteckt");
 
   document.getElementById("errungenschaftenBtn").textContent = "📅 Saison";
   document.getElementById("errungenschaftenBtn").addEventListener("click", renderSeasonModal);
@@ -1246,7 +1178,6 @@ function frame(ts) {
 
   discoverUnlocks();
   tickEffects();
-  runTimingTick(dt);
 
   addPixels(currentPps() * dt);
   updateMissions();

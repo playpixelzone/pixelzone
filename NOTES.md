@@ -624,3 +624,20 @@
 - `games/pixel-phone/index.html`
 - `games/pixel-factory/style.css`
 - `NOTES.md`
+
+### Pixel Factory – Struktur/Balance/UX Rework (2026-04-15) ✅
+
+#### Was gemacht wurde
+- Minigames vollständig entfernt (Button/Flow/Funktionen), Fokus auf Kern-Idle-Loop.
+- Linienbaum komplett neu strukturiert: pro Line zuerst verpflichtender Startkern, danach echte Verzweigungen mit mehreren Folge-Upgrades.
+- Shop stark erweitert: deutlich mehr Gebäude und mehr Upgrade-Stufen für Klick/Produktion/Hybrid/Event/Offline.
+- Missionen schwerer gemacht und auf Auto-Rotation umgestellt: neue Missionen jetzt automatisch alle 30 Minuten (Reroll-Button entfernt).
+- Saisonfenster aufgeräumt und visuell neu gebaut (klarere Karten, Fortschrittsbalken, bessere Lesbarkeit).
+- Manuelles Klicken deutlich gebufft (skalierender Klick-Boost mit Gesamtfortschritt + Prestige).
+- Klick-Objekt (Canvas) neu gestaltet: ruhiger, moderner Look, farblich an Skin gekoppelt.
+- Skin-System erweitert und Farben harmonisiert; Effekte global verlangsamt (ruhigeres Erscheinungsbild).
+
+#### Veränderte Dateien
+- `games/pixel-factory/game-rework-v2.js`
+- `games/pixel-factory/style.css`
+- `NOTES.md`

@@ -141,7 +141,7 @@ body {
   pointer-events: none;
 }
 .klick-ring.puls {
-  animation: ringPuls 0.4s ease-out forwards;
+  animation: ringPuls 0.75s ease-out forwards;
 }
 @keyframes ringPuls {
   0%   { opacity: 0.7; transform: scale(0.97); }
@@ -319,7 +319,7 @@ body {
 }
 .kombo-fill.stufe-3 {
   background: linear-gradient(90deg, var(--amber), #f59e0b);
-  animation: komboGold 1s ease-in-out infinite alternate;
+  animation: komboGold 2.2s ease-in-out infinite alternate;
 }
 @keyframes komboGold {
   from { opacity: 0.85; }
@@ -653,7 +653,7 @@ body {
 .pc-stern {
   font-size: 2.5rem;
   margin-bottom: 4px;
-  animation: sternRotieren 3s linear infinite;
+  animation: sternRotieren 6s linear infinite;
 }
 @keyframes sternRotieren {
   0%   { transform: rotate(0deg) scale(1); }
@@ -723,7 +723,7 @@ body {
   border: 4px solid rgba(139,92,246,0.5);
   border-radius: 50%;
   margin: 0 auto 24px;
-  animation: ringDrehen 4s linear infinite;
+  animation: ringDrehen 8s linear infinite;
   position: relative;
 }
 .pa-stern-ring::before {
@@ -733,7 +733,7 @@ body {
   transform: translate(-50%, -50%);
   font-size: 3.5rem;
   color: var(--prestige);
-  animation: sternPulsieren 1s ease-in-out infinite alternate;
+  animation: sternPulsieren 2.1s ease-in-out infinite alternate;
 }
 @keyframes ringDrehen { to { transform: rotate(360deg); } }
 @keyframes sternPulsieren { to { transform: translate(-50%, -50%) scale(1.15); } }
@@ -826,7 +826,7 @@ body {
   font-weight: 700;
   font-size: 0.85rem;
   box-shadow: var(--shadow-lg);
-  animation: toastEin 0.25s ease, toastAus 0.35s ease 3s forwards;
+  animation: toastEin 0.35s ease, toastAus 0.5s ease 4.2s forwards;
   max-width: 280px;
 }
 @keyframes toastEin { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
@@ -834,13 +834,13 @@ body {
 
 /* ── GOLDENE PIXEL ──────────────────────────────────── */
 #goldenLayer { position: fixed; inset: 0; pointer-events: none; z-index: 150; }
-.goldener-pixel { position: absolute; width: 44px; height: 44px; cursor: pointer; pointer-events: all; animation: goldenEin 0.4s ease; display: flex; align-items: center; justify-content: center; }
-.goldener-pixel::before { content: ''; display: block; width: 32px; height: 32px; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 6px; box-shadow: 0 0 16px rgba(245,158,11,0.7); animation: goldenPuls 1.5s ease-in-out infinite; }
+.goldener-pixel { position: absolute; width: 44px; height: 44px; cursor: pointer; pointer-events: all; animation: goldenEin 0.65s ease; display: flex; align-items: center; justify-content: center; }
+.goldener-pixel::before { content: ''; display: block; width: 32px; height: 32px; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 6px; box-shadow: 0 0 16px rgba(245,158,11,0.7); animation: goldenPuls 2.5s ease-in-out infinite; }
 @keyframes goldenEin  { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
 @keyframes goldenPuls { 0%,100% { transform: scale(1);    box-shadow: 0 0 16px rgba(245,158,11,0.7); } 50% { transform: scale(1.15); box-shadow: 0 0 26px rgba(245,158,11,1); } }
 
 /* ── PARTIKEL ───────────────────────────────────────── */
-.partikel { position: fixed; pointer-events: none; z-index: 160; font-size: 0.78rem; font-weight: 900; color: var(--primary); animation: partikelFliegen 0.75s ease-out forwards; white-space: nowrap; }
+.partikel { position: fixed; pointer-events: none; z-index: 160; font-size: 0.78rem; font-weight: 900; color: var(--primary); animation: partikelFliegen 1.2s ease-out forwards; white-space: nowrap; }
 @keyframes partikelFliegen { 0% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx,0px),-65px) scale(0.6); } }
 
 /* ── TALENT-SYSTEM ─────────────────────────────────── */
@@ -1481,6 +1481,39 @@ body {
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-muted);
+}
+.season-wrap {
+  display: grid;
+  gap: 10px;
+}
+.season-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.season-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f9fbff, #ffffff);
+  padding: 12px;
+}
+.season-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+.season-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.season-bar > div {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #60a5fa);
 }
 .event-choices {
   display: grid;

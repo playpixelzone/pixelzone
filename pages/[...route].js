@@ -27,15 +27,15 @@ function buildCandidates(routePath) {
 }
 
 function toSafeAbsolute(baseDir, requestPath) {
-  const cleanedPath = requestPath.replace(/\\/g, "/");
-  const absolutePath = path.resolve(baseDir, `.${cleanedPath}`);
-  const normalizedBase = `${path.resolve(baseDir)}${path.sep}`;
+  const normalizedRequest = requestPath.replace(/^\/+/, "");
+  const absolutePath = path.resolve(baseDir, normalizedRequest);
+  const normalizedBase = path.resolve(baseDir);
 
-  if (!absolutePath.startsWith(normalizedBase) && absolutePath !== path.resolve(baseDir)) {
-    return null;
+  if (absolutePath === normalizedBase || absolutePath.startsWith(`${normalizedBase}${path.sep}`)) {
+    return absolutePath;
   }
 
-  return absolutePath;
+  return null;
 }
 
 async function findExistingFile(baseDir, candidates) {
@@ -59,38 +59,49 @@ async function findExistingFile(baseDir, candidates) {
 }
 
 export async function getServerSideProps(context) {
-  const { params, res } = context;
-  const requestedSegments = params?.route ?? [];
-  const routePath = `/${requestedSegments.join("/")}`;
-  const projectRoot = path.join(
-    /* turbopackIgnore: true */ process.cwd(),
-    "ssr-content"
-  );
+  try {
+    const { params, res } = context;
+    const requestedSegments = params?.route ?? [];
+    const safeSegments = requestedSegments
+      .map((segment) => decodeURIComponent(segment))
+      .filter(Boolean);
 
-  const blockedPrefixes = ["/_next", "/api"];
-  if (blockedPrefixes.some((prefix) => routePath.startsWith(prefix))) {
+    if (safeSegments.some((segment) => segment === "." || segment === ".." || segment.includes("/") || segment.includes("\\"))) {
+      return { notFound: true };
+    }
+
+    const routePath = `/${safeSegments.join("/")}`;
+    const projectRoot = path.join(
+      /* turbopackIgnore: true */ process.cwd(),
+      "ssr-content"
+    );
+
+    const blockedPrefixes = ["/_next", "/api"];
+    if (blockedPrefixes.some((prefix) => routePath.startsWith(prefix))) {
+      return { notFound: true };
+    }
+
+    const candidates = buildCandidates(routePath);
+    const existingFile = await findExistingFile(projectRoot, candidates);
+
+    if (!existingFile) {
+      return { notFound: true };
+    }
+
+    const extension = path.extname(existingFile).toLowerCase();
+    const contentType = MIME_TYPES[extension] ?? "application/octet-stream";
+    const isTextFile = contentType.startsWith("text/") || contentType.includes("javascript") || contentType.includes("json");
+    const body = await fs.readFile(existingFile, isTextFile ? "utf8" : undefined);
+
+    res.statusCode = 200;
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Cache-Control", "no-store");
+    res.end(body);
+
+    return { props: {} };
+  } catch {
     return { notFound: true };
   }
-
-  const candidates = buildCandidates(routePath);
-  const existingFile = await findExistingFile(projectRoot, candidates);
-
-  if (!existingFile) {
-    return { notFound: true };
-  }
-
-  const extension = path.extname(existingFile).toLowerCase();
-  const contentType = MIME_TYPES[extension] ?? "application/octet-stream";
-  const isTextFile = contentType.startsWith("text/") || contentType.includes("javascript") || contentType.includes("json");
-
-  const body = await fs.readFile(existingFile, isTextFile ? "utf8" : undefined);
-
-  res.statusCode = 200;
-  res.setHeader("Content-Type", contentType);
-  res.setHeader("Cache-Control", "no-store");
-  res.end(body);
-
-  return { props: {} };
 }
 
 export default function CatchAllServerRoute() {

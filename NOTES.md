@@ -1,5 +1,45 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Heutiger Plan (2026-04-15) — Pong (Singleplayer + Online-Multiplayer)
+
+- **Vorhaben:** Vollständiges Pong-Spiel in PIXELZONE bauen (Canvas, KI-Schwierigkeiten, Ranglisten je Schwierigkeit, Online-2P mit Raum-Code via Supabase Realtime).
+- **Schritte:**
+  1. Neue Spielstruktur `games/pong/` mit `index.html`, `style.css`, `game.js` anlegen (modular, mobile-first).
+  2. Singleplayer implementieren: Ball-/Paddle-Physik, 3 KI-Stufen, Game-Over, Neustart, Leaderboards je Schwierigkeit.
+  3. Multiplayer implementieren: Host/Join mit Raum-Code, Realtime-Sync für Ball, Paddles und Score.
+  4. Multiplayer-Rundenende so bauen, dass beide Spieler im selben Raum bleiben und direkt rematchen können.
+  5. Startseite erweitern (Pong-Karte + Feedback-Dropdown) und NOTES mit Ergebnissen aktualisieren.
+
+### Pong umgesetzt (2026-04-15) ✅
+- Neues Spiel `games/pong/` erstellt: `index.html`, `style.css`, `game.js`, `info.html`.
+- **Singleplayer fertig**:
+  - Klassisches Pong auf HTML5 Canvas
+  - 3 KI-Schwierigkeitsstufen (Einfach/Mittel/Schwer) mit unterschiedlicher Reaktion, Fehlerquote und Geschwindigkeit
+  - Eigene Rangliste pro Schwierigkeit über Supabase (`pong-easy`, `pong-medium`, `pong-hard`)
+  - Game-Over + Neustart-Button
+- **Online-Multiplayer fertig**:
+  - Host kann Raum erstellen und 6-stelligen Code teilen
+  - Client kann per Code beitreten
+  - Realtime-Sync für Ball, Schläger und Punktestand
+  - Rundenende bleibt im selben Raum (Rematch-System mit Ready-Status für beide Spieler)
+- Startseite erweitert:
+  - Pong-Spielkarte hinzugefügt
+  - Spielzähler 9 → 10
+  - Feedback-Dropdown um `pong` erweitert
+- Admin-Panel in `auth.js` um Pong-Testeintrag ergänzt.
+- Neue Supabase-Migration erstellt: `supabase/migrations/20260415010000_pong_multiplayer.sql` (Tabelle `pong_rooms` + RLS + Realtime).
+
+### Veränderte Dateien (2026-04-15)
+- `games/pong/index.html`
+- `games/pong/style.css`
+- `games/pong/game.js`
+- `games/pong/info.html`
+- `supabase/migrations/20260415010000_pong_multiplayer.sql`
+- `index.html`
+- `style.css`
+- `auth.js`
+- `NOTES.md`
+
 ## Heutiger Stand (2026-04-14) — Block Blast Neuaufbau
 
 ### Block Blast – Canvas, Engine, smarter Generator ✅

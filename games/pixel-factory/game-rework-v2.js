@@ -241,7 +241,7 @@ function fmtPps(v) {
 
 function getComboMult() {
   if (Date.now() > state.session.comboUntil) return 1;
-  const base = 1 + Math.min(1.5, state.session.comboCount * (0.03 + state.economy.comboBonus));
+  const base = 1 + Math.min(1.7, state.session.comboCount * (0.045 + state.economy.comboBonus));
   return base;
 }
 
@@ -264,10 +264,16 @@ function currentPps() {
 }
 
 function currentPpk() {
-  const progressClickBoost =
+  let progressClickBoost =
     1
     + Math.log10(state.economy.lifetimePixel + 10) * 0.35
     + state.meta.prestige * 0.18;
+
+  // Early/Midgame: aktives Klicken soll sich klar lohnen.
+  if (state.economy.lifetimePixel < 50_000) progressClickBoost *= 1.65;
+  else if (state.economy.lifetimePixel < 2_000_000) progressClickBoost *= 1.28;
+  else if (state.economy.lifetimePixel < 80_000_000) progressClickBoost *= 1.12;
+
   return state.economy.clickBase
     * state.economy.clickMult
     * state.meta.lineClickMult

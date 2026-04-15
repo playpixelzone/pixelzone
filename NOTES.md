@@ -641,3 +641,27 @@
 - `games/pixel-factory/game-rework-v2.js`
 - `games/pixel-factory/style.css`
 - `NOTES.md`
+
+### Startseite – News-Fenster mit Admin-Zugriff (2026-04-15) ✅
+
+#### Was gemacht wurde
+- Oben auf der Startseite ein dauerhaft sichtbares, sticky News-Fenster eingebaut.
+- Neues News-System über Supabase: News- oder Abstimmungsmodus (Frage + Optionen).
+- Alle Nutzer können News lesen; bearbeiten darf nur der feste Admin-Account (`PZ_ADMIN_ID`).
+- Editor ist nur nach Login als Admin sichtbar, inklusive Speichern direkt aus der Startseite.
+- Für iPad/andere Geräte nutzbar, solange derselbe Admin-Account eingeloggt ist.
+- SSR-Sync erweitert, damit `home-news.js` in `ssr-content` verfügbar ist.
+
+#### Datenbank / Sicherheit
+- Neue Migration: `supabase/migrations/20260415193000_home_news_panel.sql`
+- RLS-Policies:
+  - `SELECT` für alle (anon + authenticated)
+  - `INSERT/UPDATE/DELETE` nur für den Admin-User (UUID-basiert)
+
+#### Veränderte Dateien
+- `pages/index.js`
+- `style.css`
+- `home-news.js`
+- `scripts/sync-ssr-content.mjs`
+- `supabase/migrations/20260415193000_home_news_panel.sql`
+- `NOTES.md`

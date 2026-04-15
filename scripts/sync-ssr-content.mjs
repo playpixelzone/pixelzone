@@ -9,6 +9,7 @@ const entriesToCopy = [
   "login.html",
   "admin.html",
   "auth.js",
+  "home-news.js",
   "style.css",
   "robots.txt",
   "sitemap.xml",

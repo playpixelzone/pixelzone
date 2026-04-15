@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Script from "next/script";
 
 const SITE_URL = "https://playpixelzone.github.io/pixelzone/";
 
@@ -131,6 +132,10 @@ export default function Home({ games, gameCount, year }) {
         <link rel="canonical" href={SITE_URL} />
       </Head>
 
+      <Script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" strategy="afterInteractive" />
+      <Script src="/auth.js" strategy="afterInteractive" />
+      <Script src="/home-news.js" strategy="afterInteractive" />
+
       <header>
         <a href="#" className="logo">
           <div className="logo-mark">🕹</div>
@@ -144,6 +149,58 @@ export default function Home({ games, gameCount, year }) {
       </header>
 
       <main>
+        <section className="home-news" aria-label="News und Updates">
+          <div className="home-news-top">
+            <div className="home-news-badge" id="homeNewsBadge">News</div>
+            <button className="home-news-edit-btn hidden" id="homeNewsEditBtn" type="button">Bearbeiten</button>
+          </div>
+          <h2 className="home-news-title" id="homeNewsTitle">PIXELZONE News</h2>
+          <p className="home-news-body" id="homeNewsBody">News werden geladen...</p>
+          <div className="home-news-meta" id="homeNewsMeta"></div>
+
+          <div className="home-news-poll hidden" id="homeNewsPoll">
+            <h3 id="homeNewsPollQuestion"></h3>
+            <ul id="homeNewsPollOptions"></ul>
+          </div>
+
+          <div className="home-news-editor hidden" id="homeNewsEditor">
+            <p className="home-news-editor-info" id="homeNewsEditorInfo"></p>
+            <div className="home-news-editor-grid">
+              <label>
+                Typ
+                <select id="homeNewsKind" defaultValue="news">
+                  <option value="news">News</option>
+                  <option value="poll">Abstimmung</option>
+                </select>
+              </label>
+              <label>
+                Titel
+                <input id="homeNewsTitleInput" type="text" maxLength={120} />
+              </label>
+            </div>
+            <label>
+              Text
+              <textarea id="homeNewsBodyInput" rows={4} maxLength={2500}></textarea>
+            </label>
+
+            <div className="home-news-poll-fields hidden" id="homeNewsPollFields">
+              <label>
+                Abstimmungsfrage
+                <input id="homeNewsPollQuestionInput" type="text" maxLength={200} />
+              </label>
+              <label>
+                Optionen (eine Zeile = eine Option)
+                <textarea id="homeNewsPollOptionsInput" rows={4} maxLength={800}></textarea>
+              </label>
+            </div>
+
+            <div className="home-news-editor-actions">
+              <button className="news-btn secondary" id="homeNewsCancelBtn" type="button">Abbrechen</button>
+              <button className="news-btn" id="homeNewsSaveBtn" type="button">News speichern</button>
+            </div>
+          </div>
+        </section>
+
         <section className="section" id="games">
           <div className="section-head">
             <h1 className="section-title">Alle Spiele</h1>

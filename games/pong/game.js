@@ -18,6 +18,7 @@ const DIFF_GAME_KEYS = {
   medium: 'pong-medium',
   hard: 'pong-hard',
 };
+const WINS_GAME_KEY = 'pong-wins';
 
 const state = {
   mode: null,
@@ -64,7 +65,7 @@ function createBaseGameState() {
 }
 
 function showScreen(id) {
-  ['screen-gate', 'screen-home', 'screen-single', 'screen-multi', 'screen-lobby', 'screen-game', 'screen-finish'].forEach((screenId) => {
+  ['screen-gate', 'screen-home', 'screen-single', 'screen-leaderboard', 'screen-multi', 'screen-lobby', 'screen-game', 'screen-finish'].forEach((screenId) => {
     $(screenId).classList.toggle('hidden', screenId !== id);
   });
 }
@@ -74,7 +75,6 @@ function setDifficulty(diff) {
   document.querySelectorAll('.diff-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.diff === diff);
   });
-  $('single-board-title').textContent = DIFFICULTIES[diff].label;
 }
 
 function clamp(value, min, max) {
@@ -129,14 +129,40 @@ function renderLeaderboardRows(entries) {
   if (!entries.length) return '<p class="hint">Noch keine Einträge.</p>';
   return entries.map((entry, idx) => {
     const name = entry.benutzername || 'Anonym';
-    return `<div class="leaderboard-row"><span>${idx + 1}. ${escapeHtml(name)}</span><strong>${entry.punkte}</strong></div>`;
+    return `<div class="leaderboard-row"><span class="leaderboard-name"><span class="lb-rank">${idx + 1}.</span>${escapeHtml(name)}</span><strong>${entry.punkte}</strong></div>`;
   }).join('');
 }
 
 async function loadSingleLeaderboard() {
   const gameKey = DIFF_GAME_KEYS[state.difficulty];
   const entries = await PZ.getLeaderboard(gameKey, 10);
-  $('single-leaderboard').innerHTML = renderLeaderboardRows(entries || []);
+  return entries || [];
+}
+
+async function loadWinsLeaderboard() {
+  const entries = await PZ.getLeaderboard(WINS_GAME_KEY, 20);
+  $('wins-leaderboard').innerHTML = renderLeaderboardRows(entries || []);
+}
+
+async function addWinForCurrentUser() {
+  if (!state.userId) return;
+  const best = await PZ.loadScore(WINS_GAME_KEY);
+  const wins = (best?.punkte || 0) + 1;
+  await PZ.saveGameData(WINS_GAME_KEY, wins, 1, {
+    wins,
+    spiel: 'pong',
+  });
+}
+
+async function handleWinTracking(winner) {
+  // Gewinnerzählung zählt für Singleplayer und Multiplayer
+  if (winner === 'left' && state.mode === 'single') {
+    await addWinForCurrentUser();
+    await saveSingleScore();
+  } else if (state.mode === 'multi') {
+    const playerWon = (state.isHost && winner === 'left') || (!state.isHost && winner === 'right');
+    if (playerWon) await addWinForCurrentUser();
+  }
 }
 
 function escapeHtml(value) {
@@ -237,6 +263,7 @@ function simulateBall(dt) {
     g.rightScore += 1;
     if (g.rightScore >= TARGET_SCORE) {
       finishRound('right');
+      handleWinTracking('right').catch(() => {});
       if (state.mode === 'multi' && state.isHost) hostFinishMatch('right');
       return;
     }
@@ -245,7 +272,7 @@ function simulateBall(dt) {
     g.leftScore += 1;
     if (g.leftScore >= TARGET_SCORE) {
       finishRound('left');
-      if (state.mode === 'single') saveSingleScore();
+      handleWinTracking('left').catch(() => {});
       if (state.mode === 'multi' && state.isHost) hostFinishMatch('left');
       return;
     }
@@ -297,7 +324,8 @@ async function joinRoom() {
     const { error: joinError } = await PZ.db.from('pong_rooms').update({
       guest_user_id: state.userId,
       guest_ready: false,
-    }).eq('id', room.id).is('guest_user_id', room.guest_user_id || null);
+      status: 'lobby',
+    }).eq('id', room.id).is('guest_user_id', null).eq('status', 'lobby');
     if (joinError) {
       $('multi-home-msg').textContent = joinError.message;
       return;
@@ -332,7 +360,7 @@ async function syncRoomAndLobby() {
   state.currentRoom = room;
   state.isHost = room.host_user_id === state.userId;
   $('room-code-display').textContent = room.code || '------';
-  renderLobbyPlayers(room);
+  await renderLobbyPlayers(room);
 
   if (room.status === 'lobby') {
     showScreen('screen-lobby');
@@ -353,7 +381,7 @@ async function renderLobbyPlayers(room) {
     names[userId] = await PZ.getUsername(userId) || 'Spieler';
   }
   const html = ids.map((userId, idx) => {
-    const tag = idx === 0 ? '<span class="host-tag">Host</span>' : '';
+    const tag = idx === 0 ? '<span class="host-tag">Host</span>' : '<span class="host-tag">Gast</span>';
     return `<div class="player-item"><span>${escapeHtml(names[userId])}</span>${tag}</div>`;
   }).join('');
   $('lobby-player-list').innerHTML = html || '<p class="hint">Noch keine Spieler im Raum.</p>';
@@ -590,16 +618,20 @@ function gameLoop(ts) {
 function bindEvents() {
   $('btn-mode-single').addEventListener('click', async () => {
     showScreen('screen-single');
-    await loadSingleLeaderboard();
+  });
+  $('btn-mode-board').addEventListener('click', async () => {
+    showScreen('screen-leaderboard');
+    await loadWinsLeaderboard();
   });
   $('btn-mode-multi').addEventListener('click', () => showScreen('screen-multi'));
   $('btn-back-single').addEventListener('click', () => showScreen('screen-home'));
   $('btn-back-multi').addEventListener('click', () => showScreen('screen-home'));
+  $('btn-back-board').addEventListener('click', () => showScreen('screen-home'));
+  $('btn-refresh-board').addEventListener('click', loadWinsLeaderboard);
 
   document.querySelectorAll('.diff-btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
       setDifficulty(btn.dataset.diff);
-      await loadSingleLeaderboard();
     });
   });
   $('btn-start-single').addEventListener('click', startSingleplayer);

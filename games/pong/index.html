@@ -34,6 +34,7 @@
       <div class="row">
         <button id="btn-mode-single" class="btn btn-primary" type="button">Singleplayer</button>
         <button id="btn-mode-multi" class="btn btn-secondary" type="button">Multiplayer</button>
+        <button id="btn-mode-board" class="btn btn-secondary" type="button">Rangliste</button>
       </div>
     </section>
 
@@ -49,9 +50,18 @@
         <button id="btn-start-single" class="btn btn-primary" type="button">Spiel starten</button>
         <button id="btn-back-single" class="btn btn-ghost" type="button">Zurück</button>
       </div>
+    </section>
+
+    <section id="screen-leaderboard" class="panel hidden">
+      <h2>Rangliste</h2>
+      <p class="hint">Hier siehst du die Spieler mit den meisten gewonnenen Spielen.</p>
       <div class="board-wrap">
-        <h3>Rangliste (<span id="single-board-title">Einfach</span>)</h3>
-        <div id="single-leaderboard" class="leaderboard">Lade Rangliste ...</div>
+        <h3>Gewonnene Spiele (Top 20)</h3>
+        <div id="wins-leaderboard" class="leaderboard">Lade Rangliste ...</div>
+      </div>
+      <div class="row">
+        <button id="btn-refresh-board" class="btn btn-secondary" type="button">Aktualisieren</button>
+        <button id="btn-back-board" class="btn btn-ghost" type="button">Zurück</button>
       </div>
     </section>
 

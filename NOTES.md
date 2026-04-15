@@ -29,6 +29,15 @@
 - Admin-Panel in `auth.js` um Pong-Testeintrag ergänzt.
 - Neue Supabase-Migration erstellt: `supabase/migrations/20260415010000_pong_multiplayer.sql` (Tabelle `pong_rooms` + RLS + Realtime).
 
+### Pong Follow-up (2026-04-15) ✅
+- UI-Aufbau an die anderen Spiele angenähert: Startmenü mit separatem Button für die Rangliste.
+- Neue Ranglisten-Ansicht zeigt **Benutzername + gewonnene Spiele** (Top 20) über eigenes Spielprofil `pong-wins`.
+- Multiplayer-Lobby-Fix:
+  - Host und Gast werden in der Lobby korrekt angezeigt.
+  - Join-Update für Gast auf offene Lobby-Räume präzisiert.
+  - RLS-Policy in Supabase für Join-Flow ergänzt.
+- Neue Migration: `supabase/migrations/20260415012000_pong_join_policy_fix.sql`.
+
 ### Veränderte Dateien (2026-04-15)
 - `games/pong/index.html`
 - `games/pong/style.css`

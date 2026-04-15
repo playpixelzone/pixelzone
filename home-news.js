@@ -1,5 +1,7 @@
 (function () {
   const NEWS_ROW_ID = 1;
+  let currentUser = null;
+  let currentNews = null;
 
   function esc(v) {
     return String(v ?? "").replace(/[&<>"']/g, (c) => (
@@ -23,6 +25,28 @@
     return lines;
   }
 
+  async function loadPollVotes(newsId) {
+    const { data, error } = await PZ.db
+      .from("site_home_news_votes")
+      .select("user_id, option_index")
+      .eq("news_id", newsId);
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function upsertVote(newsId, optionIndex, userId) {
+    const payload = {
+      news_id: newsId,
+      user_id: userId,
+      option_index: optionIndex,
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await PZ.db
+      .from("site_home_news_votes")
+      .upsert(payload, { onConflict: "news_id,user_id" });
+    if (error) throw error;
+  }
+
   async function loadNews() {
     const { data, error } = await PZ.db
       .from("site_home_news")
@@ -44,7 +68,7 @@
     return data;
   }
 
-  function renderNews(data) {
+  function renderNews(data, votes = []) {
     const badge = document.getElementById("homeNewsBadge");
     const title = document.getElementById("homeNewsTitle");
     const body = document.getElementById("homeNewsBody");
@@ -63,7 +87,46 @@
     if (isPoll) {
       pollQ.textContent = data.poll_question || "Abstimmung";
       const options = Array.isArray(data.poll_options) ? data.poll_options : [];
-      pollOps.innerHTML = options.map((opt) => `<li>${esc(opt)}</li>`).join("");
+      const counts = options.map((_, idx) => votes.filter((v) => v.option_index === idx).length);
+      const totalVotes = counts.reduce((a, b) => a + b, 0);
+      const myVote = currentUser ? votes.find((v) => v.user_id === currentUser.id) : null;
+
+      pollOps.innerHTML = options.map((opt, idx) => {
+        const count = counts[idx] || 0;
+        const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+        const mineClass = myVote && myVote.option_index === idx ? "mine" : "";
+        const votedClass = currentUser ? "" : "login-required";
+        return `
+          <li class="news-poll-item ${mineClass}">
+            <button class="news-poll-option ${votedClass}" data-poll-option="${idx}" ${currentUser ? "" : "disabled"}>
+              <span class="news-poll-label">${esc(opt)}</span>
+              <span class="news-poll-stats">${count} · ${pct}%</span>
+            </button>
+            <div class="news-poll-bar"><div style="width:${pct}%"></div></div>
+          </li>
+        `;
+      }).join("");
+
+      const hint = currentUser
+        ? (myVote ? "Deine Stimme ist markiert. Du kannst sie ändern." : "Wähle eine Option und stimme ab.")
+        : "Zum Abstimmen bitte einloggen.";
+      meta.textContent = `${meta.textContent ? `${meta.textContent} · ` : ""}${totalVotes} Stimmen · ${hint}`;
+
+      pollOps.querySelectorAll("[data-poll-option]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          if (!currentUser || !currentNews) return;
+          try {
+            btn.disabled = true;
+            await upsertVote(currentNews.id, Number(btn.dataset.pollOption), currentUser.id);
+            const refreshedVotes = await loadPollVotes(currentNews.id);
+            renderNews(currentNews, refreshedVotes);
+          } catch (err) {
+            alert(`Abstimmen fehlgeschlagen: ${err.message || err}`);
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
     } else {
       pollOps.innerHTML = "";
     }
@@ -86,8 +149,8 @@
 
   async function init() {
     await PZ.updateNavbar();
-
     const user = await PZ.getUser();
+    currentUser = user;
     const isAdmin = !!user && user.id === PZ_ADMIN_ID;
     const editBtn = document.getElementById("homeNewsEditBtn");
     const panel = document.getElementById("homeNewsEditor");
@@ -96,7 +159,9 @@
     const info = document.getElementById("homeNewsEditorInfo");
 
     const current = await loadNews();
-    renderNews(current);
+    currentNews = current;
+    const votes = current.kind === "poll" ? await loadPollVotes(current.id) : [];
+    renderNews(current, votes);
     fillEditor(current);
 
     if (!isAdmin) {
@@ -135,7 +200,9 @@
         if (error) throw error;
 
         const refreshed = await loadNews();
-        renderNews(refreshed);
+        currentNews = refreshed;
+        const refreshedVotes = refreshed.kind === "poll" ? await loadPollVotes(refreshed.id) : [];
+        renderNews(refreshed, refreshedVotes);
         fillEditor(refreshed);
         panel.classList.add("hidden");
       } catch (err) {

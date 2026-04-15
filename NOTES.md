@@ -665,3 +665,26 @@
 - `scripts/sync-ssr-content.mjs`
 - `supabase/migrations/20260415193000_home_news_panel.sql`
 - `NOTES.md`
+
+### Startseite – Abstimmung jetzt wirklich klickbar (2026-04-15) ✅
+
+#### Was gemacht wurde
+- `home-news.js` um echtes Voting erweitert: eingeloggte Nutzer koennen jetzt direkt auf Optionen klicken und abstimmen.
+- Pro Nutzer wird genau **eine Stimme** gespeichert; erneutes Klicken aendert die eigene Stimme.
+- Poll-UI zeigt jetzt live Stimmenzahl + Prozent je Option, inklusive Markierung der eigenen Auswahl.
+- Nicht eingeloggte Nutzer sehen die Abstimmung weiterhin, aber mit Hinweis, dass Login zum Abstimmen noetig ist.
+
+#### Datenbank / Sicherheit
+- Neue Migration: `supabase/migrations/20260415195000_home_news_votes.sql`
+- Neue Tabelle `site_home_news_votes` mit `(news_id, user_id)` als Primärschlüssel.
+- RLS-Policies:
+  - `SELECT` fuer alle (Anzeige von Ergebnissen)
+  - `INSERT/UPDATE` nur fuer den eigenen User (`auth.uid() = user_id`)
+  - `DELETE` nur fuer Admin (z. B. bei Moderation)
+- Migration auf Remote erfolgreich angewendet per `supabase db push --include-all`.
+
+#### Veränderte Dateien
+- `home-news.js`
+- `style.css`
+- `supabase/migrations/20260415195000_home_news_votes.sql`
+- `NOTES.md`

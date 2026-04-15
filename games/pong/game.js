@@ -127,11 +127,33 @@ function finishRound(winner) {
 async function saveSingleScore() {
   if (!state.userId) return;
   const gameKey = DIFF_GAME_KEYS[state.difficulty];
-  await PZ.saveGameData(gameKey, state.game.leftScore, 1, {
-    gegnerPunkte: state.game.rightScore,
-    modus: 'singleplayer',
-    schwierigkeit: state.difficulty,
-  });
+  const existing = await PZ.loadScore(gameKey);
+  let prevSiege = Number(existing?.extra_daten?.siege);
+  if (!Number.isFinite(prevSiege) || prevSiege < 0) prevSiege = 0;
+  // Alte Speicherung: punkte = Punkte im letzten Sieg (meist 7), nicht Sieganzahl — als 1 Sieg werten
+  if (prevSiege === 0 && existing && Number(existing.punkte) >= TARGET_SCORE) {
+    prevSiege = 1;
+  }
+  const newSiege = prevSiege + 1;
+
+  const prevExtra = existing?.extra_daten && typeof existing.extra_daten === 'object'
+    ? existing.extra_daten
+    : {};
+  const { error } = await PZ.db.from('spielstaende').upsert({
+    user_id: state.userId,
+    spiel_name: gameKey,
+    punkte: newSiege,
+    level: Math.max(Number(existing?.level || 0), 1),
+    extra_daten: {
+      ...prevExtra,
+      gegnerPunkte: state.game.rightScore,
+      modus: 'singleplayer',
+      schwierigkeit: state.difficulty,
+      siege: newSiege,
+    },
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id,spiel_name' });
+  if (error) console.error('[Pong] Speichern Siege:', error);
   await loadSingleLeaderboard();
 }
 
@@ -139,7 +161,8 @@ function renderLeaderboardRows(entries) {
   if (!entries.length) return '<p class="hint">Noch keine Einträge.</p>';
   return entries.map((entry, idx) => {
     const name = entry.benutzername || 'Anonym';
-    return `<div class="leaderboard-row"><span class="leaderboard-name"><span class="lb-rank">${idx + 1}.</span>${escapeHtml(name)}</span><strong>${entry.punkte}</strong></div>`;
+    const siege = entry.punkte ?? 0;
+    return `<div class="leaderboard-row"><span class="leaderboard-name"><span class="lb-rank">${idx + 1}.</span>${escapeHtml(name)}</span><span class="lb-siege"><strong>${siege}</strong> <span class="lb-siege-label">Siege</span></span></div>`;
   }).join('');
 }
 

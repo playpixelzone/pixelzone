@@ -209,6 +209,17 @@ input[type='text'] {
   justify-content: center;
   color: #64748b;
 }
+.lb-siege {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+.lb-siege-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
+}
 
 @media (min-width: 760px) {
   .pong-main { padding: 22px; }

@@ -2,6 +2,7 @@
 
 ## Session 2026-04-16 — Spielverbesserungen (Pixel Factory, Drop, Jump, Blast, Pong)
 
+- **Pixel Factory (iPad / Linienbaum, Commit 09fb0b8):** Shop-Grid max. 2 Spalten, größere Touch-Karten; Linienbaum als Vollbild-Modal mit Tab „Linienbaum“; `pf-line-trees.js` mit tiefen Pfaden (Speed/Efficiency/Automation) + Synergie-Knoten (`reqCross`); SVG-Kanten mit Pfad-Farben und Leuchten bei aktivem Pfad; (?)-Tooltips; alle gekauften Knoten wirken in `recompute`; Save-Schema v4 (Migration von v3); leichter PPC-Bonus auf Tablet-Breite. Dateien: `games/pixel-factory/game-rework-v2.js`, `pf-line-trees.js`, `index.html`, `style.css`.
 - **Pixel Factory:** Viewport gegen Zoom; Rangliste/Fehlerlogging; Talente entfernt; Missionen an Halbstunden-Takt; Infotafel kompakt; Autosave 10 s + Hinweis; UI-Anpassungen (siehe frühere Commits in dieser Session).
 - **Pixel Drop:** Anti-Spam in Ecken (max. Blöcke pro 3×3-Bereich).
 - **Pixel Jump (`games/pixel-jump/`):**

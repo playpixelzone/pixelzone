@@ -1,5 +1,18 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Umsetzung (2026-04-16) — Vite + Phaser 3, Next.js entfernt ✅
+
+- **Vorhaben:** Build-Tool **Vite**, Framework **Phaser 3**; bestehende Spiele unter `games/` erhalten.
+- **Umgesetzt:**
+  - `package.json`: Scripts `dev` / `build` / `preview`; Dependencies `phaser@3`, Dev `vite`, `vite-plugin-static-copy`.
+  - `vite.config.js`: HTML-Einstiege `index.html`, `login.html`, `admin.html`, `phaser-sandbox.html`; gesamter Ordner `games/` wird nach `dist/games` kopiert; `public/` für `auth.js`, `home-news.js`, `robots.txt`, `sitemap.xml`.
+  - **Next.js entfernt:** `pages/`, `next.config.js`, `scripts/sync-ssr-content.mjs`, `.next` / `ssr-content` (Build-Artefakte).
+  - **Phaser-Sandbox:** `phaser-sandbox.html`, `src/phaser/main.js`, `src/phaser/scenes/BootScene.js`; Link im Footer der Startseite.
+  - `.gitignore`: `dist/` ergänzt.
+  - Root-`claude.md` (Desktop/Claude): Ordnerstruktur an realen Stand angepasst.
+- **Befehle:** `npm run dev` (Entwicklung), `npm run build` (Produktion → `dist/`), `npm run preview` (Test des Builds).
+- **Deployment:** statische Auslieferung aus **`dist/`** (GitHub Pages o. Ä. auf `dist` zeigen).
+
 ## Heutiger Plan (2026-04-15) — Pixel Factory Komplett-Rework (Hard-Reset)
 
 - **Vorhaben:** Pixel Factory vollständig neu aufbauen, damit das Spiel nicht mehr monoton ist: Missionen, Entscheidungen bei Events, Produktionspfade, aktives Minigame, Prestige-Mutationen und Saison-Meta.

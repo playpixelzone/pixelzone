@@ -1,6 +1,7 @@
 .superpowers/
 docs/superpowers/
 node_modules/
+dist/
 .next/
 ssr-content/
 

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Phaser Sandbox – PIXELZONE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f0f7ff;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --muted: #5a6a85;
+      --border: #dceeff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Nunito', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem;
+    }
+    header {
+      max-width: 520px;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: 1.35rem; font-weight: 800; }
+    p.sub { color: var(--muted); font-size: 0.95rem; margin-top: 0.35rem; }
+    a.back {
+      display: inline-block;
+      margin-top: 0.75rem;
+      color: #3a86ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a.back:hover { text-decoration: underline; }
+    #game-container {
+      width: 100%;
+      max-width: 520px;
+      aspect-ratio: 480 / 320;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(26, 42, 80, 0.08);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Phaser-Sandbox</h1>
+    <p class="sub">Technik-Test für neue Spiele (Phaser&nbsp;3 + Vite). Die klassischen Spiele im Ordner <code>games/</code> bleiben unverändert.</p>
+    <a class="back" href="index.html">← Zurück zur Startseite</a>
+  </header>
+  <div id="game-container" role="application" aria-label="Phaser-Spielcanvas"></div>
+  <script type="module" src="/src/phaser/main.js"></script>
+</body>
+</html>

@@ -8,16 +8,16 @@ const isTouchDevice=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 
 // ── SPIELERDATEN (Supabase-Sync, ohne localStorage) ─────────────────────────
 const LOOT_BOX_PREIS_STD=150;
-let pdCache={coins:0,owned:[0],sel:0,name:'',upgrades:{},usedCodes:[],lootBoxPreis:LOOT_BOX_PREIS_STD};
+let pdCache={coins:0,owned:[],sel:0,name:'',upgrades:{},usedCodes:[],lootBoxPreis:LOOT_BOX_PREIS_STD};
 function loadPD(){return pdCache;}
-function savePD(d){pdCache=d||{coins:0,owned:[0],sel:0,name:'',upgrades:{},usedCodes:[],lootBoxPreis:LOOT_BOX_PREIS_STD};}
+function savePD(d){pdCache=d||{coins:0,owned:[],sel:0,name:'',upgrades:{},usedCodes:[],lootBoxPreis:LOOT_BOX_PREIS_STD};}
 
 /** Alle Felder für Supabase extra_daten (ohne Highscore). */
 function buildPJExtra(){
   pd=loadPD();
   return{
     coins:pd.coins||0,
-    owned:pd.owned||[0],
+    owned:pd.owned||[],
     sel:pd.sel||0,
     upgrades:pd.upgrades||{},
     usedCodes:pd.usedCodes||[],
@@ -31,6 +31,22 @@ function syncSpielstandPJ(){
     if(!u)return;
     return PZ.saveGameData('pixel-jump',bestScore,1,buildPJExtra());
   }).catch(function(){});
+}
+
+/** Sichtbarer Skin ingame: gewählt, sonst erster besessener, sonst Platzhalter (Index 0) bis zur ersten Lootbox. */
+function getActiveSkinIndex(){
+  pd=loadPD();
+  const o=pd.owned||[];
+  if(o.indexOf(pd.sel)>=0)return pd.sel;
+  if(o.length)return o[0];
+  return 0;
+}
+/** Noch nicht in der Sammlung */
+function countUnownedSkins(){
+  const o=new Set(loadPD().owned||[]);
+  let n=0;
+  for(let i=0;i<CHARS.length;i++){if(!o.has(i))n++;}
+  return n;
 }
 
 // SPIELERDATEN AUS SUPABASE LADEN
@@ -54,7 +70,7 @@ async function initPlayer(){
       bestScore=data.punkte||0; // Highscore merken für lokalen Vergleich
       if(data.extra_daten){
         pd.coins   =data.extra_daten.coins   ||0;
-        pd.owned   =data.extra_daten.owned   ||[0];
+        pd.owned   =Array.isArray(data.extra_daten.owned)?data.extra_daten.owned:[];
         pd.sel     =data.extra_daten.sel     ||0;
         pd.upgrades=data.extra_daten.upgrades||{};
         pd.usedCodes=data.extra_daten.usedCodes||[];
@@ -85,16 +101,16 @@ window.addEventListener('resize',function(){resize();});
 
 // ── CHARACTERS ────────────────────────────────────────────────────────────────
 const CHARS=[
-  {name:'Grüni',  price:0,   scoreReq:0, tier:'c', body:'#7ecf4a',dark:'#2d6e0f',acc:'#ffe066',code:null,img:null},
-  {name:'Ozean',  price:50,  scoreReq:0, tier:'c', body:'#22c5ef',dark:'#0a5a8a',acc:'#ffffff',code:null,img:null},
-  {name:'Feuer',  price:80,  scoreReq:0, tier:'c', body:'#ff5a1a',dark:'#aa1a00',acc:'#ffcc00',code:null,img:null},
-  {name:'Neon',   price:100, scoreReq:0, tier:'r', body:'#b46aef',dark:'#6a1aaa',acc:'#ffaaff',code:null,img:null},
-  {name:'Robot',  price:120, scoreReq:0, tier:'r', body:'#8aaabb',dark:'#334455',acc:'#44ffff',code:null,img:null},
-  {name:'Gold',   price:200, scoreReq:0, tier:'e', body:'#ffd700',dark:'#996600',acc:'#ffffff',code:null,img:null},
-  {name:'Geist',  price:150, scoreReq:0, tier:'r', body:'#dde0ff',dark:'#6677cc',acc:'#ffffff',code:null,img:null},
-  {name:'Alien',  price:90,  scoreReq:0, tier:'c', body:'#4aef8a',dark:'#1a7a3a',acc:'#ffff44',code:null,img:null},
-  {name:'Tim',    price:0,   scoreReq:0, tier:'l', body:'#f0c090',dark:'#8b4513',acc:'#4a90d9',  code:'timgioh', img:'__TIM__'},
-  {name:'Kirsch', price:0,   scoreReq:0, tier:'c', lootOnly:true, body:'#ff6b9a',dark:'#9d174d',acc:'#fff0f5',code:null,img:null},
+  {name:'Grüni',  price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#7ecf4a',dark:'#2d6e0f',acc:'#ffe066',code:null,img:null},
+  {name:'Ozean',  price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#22c5ef',dark:'#0a5a8a',acc:'#ffffff',code:null,img:null},
+  {name:'Feuer',  price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ff5a1a',dark:'#aa1a00',acc:'#ffcc00',code:null,img:null},
+  {name:'Neon',   price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#b46aef',dark:'#6a1aaa',acc:'#ffaaff',code:null,img:null},
+  {name:'Robot',  price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#8aaabb',dark:'#334455',acc:'#44ffff',code:null,img:null},
+  {name:'Gold',   price:0, scoreReq:0, tier:'e', lootOnly:true, body:'#ffd700',dark:'#996600',acc:'#ffffff',code:null,img:null},
+  {name:'Geist',  price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#dde0ff',dark:'#6677cc',acc:'#ffffff',code:null,img:null},
+  {name:'Alien',  price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#4aef8a',dark:'#1a7a3a',acc:'#ffff44',code:null,img:null},
+  {name:'Tim',    price:0, scoreReq:0, tier:'l', lootOnly:true, body:'#f0c090',dark:'#8b4513',acc:'#4a90d9', code:null, img:'__TIM__'},
+  {name:'Kirsch', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ff6b9a',dark:'#9d174d',acc:'#fff0f5',code:null,img:null},
   {name:'Limette',price:0,   scoreReq:0, tier:'c', lootOnly:true, body:'#c8f542',dark:'#3d6e0a',acc:'#2d5016',code:null,img:null},
   {name:'Mitternacht',price:0,scoreReq:0,tier:'r',lootOnly:true,body:'#3d4f7a',dark:'#1a2238',acc:'#8eb4ff',code:null,img:null},
   {name:'Pfirsich',price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ffb38a',dark:'#c45c2d',acc:'#fff5e6',code:null,img:null},
@@ -209,7 +225,7 @@ function initGame(){
     w:pSz, h:pSz,
     vx:0, vy:0,
     onGround:false, dbl:false,
-    ci:pd.sel||0, inv:0,
+    ci:getActiveSkinIndex(), inv:0,
     animF:0, animT:0,
     facing:1,
     trail:[],
@@ -898,7 +914,6 @@ function upgradeKosten(u,lvl){
 }
 
 const CODES={
-  'timgioh':{type:'skin',idx:8},
   '67':{type:'coins',amount:67},
 };
 
@@ -920,34 +935,29 @@ function renderShop(){pd=loadPD();const s=document.getElementById('shopcoVal');i
 function renderSkins(){
   pd=loadPD();const s=document.getElementById('shopcoVal');if(s)s.textContent=pd.coins;
   const grid=document.getElementById('sgrid');grid.innerHTML='';
+  const besitz=(pd.owned||[]).slice();
   CHARS.forEach(function(ch,i){
-    const owned=(pd.owned||[0]).indexOf(i)>=0;
-    const active=(pd.sel||0)===i;
-    const codeLocked=ch.code&&!owned;
-    const lootOnly=ch.lootOnly&&!owned;
+    const hat=besitz.indexOf(i)>=0;
+    const active=hat&&(pd.sel===i);
     const div=document.createElement('div');
-    div.className='sc'+(owned?' own':'')+(active?' act':'');
-    if(codeLocked){div.style.opacity='0.55';div.style.background='#f8f8f8';}
-    if(lootOnly){div.style.opacity='0.7';}
+    div.className='sc'+(hat?' own':'')+(active?' act':'');
+    if(!hat)div.style.opacity='0.72';
     const sz=Math.round(Math.min(CW*0.09,46));
     const mc=document.createElement('canvas');mc.width=sz;mc.height=sz;
     mc.style.width=sz+'px';mc.style.height=sz+'px';mc.style.imageRendering='pixelated';
     drawChar(mc.getContext('2d'),i,0,0,sz,false);
     div.appendChild(mc);
     const nm=document.createElement('div');nm.className='snm';nm.textContent=ch.name;div.appendChild(nm);
-    const pr=document.createElement('div');pr.className='spr'+(owned?' own':'');
-    if(codeLocked)pr.innerHTML='<span class="lockbg">Code</span>';
-    else if(lootOnly)pr.textContent='Lootbox';
-    else pr.textContent=owned?(active?'✓ Aktiv':'Besitz'):(ch.price===0?'Gratis':ch.price+' C');
+    const pr=document.createElement('div');pr.className='spr'+(hat?' own':'');
+    pr.textContent=hat?(active?'✓ Aktiv':'Besitz'):'Nur Lootbox';
     div.appendChild(pr);
     div.onclick=function(){
-      if(lootOnly){shopTab('loot');return;}
-      if(codeLocked){document.getElementById('codeMsg').textContent='';shopTab('cd');return;}
+      if(!hat){shopTab('loot');return;}
       pd=loadPD();
-      if((pd.owned||[0]).indexOf(i)>=0){pd.sel=i;savePD(pd);syncSpielstandPJ();renderSkins();return;}
-      if(ch.price===0&&!ch.lootOnly){if(!pd.owned)pd.owned=[0];pd.owned.push(i);pd.sel=i;savePD(pd);syncSpielstandPJ();renderSkins();return;}
-      if(pd.coins>=ch.price){pd.coins-=ch.price;if(!pd.owned)pd.owned=[0];pd.owned.push(i);pd.sel=i;savePD(pd);syncSpielstandPJ();renderSkins();}
-      else{div.style.borderColor='#bf3a3a';setTimeout(function(){div.style.borderColor='';},500);}
+      pd.sel=i;
+      savePD(pd);
+      syncSpielstandPJ();
+      renderSkins();
     };
     grid.appendChild(div);
   });
@@ -981,21 +991,23 @@ function renderUpgrades(){
   });
 }
 
+/** Zufälliger noch nicht besessener Skin (Seltenheit wie zuvor); null = Sammlung komplett. */
 function rollLootSkinIndex(){
+  pd=loadPD();
+  const besitz=new Set(pd.owned||[]);
+  const unowned=[];
+  for(let i=0;i<CHARS.length;i++){
+    if(!besitz.has(i))unowned.push(i);
+  }
+  if(!unowned.length)return null;
   const r=Math.random()*100;
   let tier='c';
   if(r<60) tier='c';
   else if(r<85) tier='r';
   else if(r<97) tier='e';
   else tier='l';
-  const pool=[];
-  for(let i=0;i<CHARS.length;i++){
-    if(i===8) continue;
-    if((CHARS[i].tier||'c')===tier) pool.push(i);
-  }
-  if(!pool.length){
-    for(let j=0;j<CHARS.length;j++){ if(j!==8) pool.push(j); }
-  }
+  let pool=unowned.filter(function(i){return (CHARS[i].tier||'c')===tier;});
+  if(!pool.length)pool=unowned.slice();
   return pool[Math.floor(Math.random()*pool.length)];
 }
 
@@ -1003,40 +1015,44 @@ function renderLootTab(){
   pd=loadPD();
   const preis=getLootPreis();
   const btn=document.getElementById('lootOpenBtn');
-  if(btn)btn.textContent='Lootbox öffnen ('+preis+' Münzen)';
+  const rest=countUnownedSkins();
+  if(btn){
+    btn.textContent=rest>0?('Lootbox öffnen ('+preis+' Münzen)'):'Alle Skins gesammelt';
+    btn.disabled=rest===0;
+    btn.style.opacity=rest===0?'0.55':'1';
+    btn.style.cursor=rest===0?'not-allowed':'pointer';
+  }
 }
 
 function openLootbox(){
   pd=loadPD();
   const preis=getLootPreis();
   const resEl=document.getElementById('lootResult');
+  const pick=rollLootSkinIndex();
+  if(pick===null){
+    if(resEl)resEl.innerHTML='<div class="loot-msg loot-err">Du hast bereits alle Skins.</div>';
+    renderLootTab();
+    return;
+  }
   if((pd.coins||0)<preis){
     if(resEl)resEl.innerHTML='<div class="loot-msg loot-err">Nicht genug Münzen.</div>';
     return;
   }
   pd.coins-=preis;
-  const pick=rollLootSkinIndex();
-  const owned=(pd.owned||[0]).slice();
-  const schonDrin=owned.indexOf(pick)>=0;
-  let msg='';
   let tierLabel=(CHARS[pick].tier||'c').toUpperCase();
   if(tierLabel==='C')tierLabel='Gewöhnlich';
   else if(tierLabel==='R')tierLabel='Selten';
   else if(tierLabel==='E')tierLabel='Episch';
   else if(tierLabel==='L')tierLabel='Legendär';
-  if(schonDrin){
-    const bonus=28;
-    pd.coins+=bonus;
-    msg='Du hattest „'+CHARS[pick].name+'“ schon · +'+bonus+' Münzen';
-  } else {
-    if(!pd.owned)pd.owned=[0];
-    pd.owned.push(pick);
-    pd.sel=pick;
-    msg='Neu: „'+CHARS[pick].name+'“ ('+tierLabel+')';
-  }
+  if(!pd.owned)pd.owned=[];
+  pd.owned.push(pick);
+  pd.sel=pick;
+  const msg='Neu: „'+CHARS[pick].name+'“ ('+tierLabel+')';
   savePD(pd);
   const sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;
   syncSpielstandPJ();
+  renderLootTab();
+  if(typeof renderSkins==='function')renderSkins();
   if(resEl){
     resEl.innerHTML='';
     resEl.classList.remove('loot-pop');
@@ -1064,13 +1080,7 @@ function redeemCode(){
   const c=CODES[code];
   if(!c){msg.style.color='#bf3a3a';msg.textContent='Ungültiger Code.';return;}
   pd.usedCodes.push(code);
-  if(c.type==='skin'){
-    const idx=c.idx;if(!pd.owned)pd.owned=[0];
-    if(pd.owned.indexOf(idx)<0)pd.owned.push(idx);
-    pd.sel=idx;savePD(pd);syncSpielstandPJ();
-    msg.style.color='#5a9a3a';msg.textContent='🎉 Skin "'+CHARS[idx].name+'" freigeschaltet!';
-    renderSkins();
-  } else if(c.type==='coins'){
+  if(c.type==='coins'){
     pd.coins=(pd.coins||0)+c.amount;savePD(pd);syncSpielstandPJ();
     msg.style.color='#5a9a3a';msg.textContent='🪙 +'+c.amount+' Münzen!';
     const sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;

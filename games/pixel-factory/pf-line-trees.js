@@ -2,6 +2,7 @@
  * Pixel Factory – erweiterte Linienbäume (4–5 Ebenen, Synergien).
  * Wird vor game-rework-v2.js geladen → window.PF_LINE_TREES
  * detail = ausführliche Tooltip-Texte für (?)
+ * tooltipFlavour = optional: kurzer Flavour-Text im Tooltip (sonst erster Satz aus detail)
  */
 (function () {
   "use strict";
@@ -199,6 +200,7 @@
         name: "Stabil-Kern",
         desc: "Events −8 %",
         detail: "Zentrum der Efficiency-Linie: weniger Störungen, ruhigerer Lauf.",
+        tooltipFlavour: "Optimiert die Energieleitungen – weniger Störungen, ruhigerer Betrieb.",
         max: 1,
         cost: 1,
         lx: 50,

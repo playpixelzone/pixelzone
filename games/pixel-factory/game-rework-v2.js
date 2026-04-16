@@ -764,8 +764,31 @@ function closeLineTreeTooltip() {
   ui.lineTreeTooltip.classList.add("versteckt");
   ui.lineTreeTooltip.hidden = true;
   const body = document.getElementById("lineTreeTooltipBody");
-  if (body) body.textContent = "";
+  if (body) {
+    body.innerHTML = "";
+    body.textContent = "";
+  }
 }
+
+/** Erster Satz aus detail als Flavour; optional überschreibbar mit node.tooltipFlavour (LINE_TREES). */
+function firstFlavourSentence(text) {
+  if (!text) return "";
+  const t = String(text).trim();
+  const m = t.match(/^(.+?[.!?])(\s+|$)/);
+  if (m) return m[1].trim();
+  return t.length > 160 ? `${t.slice(0, 157).trim()}…` : t;
+}
+
+/** Tooltip aus dem gleichen Knoten-Objekt wie das Balancing (LINE_TREES / pf-line-trees.js). */
+function buildLineNodeTooltipHtml(node) {
+  if (!node) return "";
+  const flavourRaw = (node.tooltipFlavour && String(node.tooltipFlavour).trim()) || firstFlavourSentence(node.detail || "") || node.name || "";
+  const effectRaw = (node.desc && String(node.desc).trim()) || "Kein Kurz-Effekt hinterlegt.";
+  return `<p class="pf-line-tooltip__flavour">${escapeHtmlPf(flavourRaw)}</p><p class="pf-line-tooltip__effect"><strong>Effekt:</strong> ${escapeHtmlPf(effectRaw)}</p>`;
+}
+
+/** Beim Öffnen: Stabil-Kern (Efficiency-Start) in die Mitte des Pan-Viewports legen. */
+const LINE_TREE_FOCUS_NODE = { line: "efficiency", id: "e_core" };
 
 function showPfFloatingTooltip(anchor, text) {
   if (!ui.lineTreeTooltip || !text) return;
@@ -1669,18 +1692,20 @@ function closeLineTreeModal() {
 
 function showLineNodeTooltip(btn) {
   if (!ui.lineTreeTooltip) return;
-  const text = btn?.dataset?.detail || "";
-  if (!text) return;
+  const line = btn?.dataset?.line;
+  const nodeId = btn?.dataset?.lineNode;
+  const node = line && nodeId ? findLineNode(line, nodeId) : null;
   const body = document.getElementById("lineTreeTooltipBody");
-  if (body) body.textContent = text;
-  else ui.lineTreeTooltip.textContent = text;
+  if (!body) return;
+  body.innerHTML = node ? buildLineNodeTooltipHtml(node) : "";
+  if (!body.innerHTML.trim()) return;
   ui.lineTreeTooltip.classList.remove("versteckt");
   ui.lineTreeTooltip.hidden = false;
   const r = btn.getBoundingClientRect();
   const pad = 10;
-  const tw = 300;
+  const tw = 320;
   ui.lineTreeTooltip.style.left = `${Math.min(window.innerWidth - tw - pad, Math.max(pad, r.left + r.width / 2 - tw / 2))}px`;
-  ui.lineTreeTooltip.style.top = `${Math.min(window.innerHeight - 180, r.bottom + pad)}px`;
+  ui.lineTreeTooltip.style.top = `${Math.min(window.innerHeight - 220, r.bottom + pad)}px`;
 }
 
 function onDocPointerDownCloseLineTooltip(e) {
@@ -1818,15 +1843,16 @@ function renderLineTree() {
       const cls = skillNodeButtonClass(lineKey, n);
       const maxed = lvl >= n.max;
       const tip = `${n.name} (${lvl}/${n.max})${reqTxt ? " · " + reqTxt : ""}`;
-      const detail = n.detail || n.desc || "";
       const rel = skillNodeIsRelevant(lineKey, n);
       const dimWrap = rel ? "" : " pf-skill-node-wrap--dimmed";
       nodesHtml.push(`
       <div class="pf-skill-node-wrap pf-skill-node-wrap--${lineKey}${dimWrap}" style="left:${pix.cx}px;top:${pix.cy}px;">
         <div class="pf-skill-node-card">
-          <button type="button" class="pf-skill-help" data-line-help="1" data-detail="${escapeHtmlPf(detail)}" aria-label="Beschreibung">
-            <span class="pf-skill-help__glyph" aria-hidden="true">?</span>
-          </button>
+          <div class="pf-skill-help-slot">
+            <button type="button" class="pf-skill-help" data-line-help="1" data-line="${lineKey}" data-line-node="${n.id}" aria-label="Beschreibung">
+              <span class="pf-skill-help__glyph" aria-hidden="true">?</span>
+            </button>
+          </div>
           <button type="button"
             class="${cls}"
             data-line="${lineKey}"
@@ -1865,13 +1891,15 @@ function renderLineTree() {
   target.style.height = `${layout.height}px`;
 
   requestAnimationFrame(() => {
-    if (runtime.lineTreeCenterNext) {
-      centerSkillTreePan();
-      runtime.lineTreeCenterNext = false;
-    } else {
-      clampSkillTreePan();
-    }
-    updateSkillTreeFlowSpeed();
+    requestAnimationFrame(() => {
+      if (runtime.lineTreeCenterNext) {
+        centerSkillTreeOnFocusNode();
+        runtime.lineTreeCenterNext = false;
+      } else {
+        clampSkillTreePan();
+      }
+      updateSkillTreeFlowSpeed();
+    });
   });
   wireSkillTreePanOnce();
 
@@ -1884,18 +1912,30 @@ function renderLineTree() {
   });
 }
 
-function centerSkillTreePan() {
+/** Zentriert den Stabil-Kern (e_core) im sichtbaren Viewport; Fallback: gesamtes Board mittig. */
+function centerSkillTreeOnFocusNode() {
   const vp = document.getElementById("skillTreePanViewport");
   const inner = document.getElementById("skillTreePanInner");
   if (!vp || !inner) return;
-  const bw = inner.offsetWidth || 800;
-  const bh = inner.offsetHeight || 600;
+  const layout = getSkillTreeLayout();
+  const key = `${LINE_TREE_FOCUS_NODE.line}:${LINE_TREE_FOCUS_NODE.id}`;
+  const p = layout.nodePixel.get(key);
   const vw = vp.clientWidth;
   const vh = vp.clientHeight;
-  const x = (vw - bw) / 2;
-  const y = (vh - bh) / 2;
-  runtime.skillTreePan = { x, y };
-  inner.style.transform = `translate(${x}px, ${y}px)`;
+  const bw = inner.offsetWidth || layout.width;
+  const bh = inner.offsetHeight || layout.height;
+  let panX;
+  let panY;
+  if (p && Number.isFinite(p.cx) && Number.isFinite(p.cy)) {
+    panX = vw / 2 - p.cx;
+    panY = vh / 2 - p.cy;
+  } else {
+    panX = (vw - bw) / 2;
+    panY = (vh - bh) / 2;
+  }
+  runtime.skillTreePan = { x: panX, y: panY };
+  inner.style.transform = `translate(${panX}px, ${panY}px)`;
+  clampSkillTreePan();
 }
 
 function clampSkillTreePan() {

@@ -1476,11 +1476,12 @@ function edgeSvgClass(parentLine, parentId, childLine, childId, branchLine) {
 }
 
 /** Hierarchisches Grid-Layout (Speed ←, Efficiency ↑, Automation →, Synergy ↓). */
+/** COL/ROW: Abstand der Knotenmittelpunkte ≥ max. Kartenbreite (190px) + 20px Lücke zwischen Rändern. */
 const SKILL_TREE = {
-  COL: 92,
-  ROW: 88,
+  COL: 212,
+  ROW: 118,
   DEPTH: 4,
-  PAD: 140,
+  PAD: 176,
 };
 
 let _skillTreeLayoutCache = null;
@@ -1822,19 +1823,23 @@ function renderLineTree() {
       const dimWrap = rel ? "" : " pf-skill-node-wrap--dimmed";
       nodesHtml.push(`
       <div class="pf-skill-node-wrap pf-skill-node-wrap--${lineKey}${dimWrap}" style="left:${pix.cx}px;top:${pix.cy}px;">
-        <button type="button" class="pf-skill-help" data-line-help="1" data-detail="${escapeHtmlPf(detail)}" aria-label="Beschreibung">?</button>
-        <button type="button"
-          class="${cls}"
-          data-line="${lineKey}"
-          data-line-node="${n.id}"
-          ${maxed || !can ? "disabled" : ""}
-          title="${escapeHtmlPf(tip)}">
-          <span class="pf-skill-node__glyph pf-skill-node__glyph--${lineKey}" aria-hidden="true"></span>
-          <span class="pf-skill-node__tag">${lineKey === "speed" ? "SPD" : lineKey === "efficiency" ? "EFF" : lineKey === "automation" ? "AUTO" : "SYN"}</span>
-          <span class="pf-skill-node__name">${escapeHtmlPf(n.name)}</span>
-          <span class="pf-skill-node__lvl">${lvl}/${n.max}</span>
-          <span class="pf-skill-node__cost">${n.cost} PP</span>
-        </button>
+        <div class="pf-skill-node-card">
+          <button type="button" class="pf-skill-help" data-line-help="1" data-detail="${escapeHtmlPf(detail)}" aria-label="Beschreibung">
+            <span class="pf-skill-help__glyph" aria-hidden="true">?</span>
+          </button>
+          <button type="button"
+            class="${cls}"
+            data-line="${lineKey}"
+            data-line-node="${n.id}"
+            ${maxed || !can ? "disabled" : ""}
+            title="${escapeHtmlPf(tip)}">
+            <span class="pf-skill-node__glyph pf-skill-node__glyph--${lineKey}" aria-hidden="true"></span>
+            <span class="pf-skill-node__tag">${lineKey === "speed" ? "SPD" : lineKey === "efficiency" ? "EFF" : lineKey === "automation" ? "AUTO" : "SYN"}</span>
+            <span class="pf-skill-node__name">${escapeHtmlPf(n.name)}</span>
+            <span class="pf-skill-node__lvl">${lvl}/${n.max}</span>
+            <span class="pf-skill-node__cost">${n.cost} PP</span>
+          </button>
+        </div>
       </div>`);
     }
   }

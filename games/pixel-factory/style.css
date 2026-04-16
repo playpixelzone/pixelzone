@@ -2212,7 +2212,11 @@ body {
   width: min(152px, 44vw);
   max-width: 190px;
 }
-.pf-skill-node-wrap .pf-skill-node {
+.pf-skill-node-card {
+  position: relative;
+  width: 100%;
+}
+.pf-skill-node-card .pf-skill-node {
   position: relative;
   left: auto;
   top: auto;
@@ -2221,32 +2225,54 @@ body {
   min-height: 88px;
   padding-top: 30px;
 }
-.pf-skill-node-wrap .pf-skill-node:hover:not(:disabled) {
+.pf-skill-node-card .pf-skill-node:hover:not(:disabled) {
   transform: translateY(-2px);
 }
-.pf-skill-node-wrap .pf-skill-node:active:not(:disabled) {
+.pf-skill-node-card .pf-skill-node:active:not(:disabled) {
   transform: scale(0.98);
 }
+/* Trefferfläche 44×44 (iPad), sichtbares „?“ ~30 % kleiner im Karteninnenbereich */
 .pf-skill-help {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  z-index: 3;
+  top: 5px;
+  right: 5px;
+  z-index: 4;
+  box-sizing: border-box;
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  font: inherit;
+  line-height: 1;
+  /* sichtbarer Kreis im oberen rechten Quadranten der Trefferfläche */
+}
+.pf-skill-help__glyph {
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: #fff;
-  font: inherit;
   font-weight: 900;
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   color: var(--primary-dark);
-  cursor: pointer;
-  line-height: 1;
-  box-shadow: 0 2px 6px rgba(61, 91, 216, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(61, 91, 216, 0.1);
+  flex-shrink: 0;
+  pointer-events: none;
 }
-.pf-skill-help:active {
+.pf-skill-help:active .pf-skill-help__glyph {
   transform: scale(0.94);
 }
 .pf-skill-node__tag {
@@ -2341,6 +2367,9 @@ body {
   opacity: 1;
   z-index: 5;
 }
+.pf-skill-node-wrap--dimmed .pf-skill-help__glyph {
+  opacity: 1;
+}
 .pf-skill-node-wrap--dimmed .pf-skill-node {
   pointer-events: none;
 }
@@ -2368,7 +2397,7 @@ body.pf-line-tree-open {
   .pf-skill-node-wrap {
     width: min(168px, 38vw);
   }
-  .pf-skill-node-wrap .pf-skill-node {
+  .pf-skill-node-card .pf-skill-node {
     min-height: 96px;
   }
 }
@@ -2482,14 +2511,6 @@ body.pf-line-tree-open {
 .pf-skill-node--locked .pf-skill-node__glyph {
   opacity: 0.38;
   filter: grayscale(0.4);
-}
-
-.pf-skill-help {
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
-  min-height: 48px;
-  font-size: 1.05rem;
 }
 
 /* ═══ Events & Prestige – Glasmorphism, Vignette, Karten ═══ */

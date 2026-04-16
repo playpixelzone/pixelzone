@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="eventVignette" class="pf-event-vignette" aria-hidden="true"></div>
 
 <!-- Navigation -->
 <nav class="navbar">
@@ -36,8 +37,9 @@
 </div>
 
 <!-- ── PRESTIGE BESTÄTIGUNG ──────────────────────────── -->
-<div class="modal-hintergrund versteckt" id="prestigeConfirmModal">
-  <div class="modal prestige-confirm-modal">
+<div class="modal-hintergrund versteckt pf-modal-glass pf-prestige-modal-bg" id="prestigeConfirmModal">
+  <canvas id="prestigeModalConfetti" class="pf-prestige-confetti-canvas" width="420" height="280" aria-hidden="true"></canvas>
+  <div class="modal prestige-confirm-modal pf-prestige-glass-panel">
     <div class="pc-stern">✦</div>
     <h2>Prestige machen?</h2>
     <div class="pc-qp" id="pcQP">+1 Prestigepunkt</div>
@@ -49,9 +51,16 @@
       <div class="pc-behalten">✓ Mutationen bleiben aktiv</div>
       <div class="pc-behalten">⭐ +1 Prestigepunkt erhalten!</div>
     </div>
+    <div id="mutationChoices" class="pf-mutation-grid"></div>
     <div class="pc-buttons">
-      <button class="pc-btn-nein" id="prestigeConfirmNein">Abbrechen</button>
-      <button class="pc-btn-ja" id="prestigeConfirmJa">Zufällige Mutation</button>
+      <button type="button" class="pc-btn-nein" id="prestigeConfirmNein">Abbrechen</button>
+      <button type="button" class="pc-btn-ja" id="prestigeConfirmJa">Zufällige Mutation</button>
+    </div>
+  </div>
+  <div id="mutationSlotOverlay" class="pf-slot-overlay versteckt" aria-live="polite">
+    <div class="pf-slot-panel pf-modal-glass__panel">
+      <div id="mutationSlotReel" class="pf-slot-reel">…</div>
+      <p class="pf-slot-sub">Die Mutation wird gewürfelt …</p>
     </div>
   </div>
 </div>

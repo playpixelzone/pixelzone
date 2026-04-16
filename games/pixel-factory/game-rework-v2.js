@@ -79,66 +79,262 @@ function findLineNode(line, id) {
 }
 
 const MUTATIONS = [
-  { id: "m1", title: "Hochdruck", text: "+70% Produktion, Events etwas häufiger", detail: "Produktion x1.7, Eventrate x1.2", apply: (s) => { s.meta.mutationProdMult *= 1.7; s.meta.eventRateMult *= 1.2; } },
-  { id: "m2", title: "Reflexlauf", text: "+90% Klickkraft, aber -25% Gebäudeproduktion", detail: "Klick x1.9, Produktion x0.75", apply: (s) => { s.meta.mutationClickMult *= 1.9; s.meta.mutationProdMult *= 0.75; } },
-  { id: "m3", title: "Ruhemodus", text: "Events seltener, dafür -20% Klickkraft", detail: "Eventrate x0.65, Klick x0.8", apply: (s) => { s.meta.eventRateMult *= 0.65; s.meta.mutationClickMult *= 0.8; } },
-  { id: "m4", title: "Turbo-Run", text: "Missionen +50% Belohnung, Prestige-Schwelle +18%", detail: "Missionsreward x1.5, Prestigeschwelle x1.18", apply: (s) => { s.meta.missionRewardMult *= 1.5; s.meta.prestigeThresholdMult *= 1.18; } },
-  { id: "m5", title: "Kettenreaktion", text: "Kombo stark, aber Event-Strafen härter", detail: "Kombo +0.35, Event-Strafe x1.4", apply: (s) => { s.economy.comboBonus += 0.35; s.meta.eventPenaltyMult *= 1.4; } },
-  { id: "m6", title: "Langschicht", text: "Offline massiv stärker, aktive Klicks schwächer", detail: "Offline x2.2, Klick x0.75", apply: (s) => { s.economy.offlineEff += 1.2; s.meta.mutationClickMult *= 0.75; } },
+  { id: "m1", title: "Hochdruck", text: "+70% Produktion, Events etwas häufiger", detail: "Produktion x1.7, Eventrate x1.2", rarity: "rare", icon: "⚡", mathDetail: "mutationProdMult × 1.7 (alle PPS-Quellen). Zusätzlich eventRateMult × 1.2 (Events häufiger). Multiplikativ mit Linienbaum & Gebäuden.", apply: (s) => { s.meta.mutationProdMult *= 1.7; s.meta.eventRateMult *= 1.2; } },
+  { id: "m2", title: "Reflexlauf", text: "+90% Klickkraft, aber -25% Gebäudeproduktion", detail: "Klick x1.9, Produktion x0.75", rarity: "epic", icon: "🏃", mathDetail: "mutationClickMult × 1.9 (PPC). mutationProdMult × 0.75 (Gebäude-PPS). End-PPS = Gebäude × prodMult × lineProdMult × mutationProdMult × …", apply: (s) => { s.meta.mutationClickMult *= 1.9; s.meta.mutationProdMult *= 0.75; } },
+  { id: "m3", title: "Ruhemodus", text: "Events seltener, dafür -20% Klickkraft", detail: "Eventrate x0.65, Klick x0.8", rarity: "common", icon: "🌙", mathDetail: "eventRateMult × 0.65 (längere Abstände zwischen Events). mutationClickMult × 0.8.", apply: (s) => { s.meta.eventRateMult *= 0.65; s.meta.mutationClickMult *= 0.8; } },
+  { id: "m4", title: "Turbo-Run", text: "Missionen +50% Belohnung, Prestige-Schwelle +18%", detail: "Missionsreward x1.5, Prestigeschwelle x1.18", rarity: "rare", icon: "🎯", mathDetail: "missionRewardMult × 1.5 (Pixel & Saison aus Missionen). prestigeThresholdMult × 1.18 (mehr Lifetime-Pixel für nächstes Prestige).", apply: (s) => { s.meta.missionRewardMult *= 1.5; s.meta.prestigeThresholdMult *= 1.18; } },
+  { id: "m5", title: "Kettenreaktion", text: "Kombo stark, aber Event-Strafen härter", detail: "Kombo +0.35, Event-Strafe x1.4", rarity: "epic", icon: "⛓️", mathDetail: "comboBonus +0.35 (stärkere Kombo-Multiplikation beim Klicken). eventPenaltyMult × 1.4 (härtere negative Event-Effekte, falls genutzt).", apply: (s) => { s.economy.comboBonus += 0.35; s.meta.eventPenaltyMult *= 1.4; } },
+  { id: "m6", title: "Langschicht", text: "Offline massiv stärker, aktive Klicks schwächer", detail: "Offline x2.2, Klick x0.75", rarity: "rare", icon: "🌆", mathDetail: "offlineEff +1.2 (zusätzliche Offline-Effizienz). mutationClickMult × 0.75.", apply: (s) => { s.economy.offlineEff += 1.2; s.meta.mutationClickMult *= 0.75; } },
 ];
 
+/** risk: 1–10, höher = besserer Erwartungswert (Timeout wählt Minimum). */
 const EVENT_POOL = [
   {
     id: "power",
     title: "Stromabfall",
     text: "Das Netz bricht kurz ein. Du musst entscheiden:",
+    visualTheme: "amber",
     choices: [
-      { id: "repair", label: "Sofort reparieren", detail: "20s lang Produktion -15%, danach stabil", apply: (s) => addTimed(s, "prod", 0.85, 20, "Reparatur aktiv") },
-      { id: "risk", label: "Weiter auf Risiko", detail: "30s Produktion +35%, danach 25s -20%", apply: (s) => { addTimed(s, "prod", 1.35, 30, "Risikofahrt"); applyDelayedEffectSafe(30000, () => addTimed(state, "prod", 0.8, 25, "Überhitzung")); } },
-      { id: "backup", label: "Backup-Generator", detail: "Sofort +18s PPS als Bonus", apply: () => addPixels(currentPps() * 18, "Backup-Generator") },
+      {
+        id: "repair",
+        icon: "🔧",
+        risk: 5,
+        label: "Sofort reparieren",
+        detail: "Risiko: niedrig · 20s Produktion −15%, danach stabil",
+        mathTooltip: "timedMult prod auf 0.85 für 20s (nur Gebäude-PPS). Efficiency-Pfad mildert den Abfall.",
+        apply: (s) => addTimed(s, "prod", 0.85, 20, "Reparatur aktiv"),
+      },
+      {
+        id: "risk",
+        icon: "⚡",
+        risk: 8,
+        label: "Weiter auf Risiko",
+        detail: "Belohnung: hoch · 30s +35% PPS, danach 25s −20%",
+        mathTooltip: "Erst prod ×1.35 (30s), nach 30s prod ×0.8 (25s). Speed-Pfad verstärkt den Boost.",
+        apply: (s) => {
+          addTimed(s, "prod", 1.35, 30, "Risikofahrt");
+          applyDelayedEffectSafe(30000, () => addTimed(state, "prod", 0.8, 25, "Überhitzung"));
+        },
+      },
+      {
+        id: "backup",
+        icon: "🔋",
+        risk: 7,
+        label: "Backup-Generator",
+        detail: "Sofortbonus: Pixel = aktuelle PPS × Sekunden (siehe Text)",
+        mathTooltip: "Einmalige Pixel = currentPps() × Sekunden. Automation-Pfad verlängert die Sekunden.",
+        apply: () => addPixels(currentPps() * 18, "Backup-Generator"),
+      },
     ],
   },
   {
     id: "quality",
     title: "Qualitätsfenster",
     text: "Eine seltene Charge ist eingetroffen.",
+    visualTheme: "gold",
     choices: [
-      { id: "mass", label: "Massenlauf", detail: "45s Produktion +28%", apply: (s) => addTimed(s, "prod", 1.28, 45, "Massenlauf") },
-      { id: "premium", label: "Premium-Serie", detail: "35s Klick +60%", apply: (s) => addTimed(s, "click", 1.6, 35, "Premium-Serie") },
-      { id: "store", label: "Einlagern", detail: "+22 Saisonpunkte", apply: (s) => addSeasonPoints(s, 22, "Charge eingelagert") },
+      { id: "mass", icon: "📦", risk: 7, label: "Massenlauf", detail: "45s Produktion +28%", mathTooltip: "addTimed prod ×1.28 für 45s.", apply: (s) => addTimed(s, "prod", 1.28, 45, "Massenlauf") },
+      { id: "premium", icon: "✨", risk: 8, label: "Premium-Serie", detail: "35s Klick +60%", mathTooltip: "addTimed click ×1.6 für 35s (PPC).", apply: (s) => addTimed(s, "click", 1.6, 35, "Premium-Serie") },
+      { id: "store", icon: "📥", risk: 6, label: "Einlagern", detail: "+22 Saisonpunkte", mathTooltip: "Direkt seasonPoints +22 (skaliert durch Mission-Boni).", apply: (s) => addSeasonPoints(s, 22, "Charge eingelagert") },
     ],
   },
   {
     id: "security",
     title: "Sicherheitsalarm",
     text: "Anomalie in den Sensorlogs erkannt.",
+    visualTheme: "blue",
     choices: [
-      { id: "scan", label: "Vollscan fahren", detail: "Events 90s lang seltener", apply: (s) => addTimed(s, "eventRate", 0.72, 90, "Vollscan läuft") },
-      { id: "ignore", label: "Ignorieren", detail: "Sofort +12s PPS, aber 40s Eventrate +20%", apply: (s) => { addPixels(currentPps() * 12, "Unsichere Ausbeute"); addTimed(s, "eventRate", 1.2, 40, "Instabile Sensoren"); } },
-      { id: "counter", label: "Gegenmaßnahme", detail: "Missionen +20% für 50s", apply: (s) => addTimed(s, "missionReward", 1.2, 50, "Missionsbonus aktiv") },
+      { id: "scan", icon: "📡", risk: 7, label: "Vollscan fahren", detail: "Events 90s lang seltener", mathTooltip: "eventRate timed ×0.72 für 90s.", apply: (s) => addTimed(s, "eventRate", 0.72, 90, "Vollscan läuft") },
+      { id: "ignore", icon: "👀", risk: 5, label: "Ignorieren", detail: "Sofort Pixel, dann 40s instabilere Sensoren", mathTooltip: "Pixel + PPS×12s, dann eventRate ×1.2 (40s). Efficiency reduziert die Strafe.", apply: (s) => { addPixels(currentPps() * 12, "Unsichere Ausbeute"); addTimed(s, "eventRate", 1.2, 40, "Instabile Sensoren"); } },
+      { id: "counter", icon: "🛡️", risk: 7, label: "Gegenmaßnahme", detail: "Missionen +20% Belohnung für 50s", mathTooltip: "missionReward timed ×1.2.", apply: (s) => addTimed(s, "missionReward", 1.2, 50, "Missionsbonus aktiv") },
     ],
   },
   {
     id: "market",
     title: "Marktfenster",
     text: "Ein Händlernetz bietet kurzfristige Deals.",
+    visualTheme: "emerald",
     choices: [
-      { id: "buy", label: "Material einkaufen", detail: "Nächste 3 Käufe -25%", apply: (s) => { s.economy.discountBuys = 3; showBanner("Nächste 3 Käufe -25%"); } },
-      { id: "sell", label: "Schnellverkauf", detail: "Sofort +35s Klickbonus", apply: (s) => addTimed(s, "click", 1.45, 35, "Verkaufspush") },
-      { id: "hold", label: "Abwarten", detail: "+15 Saisonpunkte", apply: (s) => addSeasonPoints(s, 15, "Marktbeobachtung") },
+      { id: "buy", icon: "🛒", risk: 6, label: "Material einkaufen", detail: "Nächste 3 Gebäude-Käufe −25%", mathTooltip: "discountBuys = 3 (nur Kosten, nicht PPS).", apply: (s) => { s.economy.discountBuys = 3; showBanner("Nächste 3 Käufe -25%"); } },
+      { id: "sell", icon: "💸", risk: 8, label: "Schnellverkauf", detail: "35s Klick-Bonus", mathTooltip: "click ×1.45 für 35s. Speed-Pfad verstärkt.", apply: (s) => addTimed(s, "click", 1.45, 35, "Verkaufspush") },
+      { id: "hold", icon: "⏳", risk: 5, label: "Abwarten", detail: "+15 Saisonpunkte", mathTooltip: "seasonPoints +15.", apply: (s) => addSeasonPoints(s, 15, "Marktbeobachtung") },
     ],
   },
   {
     id: "heat",
     title: "Hitzewelle",
-    text: "Die Anlage läuft an der Grenze.",
+    text: "Die Anlage läuft an der Grenze – Hitze steigt!",
+    visualTheme: "heat",
     choices: [
-      { id: "cool", label: "Kühlen", detail: "Produktion 30s -10%, danach Eventrate -20% für 70s", apply: (s) => { addTimed(s, "prod", 0.9, 30, "Kühlung aktiv"); applyDelayedEffectSafe(30000, () => addTimed(state, "eventRate", 0.8, 70, "Thermisch stabil")); } },
-      { id: "push", label: "Pushen", detail: "Produktion 25s +45%", apply: (s) => addTimed(s, "prod", 1.45, 25, "Overheat-Boost") },
-      { id: "split", label: "Linie teilen", detail: "Klick +40% und Produktion +15% für 30s", apply: (s) => { addTimed(s, "click", 1.4, 30, "Split-Modus"); addTimed(s, "prod", 1.15, 30, "Split-Modus"); } },
+      {
+        id: "cool",
+        icon: "❄️",
+        risk: 5,
+        label: "Kühlen",
+        detail: "Sicher: kurz weniger PPS, danach ruhigere Events",
+        mathTooltip: "30s prod reduziert, danach 70s eventRate reduziert. Efficiency-Pfad mildert stark.",
+        apply: (s) => {
+          addTimed(s, "prod", 0.9, 30, "Kühlung aktiv");
+          applyDelayedEffectSafe(30000, () => addTimed(state, "eventRate", 0.8, 70, "Thermisch stabil"));
+        },
+      },
+      {
+        id: "push",
+        icon: "🔥",
+        risk: 9,
+        label: "Pushen",
+        detail: "Hoher Gewinn: 25s stark erhöhte Produktion",
+        mathTooltip: "25s prod ×1.45+. Speed-Pfad erhöht den Boost, Efficiency nicht.",
+        apply: (s) => addTimed(s, "prod", 1.45, 25, "Overheat-Boost"),
+      },
+      {
+        id: "split",
+        icon: "🔀",
+        risk: 7,
+        label: "Linie teilen",
+        detail: "Ausgewogen: Klick und PPS kurz erhöht",
+        mathTooltip: "30s click ×1.4 und prod ×1.15. Synergy-Pfad stärkt beides etwas.",
+        apply: (s) => {
+          addTimed(s, "click", 1.4, 30, "Split-Modus");
+          addTimed(s, "prod", 1.15, 30, "Split-Modus");
+        },
+      },
     ],
   },
 ];
+
+const EVENT_CHOICE_MS = 20000;
+
+/** Anteil der investierten Prestige-Punkte pro Pfad (0–1), für Event-Anpassungen. */
+function lineInfluenceNorm() {
+  const ll = state.meta.lineLevels || {};
+  const sum = (k) => Object.values(ll[k] || {}).reduce((a, b) => a + b, 0);
+  const sp = sum("speed");
+  const ef = sum("efficiency");
+  const au = sum("automation");
+  const sy = sum("synergy");
+  const t = sp + ef + au + sy + 0.001;
+  return { speed: sp / t, efficiency: ef / t, automation: au / t, synergy: sy / t };
+}
+
+function buildResolvedEvent(raw) {
+  const inv = lineInfluenceNorm();
+  const choices = raw.choices.map((c) => applyLineTreeToChoice(raw.id, { ...c }, inv));
+  return {
+    id: raw.id,
+    title: raw.title,
+    text: raw.text,
+    visualTheme: raw.visualTheme || "default",
+    lineHint: buildLineHint(inv),
+    choices,
+  };
+}
+
+function buildLineHint(inv) {
+  const max = Math.max(inv.speed, inv.efficiency, inv.automation, inv.synergy);
+  if (max < 0.08) return "Linienbaum: noch wenig investiert – alle Pfade wirken schwach.";
+  if (inv.efficiency === max) return "Linienbaum: Efficiency dominiert → stabilere / mildere Optionen.";
+  if (inv.speed === max) return "Linienbaum: Speed dominiert → aggressivere Boosts möglich.";
+  if (inv.automation === max) return "Linienbaum: Automation dominiert → bessere Passiv-/Offline-lastige Boni.";
+  return "Linienbaum: Synergy dominiert → ausgewogenere Kreuz-Boni.";
+}
+
+function applyLineTreeToChoice(eventId, c, inv) {
+  const key = `${eventId}:${c.id}`;
+  const eff = inv.efficiency;
+  const spd = inv.speed;
+  const aut = inv.automation;
+  const syn = inv.synergy;
+
+  if (key === "heat:cool") {
+    const prodM = Math.min(0.97, 0.9 + eff * 0.14);
+    const evAfter = Math.min(0.92, 0.8 + eff * 0.18);
+    const extra = eff > 0.12 ? ` Efficiency: Abfall nur ${Math.round(prodM * 100)}%.` : "";
+    return {
+      ...c,
+      detail: `${c.detail}${extra}`,
+      apply: (s) => {
+        addTimed(s, "prod", prodM, 30, "Kühlung aktiv");
+        applyDelayedEffectSafe(30000, () => addTimed(state, "eventRate", evAfter, 70, "Thermisch stabil"));
+      },
+    };
+  }
+  if (key === "heat:push") {
+    const prodBoost = Math.min(1.62, 1.45 + spd * 0.2);
+    const extra = spd > 0.12 ? ` Speed: Boost ${(prodBoost * 100 - 100).toFixed(0)}%.` : "";
+    return {
+      ...c,
+      detail: `${c.detail}${extra}`,
+      apply: (s) => addTimed(s, "prod", prodBoost, 25, "Overheat-Boost"),
+    };
+  }
+  if (key === "heat:split") {
+    const ck = Math.min(1.52, 1.4 + syn * 0.15);
+    const pr = Math.min(1.26, 1.15 + syn * 0.12);
+    const extra = syn > 0.1 ? " Synergy: beide Modifikatoren etwas höher." : "";
+    return {
+      ...c,
+      detail: `${c.detail}${extra}`,
+      apply: (s) => {
+        addTimed(s, "click", ck, 30, "Split-Modus");
+        addTimed(s, "prod", pr, 30, "Split-Modus");
+      },
+    };
+  }
+  if (key === "power:repair") {
+    const prodM = Math.min(0.94, 0.85 + eff * 0.14);
+    const extra = eff > 0.12 ? ` Efficiency: nur ${Math.round((1 - prodM) * 100)}% Abfall.` : "";
+    return {
+      ...c,
+      detail: `${c.detail}${extra}`,
+      apply: (s) => addTimed(s, "prod", prodM, 20, "Reparatur aktiv"),
+    };
+  }
+  if (key === "power:risk") {
+    const hi = Math.min(1.5, 1.35 + spd * 0.18);
+    const lo = Math.max(0.72, 0.8 - eff * 0.08);
+    const extra = spd > 0.12 ? " Speed: höherer Hoch." : eff > 0.12 ? " Efficiency: milderes Nachbeben." : "";
+    return {
+      ...c,
+      detail: `${c.detail}${extra}`,
+      apply: (s) => {
+        addTimed(s, "prod", hi, 30, "Risikofahrt");
+        applyDelayedEffectSafe(30000, () => addTimed(state, "prod", lo, 25, "Überhitzung"));
+      },
+    };
+  }
+  if (key === "power:backup") {
+    const sec = 18 + aut * 14;
+    const extra = aut > 0.12 ? ` Automation: +${sec.toFixed(0)}s Äquivalent.` : "";
+    return {
+      ...c,
+      detail: `${c.detail}${extra}`,
+      apply: () => addPixels(currentPps() * sec, "Backup-Generator"),
+    };
+  }
+  if (key === "security:ignore") {
+    const evPen = Math.max(1.05, 1.2 - eff * 0.18);
+    const extra = eff > 0.12 ? ` Efficiency: Sensoren nur ×${evPen.toFixed(2)}.` : "";
+    return {
+      ...c,
+      detail: `${c.detail}${extra}`,
+      apply: (s) => {
+        addPixels(currentPps() * 12, "Unsichere Ausbeute");
+        addTimed(s, "eventRate", evPen, 40, "Instabile Sensoren");
+      },
+    };
+  }
+  if (key === "market:sell") {
+    const mult = Math.min(1.58, 1.45 + spd * 0.16);
+    const extra = spd > 0.12 ? " Speed: stärkerer Klick-Boost." : "";
+    return {
+      ...c,
+      detail: `${c.detail}${extra}`,
+      apply: (s) => addTimed(s, "click", mult, 35, "Verkaufspush"),
+    };
+  }
+  return c;
+}
 
 const MISSIONS = [
   { id: "m_prod_short", type: "produce", name: "Schichtziel", desc: "Produziere {target} Pixel", baseTarget: 24000, reward: { pixel: 9000, season: 18 } },
@@ -173,6 +369,10 @@ const runtime = {
   nextShopRenderAt: 0,
   recentEvents: [],
   lineTreeModalWired: false,
+  eventUiRaf: 0,
+  eventDeadline: 0,
+  prestigeMutationChoices: [],
+  mutationSlotRunning: false,
 };
 
 const ui = {};
@@ -525,9 +725,73 @@ function eventInterval() {
 function maybeSpawnEvent() {
   if (state.session.activeEvent) return;
   if (Date.now() < state.session.nextEventAt) return;
-  state.session.activeEvent = pickEvent();
+  const raw = pickEvent();
+  state.session.activeEvent = buildResolvedEvent(raw);
   state.session.nextEventAt = Date.now() + eventInterval();
   renderEventModal();
+}
+
+function stopEventUiTimer() {
+  if (runtime.eventUiRaf) {
+    cancelAnimationFrame(runtime.eventUiRaf);
+    runtime.eventUiRaf = 0;
+  }
+  runtime.eventDeadline = 0;
+  const vig = document.getElementById("eventVignette");
+  if (vig) vig.className = "pf-event-vignette";
+}
+
+function setEventVignetteTheme(theme) {
+  const vig = document.getElementById("eventVignette");
+  if (!vig) return;
+  vig.className = "pf-event-vignette";
+  if (!theme || theme === "off" || theme === "default") return;
+  if (theme === "heat") vig.classList.add("pf-event-vignette--heat");
+  else if (theme === "amber") vig.classList.add("pf-event-vignette--amber");
+  else if (theme === "gold") vig.classList.add("pf-event-vignette--gold");
+  else if (theme === "blue") vig.classList.add("pf-event-vignette--blue");
+  else if (theme === "emerald") vig.classList.add("pf-event-vignette--emerald");
+  else vig.classList.add("pf-event-vignette--soft");
+}
+
+function showPfFloatingTooltip(anchor, text) {
+  if (!ui.lineTreeTooltip || !text) return;
+  ui.lineTreeTooltip.textContent = text;
+  ui.lineTreeTooltip.classList.remove("versteckt");
+  ui.lineTreeTooltip.hidden = false;
+  const r = anchor.getBoundingClientRect();
+  const pad = 8;
+  ui.lineTreeTooltip.style.left = `${Math.min(window.innerWidth - 280, Math.max(pad, r.left + r.width / 2 - 130))}px`;
+  ui.lineTreeTooltip.style.top = `${Math.min(window.innerHeight - 120, r.bottom + pad)}px`;
+}
+
+function autoResolveEventWorst() {
+  const e = state.session.activeEvent;
+  if (!e || !e.choices.length) return;
+  let worst = e.choices[0];
+  for (const c of e.choices) {
+    if ((c.risk ?? 5) < (worst.risk ?? 5)) worst = c;
+  }
+  toast("Zeit abgelaufen – automatisch gewählt (niedrigster Erwartungswert).");
+  resolveEvent(worst.id);
+}
+
+function tickEventTimer() {
+  const fill = document.getElementById("eventTimerFill");
+  const e = state.session.activeEvent;
+  if (!e || !runtime.eventDeadline) {
+    stopEventUiTimer();
+    return;
+  }
+  const left = Math.max(0, runtime.eventDeadline - Date.now());
+  const pct = left / EVENT_CHOICE_MS;
+  if (fill) fill.style.width = `${pct * 100}%`;
+  if (left <= 0) {
+    stopEventUiTimer();
+    autoResolveEventWorst();
+    return;
+  }
+  runtime.eventUiRaf = requestAnimationFrame(tickEventTimer);
 }
 
 function resolveEvent(choiceId) {
@@ -535,6 +799,7 @@ function resolveEvent(choiceId) {
   if (!e) return;
   const choice = e.choices.find((c) => c.id === choiceId);
   if (!choice) return;
+  stopEventUiTimer();
   choice.apply(state);
   state.session.eventsSolved += 1;
   state.session.activeEvent = null;
@@ -548,6 +813,92 @@ function calcPrestigeGain() {
   return 1;
 }
 
+function mutationRarityClass(r) {
+  if (r === "epic") return "epic";
+  if (r === "rare") return "rare";
+  return "common";
+}
+
+function mutationRarityLabel(r) {
+  if (r === "epic") return "Episch";
+  if (r === "rare") return "Selten";
+  return "Üblich";
+}
+
+function spawnPrestigeModalConfetti() {
+  const c = document.getElementById("prestigeModalConfetti");
+  if (!c || !c.getContext) return;
+  const ctx = c.getContext("2d");
+  const rect = c.getBoundingClientRect();
+  const w = (c.width = Math.max(320, rect.width || 380));
+  const h = (c.height = Math.max(200, rect.height || 260));
+  const parts = [];
+  for (let i = 0; i < 96; i++) {
+    parts.push({
+      x: w / 2 + (Math.random() - 0.5) * 60,
+      y: h * 0.15 + Math.random() * 40,
+      vx: (Math.random() - 0.5) * 7,
+      vy: -Math.random() * 9 - 1,
+      rot: Math.random() * Math.PI,
+      vr: (Math.random() - 0.5) * 0.25,
+      col: ["#c4b5fd", "#fcd34d", "#93c5fd", "#6ee7b7", "#f9a8d4"][i % 5],
+      s: 3 + Math.random() * 7,
+    });
+  }
+  let frame = 0;
+  function step() {
+    frame += 1;
+    ctx.clearRect(0, 0, w, h);
+    let alive = false;
+    for (const p of parts) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.42;
+      p.rot += p.vr;
+      if (p.y < h + 24) alive = true;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.col;
+      ctx.globalAlpha = 0.85;
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.55);
+      ctx.restore();
+    }
+    if (alive && frame < 100) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function runMutationSlotMachine() {
+  const choices = runtime.prestigeMutationChoices;
+  if (!choices?.length || runtime.mutationSlotRunning) return;
+  runtime.mutationSlotRunning = true;
+  const quickBtn = document.getElementById("prestigeConfirmJa");
+  if (quickBtn) quickBtn.disabled = true;
+  const overlay = document.getElementById("mutationSlotOverlay");
+  const reel = document.getElementById("mutationSlotReel");
+  const allTitles = MUTATIONS.map((m) => m.title);
+  const final = choices[Math.floor(Math.random() * choices.length)];
+  let ticks = 0;
+  const maxTicks = 32 + Math.floor(Math.random() * 10);
+  if (overlay) overlay.classList.remove("versteckt");
+  const iv = setInterval(() => {
+    ticks += 1;
+    const flash = allTitles[Math.floor(Math.random() * allTitles.length)];
+    if (reel) reel.textContent = flash;
+    if (ticks >= maxTicks) {
+      clearInterval(iv);
+      if (reel) reel.textContent = final.title;
+      setTimeout(() => {
+        if (overlay) overlay.classList.add("versteckt");
+        runtime.mutationSlotRunning = false;
+        if (quickBtn) quickBtn.disabled = false;
+        doPrestige(final.id);
+      }, 500);
+    }
+  }, 75);
+}
+
 function openPrestigeModal() {
   if (state.economy.lifetimePixel < prestigeThreshold()) return;
   const choices = [];
@@ -556,27 +907,42 @@ function openPrestigeModal() {
     const i = Math.floor(Math.random() * src.length);
     choices.push(src.splice(i, 1)[0]);
   }
+  runtime.prestigeMutationChoices = choices;
   const wrap = document.getElementById("mutationChoices");
+  if (!wrap) return;
   ui.pcQP.textContent = `+${calcPrestigeGain()} Prestigepunkt`;
   wrap.innerHTML = choices.map((m) => `
-    <button class="mutation-card" data-mut="${m.id}">
-      <strong>${m.title}</strong>
-      <span>${m.text}</span>
-      <small>${m.detail}</small>
-    </button>
+    <div class="pf-mutation-card-wrap">
+      <button type="button" class="pf-mutation-card__tip" data-math-detail="${escapeHtmlPf(m.mathDetail || m.detail)}" aria-label="Formeln">?</button>
+      <button type="button" class="pf-mutation-card pf-mutation-card--${mutationRarityClass(m.rarity)}" data-mut="${m.id}">
+        <span class="pf-mutation-card__rarity">${mutationRarityLabel(m.rarity)}</span>
+        <span class="pf-mutation-card__icon" aria-hidden="true">${m.icon || "✦"}</span>
+        <strong class="pf-mutation-card__title">${escapeHtmlPf(m.title)}</strong>
+        <span class="pf-mutation-card__desc">${escapeHtmlPf(m.text)}</span>
+      </button>
+    </div>
   `).join("");
+
   wrap.querySelectorAll("[data-mut]").forEach((btn) => {
-    btn.addEventListener("click", () => doPrestige(btn.dataset.mut));
+    btn.addEventListener("click", () => {
+      if (runtime.mutationSlotRunning) return;
+      doPrestige(btn.dataset.mut);
+    });
   });
+  wrap.querySelectorAll(".pf-mutation-card__tip").forEach((el) => {
+    el.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      showPfFloatingTooltip(el, el.dataset.mathDetail || "");
+    });
+  });
+
   const quickBtn = document.getElementById("prestigeConfirmJa");
   if (quickBtn) {
     quickBtn.textContent = "Zufällige Mutation";
-    quickBtn.onclick = () => {
-      const first = choices[0];
-      if (first) doPrestige(first.id);
-    };
+    quickBtn.onclick = () => runMutationSlotMachine();
   }
   ui.prestigeModal.classList.remove("versteckt");
+  requestAnimationFrame(() => spawnPrestigeModalConfetti());
 }
 
 function doPrestige(mutationId) {
@@ -600,6 +966,8 @@ function doPrestige(mutationId) {
   randomMissionSet();
   recomputeMetaFromLineAndMutations();
   ui.prestigeModal.classList.add("versteckt");
+  document.getElementById("mutationSlotOverlay")?.classList.add("versteckt");
+  runtime.mutationSlotRunning = false;
   runtime.forceShopRender = true;
   renderStats();
   renderMissions();
@@ -1118,17 +1486,52 @@ function maybeRenderShop() {
 function renderEventModal() {
   const e = state.session.activeEvent;
   if (!e) return;
-  document.getElementById("eventTitle").textContent = e.title;
-  document.getElementById("eventText").textContent = e.text;
+  stopEventUiTimer();
+  setEventVignetteTheme(e.visualTheme || "default");
+
+  const titleEl = document.getElementById("eventTitle");
+  const hintEl = document.getElementById("eventLineHint");
+  const textEl = document.getElementById("eventText");
+  if (titleEl) titleEl.textContent = e.title;
+  if (hintEl) hintEl.textContent = e.lineHint || "";
+  if (textEl) textEl.textContent = e.text;
+
   const wrap = document.getElementById("eventChoices");
   wrap.innerHTML = e.choices.map((c) => `
-    <button class="btn-aktion event-choice" data-event-choice="${c.id}">
-      <strong>${c.label}</strong><small>${c.detail}</small>
-    </button>
+    <div class="pf-event-action-row">
+      <span class="pf-event-card__help" role="button" tabindex="0" data-event-tip="${escapeHtmlPf(c.mathTooltip || "Keine Detailformel hinterlegt.")}" aria-label="Mechanik erklären">?</span>
+      <button type="button" class="pf-event-action-card" data-event-choice="${c.id}">
+        <span class="pf-event-action-card__icon" aria-hidden="true">${c.icon || "▸"}</span>
+        <span class="pf-event-action-card__textblock">
+          <strong class="pf-event-action-card__label">${escapeHtmlPf(c.label)}</strong>
+          <span class="pf-event-action-card__detail">${escapeHtmlPf(c.detail)}</span>
+          <span class="pf-event-action-card__meta">Erwartungswert-Rang <b>${c.risk ?? "–"}</b>/10 · höher = tendenziell besser</span>
+        </span>
+      </button>
+    </div>
   `).join("");
+
   wrap.querySelectorAll("[data-event-choice]").forEach((btn) => {
     btn.addEventListener("click", () => resolveEvent(btn.dataset.eventChoice));
   });
+  wrap.querySelectorAll("[data-event-tip]").forEach((el) => {
+    const tip = el.dataset.eventTip || "";
+    const open = (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      showPfFloatingTooltip(el, tip);
+    };
+    el.addEventListener("click", open);
+    el.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") open(ev);
+    });
+  });
+
+  const fill = document.getElementById("eventTimerFill");
+  if (fill) fill.style.width = "100%";
+  runtime.eventDeadline = Date.now() + EVENT_CHOICE_MS;
+  runtime.eventUiRaf = requestAnimationFrame(tickEventTimer);
+
   ui.eventOverlay.classList.remove("versteckt");
 }
 
@@ -1396,14 +1799,25 @@ function setupDynamicUi() {
 
   const ev = document.createElement("div");
   ev.id = "eventOverlay";
-  ev.className = "modal-hintergrund versteckt";
-  ev.innerHTML = `<div class="modal"><h2 id="eventTitle"></h2><p id="eventText"></p><div id="eventChoices" class="event-choices"></div></div>`;
+  ev.className = "modal-hintergrund pf-modal-glass versteckt";
+  ev.innerHTML = `
+    <div class="modal pf-event-modal pf-modal-glass__panel">
+      <div class="pf-event-timer-track" aria-hidden="true">
+        <div id="eventTimerFill" class="pf-event-timer-fill"></div>
+      </div>
+      <p id="eventLineHint" class="pf-event-line-hint"></p>
+      <h2 id="eventTitle"></h2>
+      <p id="eventText" class="pf-event-text"></p>
+      <div id="eventChoices" class="pf-event-action-grid"></div>
+    </div>`;
   document.body.appendChild(ev);
 
-  const mut = document.createElement("div");
-  mut.id = "mutationChoices";
-  mut.className = "mutation-grid";
-  document.querySelector(".pc-liste").appendChild(mut);
+  if (!document.getElementById("mutationChoices")) {
+    const mut = document.createElement("div");
+    mut.id = "mutationChoices";
+    mut.className = "mutation-grid pf-mutation-grid";
+    document.querySelector(".pc-liste")?.appendChild(mut);
+  }
 }
 
 function bindEvents() {
@@ -1447,7 +1861,11 @@ function bindEvents() {
 
   ui.canvas.addEventListener("click", handleClick);
   ui.prestigeBtn.addEventListener("click", openPrestigeModal);
-  document.getElementById("prestigeConfirmNein").addEventListener("click", () => ui.prestigeModal.classList.add("versteckt"));
+  document.getElementById("prestigeConfirmNein").addEventListener("click", () => {
+    ui.prestigeModal.classList.add("versteckt");
+    document.getElementById("mutationSlotOverlay")?.classList.add("versteckt");
+    runtime.mutationSlotRunning = false;
+  });
 
   document.getElementById("errungenschaftenBtn").textContent = "📅 Saison";
   document.getElementById("errungenschaftenBtn").addEventListener("click", renderSeasonModal);

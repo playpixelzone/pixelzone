@@ -12,70 +12,72 @@ const PRESTIGE_BASE = 9000;
 const PRESTIGE_GROWTH = 1.5;
 
 const BUILDINGS = [
-  { id: "worker", name: "Pixel-Arbeiter", icon: "🧑‍🏭", baseCost: 15, growth: 1.12, pps: 0.4, unlockAt: 0 },
-  { id: "intern", name: "Praktikant", icon: "🧢", baseCost: 70, growth: 1.13, pps: 1.4, unlockAt: 50 },
-  { id: "printer", name: "Nano-Drucker", icon: "🖨️", baseCost: 260, growth: 1.14, pps: 5.6, unlockAt: 170 },
-  { id: "assembler", name: "Assembler", icon: "⚙️", baseCost: 980, growth: 1.15, pps: 16, unlockAt: 650 },
-  { id: "robot", name: "Roboterarm", icon: "🤖", baseCost: 3900, growth: 1.16, pps: 49, unlockAt: 2200 },
-  { id: "reactor", name: "Fusion-Reaktor", icon: "⚡", baseCost: 15000, growth: 1.17, pps: 170, unlockAt: 8800 },
+  { id: "worker", name: "Pixel-Arbeiter", icon: "🧑‍🏭", baseCost: 15, growth: 1.128, pps: 0.4, unlockAt: 0 },
+  { id: "intern", name: "Praktikant", icon: "🧢", baseCost: 70, growth: 1.136, pps: 1.4, unlockAt: 50 },
+  { id: "printer", name: "Nano-Drucker", icon: "🖨️", baseCost: 260, growth: 1.145, pps: 5.6, unlockAt: 170 },
+  { id: "assembler", name: "Assembler", icon: "⚙️", baseCost: 980, growth: 1.154, pps: 16, unlockAt: 650 },
+  { id: "robot", name: "Roboterarm", icon: "🤖", baseCost: 3900, growth: 1.162, pps: 49, unlockAt: 2200 },
+  { id: "reactor", name: "Fusion-Reaktor", icon: "⚡", baseCost: 15000, growth: 1.171, pps: 170, unlockAt: 8800 },
   { id: "cluster", name: "Chip-Cluster", icon: "🧠", baseCost: 54000, growth: 1.18, pps: 610, unlockAt: 30000 },
-  { id: "satellite", name: "Satelliten-Linie", icon: "🛰️", baseCost: 190000, growth: 1.19, pps: 2100, unlockAt: 110000 },
-  { id: "laserFab", name: "Laser-Fabrik", icon: "🔴", baseCost: 680000, growth: 1.2, pps: 7000, unlockAt: 420000 },
-  { id: "quantumCore", name: "Line-Core", icon: "🌀", baseCost: 2400000, growth: 1.21, pps: 21000, unlockAt: 1500000 },
-  { id: "matrix", name: "Matrix-Fabrik", icon: "🏭", baseCost: 8500000, growth: 1.22, pps: 68000, unlockAt: 5000000 },
-  { id: "arcology", name: "Pixel-Arcology", icon: "🏙️", baseCost: 31000000, growth: 1.23, pps: 210000, unlockAt: 18000000 },
-  { id: "orbitalDock", name: "Orbital-Dock", icon: "🛸", baseCost: 115000000, growth: 1.24, pps: 690000, unlockAt: 70000000 },
+  { id: "satellite", name: "Satelliten-Linie", icon: "🛰️", baseCost: 190000, growth: 1.188, pps: 2100, unlockAt: 110000 },
+  { id: "laserFab", name: "Laser-Fabrik", icon: "🔴", baseCost: 680000, growth: 1.197, pps: 7000, unlockAt: 420000 },
+  { id: "quantumCore", name: "Line-Core", icon: "🌀", baseCost: 2400000, growth: 1.206, pps: 21000, unlockAt: 1500000 },
+  { id: "matrix", name: "Matrix-Fabrik", icon: "🏭", baseCost: 8500000, growth: 1.215, pps: 68000, unlockAt: 5000000 },
+  { id: "arcology", name: "Pixel-Arcology", icon: "🏙️", baseCost: 31000000, growth: 1.224, pps: 210000, unlockAt: 18000000 },
+  { id: "orbitalDock", name: "Orbital-Dock", icon: "🛸", baseCost: 115000000, growth: 1.232, pps: 690000, unlockAt: 70000000 },
 ];
 
+/** Kosten steigen pro Stufe stärker (PPS-Pfad teurer), Klick-Pfad stützt aktives Spiel (~10–20 % bei schnellem Klicken). */
 const UPGRADES = [
-  { id: "u_click_1", name: "Präzisions-Klick", desc: "+2 Klickkraft", cost: 70, unlockAt: 40, apply: (s) => { s.economy.clickBase += 2; } },
-  { id: "u_click_2", name: "Servo-Hand", desc: "Klickkraft x1.75", cost: 520, unlockAt: 260, apply: (s) => { s.economy.clickMult *= 1.75; } },
-  { id: "u_click_3", name: "Impuls-Handschuh", desc: "Klickkraft x2.15", cost: 3600, unlockAt: 1800, apply: (s) => { s.economy.clickMult *= 2.15; } },
-  { id: "u_click_4", name: "Hyperfinger", desc: "Klickkraft x2.5", cost: 24000, unlockAt: 12000, apply: (s) => { s.economy.clickMult *= 2.5; } },
-  { id: "u_click_5", name: "Neural-Link", desc: "Klickkraft x3.2", cost: 240000, unlockAt: 150000, apply: (s) => { s.economy.clickMult *= 3.2; } },
-  { id: "u_prod_1", name: "Schichtplan", desc: "Produktion x1.35", cost: 360, unlockAt: 220, apply: (s) => { s.economy.prodMult *= 1.35; } },
-  { id: "u_prod_2", name: "Qualitätskette", desc: "Produktion x1.6", cost: 2800, unlockAt: 1600, apply: (s) => { s.economy.prodMult *= 1.6; } },
-  { id: "u_prod_3", name: "Fließband-KI", desc: "Produktion x2.2", cost: 20000, unlockAt: 12000, apply: (s) => { s.economy.prodMult *= 2.2; } },
-  { id: "u_prod_4", name: "Takt-Optimierung", desc: "Produktion x2.6", cost: 180000, unlockAt: 100000, apply: (s) => { s.economy.prodMult *= 2.6; } },
-  { id: "u_prod_5", name: "Parallel-Layer", desc: "Produktion x3.0", cost: 1200000, unlockAt: 800000, apply: (s) => { s.economy.prodMult *= 3.0; } },
-  { id: "u_combo_1", name: "Flow-Training", desc: "Kombo stärker (+0.1)", cost: 1800, unlockAt: 900, apply: (s) => { s.economy.comboBonus += 0.1; } },
-  { id: "u_combo_2", name: "Flow-Reflex", desc: "Kombo-Fenster +420ms", cost: 9000, unlockAt: 5200, apply: (s) => { s.economy.comboWindowBonus += 420; } },
-  { id: "u_combo_3", name: "Burst-Kontrolle", desc: "Kombo stärker (+0.16)", cost: 74000, unlockAt: 42000, apply: (s) => { s.economy.comboBonus += 0.16; } },
-  { id: "u_offline_1", name: "Nachtprotokoll", desc: "Offline-Effizienz +24%", cost: 13000, unlockAt: 7000, apply: (s) => { s.economy.offlineEff += 0.24; } },
-  { id: "u_offline_2", name: "Auto-Schicht", desc: "Offline-Effizienz +40%", cost: 110000, unlockAt: 70000, apply: (s) => { s.economy.offlineEff += 0.4; } },
-  { id: "u_event_1", name: "Notfallplan", desc: "Events seltener", cost: 28000, unlockAt: 18000, apply: (s) => { s.meta.eventRateMult *= 0.9; } },
-  { id: "u_event_2", name: "Puffer-Netz", desc: "Events seltener", cost: 290000, unlockAt: 180000, apply: (s) => { s.meta.eventRateMult *= 0.86; } },
-  { id: "u_hybrid_1", name: "Lean-Core", desc: "Klick + Produktion x1.25", cost: 54000, unlockAt: 30000, apply: (s) => { s.economy.clickMult *= 1.25; s.economy.prodMult *= 1.25; } },
-  { id: "u_hybrid_2", name: "Dual-Stack", desc: "Klick + Produktion x1.45", cost: 360000, unlockAt: 220000, apply: (s) => { s.economy.clickMult *= 1.45; s.economy.prodMult *= 1.45; } },
+  { id: "u_click_1", name: "Präzisions-Klick", desc: "+3 Klickkraft", cost: 52, unlockAt: 32, apply: (s) => { s.economy.clickBase += 3; } },
+  { id: "u_click_2", name: "Servo-Hand", desc: "Klickkraft ×1.88", cost: 420, unlockAt: 200, apply: (s) => { s.economy.clickMult *= 1.88; } },
+  { id: "u_click_3", name: "Impuls-Handschuh", desc: "Klickkraft ×2.25", cost: 3200, unlockAt: 1500, apply: (s) => { s.economy.clickMult *= 2.25; } },
+  { id: "u_click_4", name: "Hyperfinger", desc: "Klickkraft ×2.65", cost: 22000, unlockAt: 10000, apply: (s) => { s.economy.clickMult *= 2.65; } },
+  { id: "u_click_5", name: "Neural-Link", desc: "Klickkraft ×3.35", cost: 195000, unlockAt: 120000, apply: (s) => { s.economy.clickMult *= 3.35; } },
+  { id: "u_prod_1", name: "Schichtplan", desc: "Produktion ×1.28", cost: 580, unlockAt: 280, apply: (s) => { s.economy.prodMult *= 1.28; } },
+  { id: "u_prod_2", name: "Qualitätskette", desc: "Produktion ×1.45", cost: 4800, unlockAt: 2600, apply: (s) => { s.economy.prodMult *= 1.45; } },
+  { id: "u_prod_3", name: "Fließband-KI", desc: "Produktion ×1.95", cost: 36000, unlockAt: 20000, apply: (s) => { s.economy.prodMult *= 1.95; } },
+  { id: "u_prod_4", name: "Takt-Optimierung", desc: "Produktion ×2.35", cost: 340000, unlockAt: 180000, apply: (s) => { s.economy.prodMult *= 2.35; } },
+  { id: "u_prod_5", name: "Parallel-Layer", desc: "Produktion ×2.75", cost: 2800000, unlockAt: 1900000, apply: (s) => { s.economy.prodMult *= 2.75; } },
+  { id: "u_combo_1", name: "Flow-Training", desc: "Kombo stärker (+0.1)", cost: 2100, unlockAt: 1000, apply: (s) => { s.economy.comboBonus += 0.1; } },
+  { id: "u_combo_2", name: "Flow-Reflex", desc: "Kombo-Fenster +420ms", cost: 11000, unlockAt: 6000, apply: (s) => { s.economy.comboWindowBonus += 420; } },
+  { id: "u_combo_3", name: "Burst-Kontrolle", desc: "Kombo stärker (+0.16)", cost: 88000, unlockAt: 48000, apply: (s) => { s.economy.comboBonus += 0.16; } },
+  { id: "u_offline_1", name: "Nachtprotokoll", desc: "Offline-Effizienz +24%", cost: 15000, unlockAt: 8000, apply: (s) => { s.economy.offlineEff += 0.24; } },
+  { id: "u_offline_2", name: "Auto-Schicht", desc: "Offline-Effizienz +40%", cost: 135000, unlockAt: 85000, apply: (s) => { s.economy.offlineEff += 0.4; } },
+  { id: "u_event_1", name: "Notfallplan", desc: "Events seltener", cost: 32000, unlockAt: 20000, apply: (s) => { s.meta.eventRateMult *= 0.9; } },
+  { id: "u_event_2", name: "Puffer-Netz", desc: "Events seltener", cost: 340000, unlockAt: 210000, apply: (s) => { s.meta.eventRateMult *= 0.86; } },
+  { id: "u_hybrid_1", name: "Lean-Core", desc: "Klick + Produktion ×1.22", cost: 62000, unlockAt: 34000, apply: (s) => { s.economy.clickMult *= 1.22; s.economy.prodMult *= 1.22; } },
+  { id: "u_hybrid_2", name: "Dual-Stack", desc: "Klick + Produktion ×1.38", cost: 420000, unlockAt: 260000, apply: (s) => { s.economy.clickMult *= 1.38; s.economy.prodMult *= 1.38; } },
 ];
 
+/** lx/ly = Position im Skill-Tree (0–100), viewBox 100×100 */
 const LINE_TREES = {
   speed: [
-    { id: "s_core", name: "Startkern", desc: "Startpunkt der Speed-Line (+18% Produktion)", max: 1, cost: 1, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.18 * lvl); } },
-    { id: "s_burst_1", name: "Burst-I", desc: "+38% Produktion", max: 2, cost: 1, req: "s_core", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.38 * lvl); } },
-    { id: "s_burst_2", name: "Burst-II", desc: "+55% Produktion", max: 1, cost: 2, req: "s_burst_1", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.55 * lvl); } },
-    { id: "s_click_1", name: "Aggro-Klick", desc: "+42% Klickkraft", max: 2, cost: 1, req: "s_core", effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.42 * lvl); } },
-    { id: "s_click_2", name: "Aggro-Klick II", desc: "+68% Klickkraft", max: 1, cost: 2, req: "s_click_1", effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.68 * lvl); } },
-    { id: "s_risk_1", name: "Risikotakt", desc: "+70% Produktion, Eventrate +20%", max: 1, cost: 2, req: "s_core", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.7 * lvl); s.meta.eventRateMult *= (1 + 0.2 * lvl); } },
-    { id: "s_capstone", name: "Hyperline", desc: "+95% Produktion", max: 1, cost: 3, req: "s_burst_2", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.95 * lvl); } },
+    { id: "s_core", name: "Startkern", desc: "Startpunkt der Speed-Line (+18% Produktion)", max: 1, cost: 1, lx: 50, ly: 50, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.18 * lvl); } },
+    { id: "s_burst_1", name: "Burst-I", desc: "+38% Produktion", max: 2, cost: 1, req: "s_core", lx: 28, ly: 42, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.38 * lvl); } },
+    { id: "s_burst_2", name: "Burst-II", desc: "+55% Produktion", max: 1, cost: 2, req: "s_burst_1", lx: 12, ly: 28, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.55 * lvl); } },
+    { id: "s_click_1", name: "Aggro-Klick", desc: "+42% Klickkraft", max: 2, cost: 1, req: "s_core", lx: 72, ly: 42, effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.42 * lvl); } },
+    { id: "s_click_2", name: "Aggro-Klick II", desc: "+68% Klickkraft", max: 1, cost: 2, req: "s_click_1", lx: 88, ly: 28, effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.68 * lvl); } },
+    { id: "s_risk_1", name: "Risikotakt", desc: "+70% Produktion, Eventrate +20%", max: 1, cost: 2, req: "s_core", lx: 50, ly: 74, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.7 * lvl); s.meta.eventRateMult *= (1 + 0.2 * lvl); } },
+    { id: "s_capstone", name: "Hyperline", desc: "+95% Produktion", max: 1, cost: 3, req: "s_burst_2", lx: 8, ly: 22, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.95 * lvl); } },
   ],
   efficiency: [
-    { id: "e_core", name: "Startkern", desc: "Stabile Basis (Events -10%)", max: 1, cost: 1, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.1 * lvl); } },
-    { id: "e_prod_1", name: "Saubere Linie", desc: "+26% Produktion", max: 3, cost: 1, req: "e_core", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.26 * lvl); } },
-    { id: "e_prod_2", name: "Saubere Linie II", desc: "+40% Produktion", max: 1, cost: 2, req: "e_prod_1", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.4 * lvl); } },
-    { id: "e_ctrl_1", name: "Kontrollraum", desc: "Events -16%", max: 2, cost: 1, req: "e_core", effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.16 * lvl); } },
-    { id: "e_ctrl_2", name: "Null-Störung", desc: "Events -24%", max: 1, cost: 2, req: "e_ctrl_1", effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.24 * lvl); } },
-    { id: "e_click", name: "Feinmotorik", desc: "+38% Klickkraft", max: 2, cost: 1, req: "e_core", effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.38 * lvl); } },
-    { id: "e_capstone", name: "Null-Verlust", desc: "Offline +80%", max: 1, cost: 3, req: "e_prod_2", effect: (s, lvl) => { s.economy.offlineEff += 0.8 * lvl; } },
+    { id: "e_core", name: "Startkern", desc: "Stabile Basis (Events -10%)", max: 1, cost: 1, lx: 50, ly: 54, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.1 * lvl); } },
+    { id: "e_prod_1", name: "Saubere Linie", desc: "+26% Produktion", max: 3, cost: 1, req: "e_core", lx: 26, ly: 42, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.26 * lvl); } },
+    { id: "e_prod_2", name: "Saubere Linie II", desc: "+40% Produktion", max: 1, cost: 2, req: "e_prod_1", lx: 10, ly: 28, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.4 * lvl); } },
+    { id: "e_ctrl_1", name: "Kontrollraum", desc: "Events -16%", max: 2, cost: 1, req: "e_core", lx: 74, ly: 42, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.16 * lvl); } },
+    { id: "e_ctrl_2", name: "Null-Störung", desc: "Events -24%", max: 1, cost: 2, req: "e_ctrl_1", lx: 90, ly: 28, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.24 * lvl); } },
+    { id: "e_click", name: "Feinmotorik", desc: "+38% Klickkraft", max: 2, cost: 1, req: "e_core", lx: 50, ly: 28, effect: (s, lvl) => { s.meta.lineClickMult *= (1 + 0.38 * lvl); } },
+    { id: "e_capstone", name: "Null-Verlust", desc: "Offline +80%", max: 1, cost: 3, req: "e_prod_2", lx: 50, ly: 10, effect: (s, lvl) => { s.economy.offlineEff += 0.8 * lvl; } },
   ],
   automation: [
-    { id: "a_core", name: "Startkern", desc: "Automations-Basis (+24% Produktion)", max: 1, cost: 1, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.24 * lvl); } },
-    { id: "a_prod_1", name: "Auto-Roboter", desc: "+36% Produktion", max: 3, cost: 1, req: "a_core", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.36 * lvl); } },
-    { id: "a_prod_2", name: "Autopilot", desc: "+60% Produktion", max: 1, cost: 2, req: "a_prod_1", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.6 * lvl); } },
-    { id: "a_off_1", name: "Ghost-Shift", desc: "Offline +42%", max: 3, cost: 1, req: "a_core", effect: (s, lvl) => { s.economy.offlineEff += 0.42 * lvl; } },
-    { id: "a_off_2", name: "Nachtschicht-Netz", desc: "Offline +90%", max: 1, cost: 2, req: "a_off_1", effect: (s, lvl) => { s.economy.offlineEff += 0.9 * lvl; } },
-    { id: "a_ctrl", name: "Störfilter", desc: "Events -15%", max: 2, cost: 1, req: "a_core", effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.15 * lvl); } },
-    { id: "a_capstone", name: "Fabriknetz", desc: "+65% Produktion und +25% Klick", max: 1, cost: 3, req: "a_prod_2", effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.65 * lvl); s.meta.lineClickMult *= (1 + 0.25 * lvl); } },
+    { id: "a_core", name: "Startkern", desc: "Automations-Basis (+24% Produktion)", max: 1, cost: 1, lx: 50, ly: 52, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.24 * lvl); } },
+    { id: "a_prod_1", name: "Auto-Roboter", desc: "+36% Produktion", max: 3, cost: 1, req: "a_core", lx: 26, ly: 40, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.36 * lvl); } },
+    { id: "a_prod_2", name: "Autopilot", desc: "+60% Produktion", max: 1, cost: 2, req: "a_prod_1", lx: 10, ly: 26, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.6 * lvl); } },
+    { id: "a_off_1", name: "Ghost-Shift", desc: "Offline +42%", max: 3, cost: 1, req: "a_core", lx: 74, ly: 40, effect: (s, lvl) => { s.economy.offlineEff += 0.42 * lvl; } },
+    { id: "a_off_2", name: "Nachtschicht-Netz", desc: "Offline +90%", max: 1, cost: 2, req: "a_off_1", lx: 90, ly: 26, effect: (s, lvl) => { s.economy.offlineEff += 0.9 * lvl; } },
+    { id: "a_ctrl", name: "Störfilter", desc: "Events -15%", max: 2, cost: 1, req: "a_core", lx: 50, ly: 70, effect: (s, lvl) => { s.meta.eventRateMult *= (1 - 0.15 * lvl); } },
+    { id: "a_capstone", name: "Fabriknetz", desc: "+65% Produktion und +25% Klick", max: 1, cost: 3, req: "a_prod_2", lx: 50, ly: 14, effect: (s, lvl) => { s.meta.lineProdMult *= (1 + 0.65 * lvl); s.meta.lineClickMult *= (1 + 0.25 * lvl); } },
   ],
 };
 
@@ -282,13 +284,13 @@ function currentPps() {
 function currentPpk() {
   let progressClickBoost =
     1
-    + Math.log10(state.economy.lifetimePixel + 10) * 0.35
-    + state.meta.prestige * 0.18;
+    + Math.log10(state.economy.lifetimePixel + 10) * 0.4
+    + state.meta.prestige * 0.2;
 
-  // Early/Midgame: aktives Klicken soll sich klar lohnen.
-  if (state.economy.lifetimePixel < 50_000) progressClickBoost *= 1.65;
-  else if (state.economy.lifetimePixel < 2_000_000) progressClickBoost *= 1.28;
-  else if (state.economy.lifetimePixel < 80_000_000) progressClickBoost *= 1.12;
+  // Early/Midgame: Klick soll ~10–20 % der Gesamt-„Feel“-Produktion liefern (bei schnellem Klicken).
+  if (state.economy.lifetimePixel < 50_000) progressClickBoost *= 1.82;
+  else if (state.economy.lifetimePixel < 2_000_000) progressClickBoost *= 1.38;
+  else if (state.economy.lifetimePixel < 80_000_000) progressClickBoost *= 1.16;
 
   return state.economy.clickBase
     * state.economy.clickMult
@@ -821,28 +823,40 @@ function renderMissions() {
   }).join("");
 }
 
+/** Shop-Upgrade-Karte: Klick (blau) / Produktion (Bernstein) / Sonstiges */
+function upgradeCardKind(u) {
+  if (u.id.startsWith("u_click")) return "click";
+  if (u.id.startsWith("u_prod")) return "prod";
+  return "other";
+}
+
 function renderShopCards() {
-  ui.shopMain.innerHTML = BUILDINGS.map((b) => {
+  ui.shopMain.innerHTML = `<div class="pf-card-grid pf-card-grid--shop">${BUILDINGS.map((b) => {
     const discovered = !!state.session.discoveredBuildings[b.id];
     if (!discovered) {
       return `
-        <button class="upgrade-eintrag gesperrt" disabled>
-          <div class="upgrade-name">???</div>
-          <div class="upgrade-text">Noch nicht entdeckt</div>
-          <div class="upgrade-preis">???</div>
-        </button>
-      `;
+        <button type="button" class="pf-game-card pf-game-card--building pf-game-card--locked" disabled>
+          <div class="pf-card-icon pf-card-icon--muted">?</div>
+          <div class="pf-card-main">
+            <h3 class="pf-card-title">???</h3>
+            <p class="pf-card-meta">Noch nicht entdeckt</p>
+          </div>
+          <span class="pf-card-buy pf-card-buy--disabled">???</span>
+        </button>`;
     }
     const can = canBuyBuildingAmount(b, state.economy.bulk === 0 ? 1 : state.economy.bulk) > 0;
     const cost = buildingCost(b, 0);
+    const cnt = state.economy.buildings[b.id] || 0;
     return `
-      <button class="upgrade-eintrag ${can ? "leistbar" : "zu-teuer"}" data-buy-building="${b.id}">
-        <div class="upgrade-name">${b.icon} ${b.name} <small>x${state.economy.buildings[b.id]}</small></div>
-        <div class="upgrade-text">+${fmtPps(b.pps)} PPS</div>
-        <div class="upgrade-preis">${fmtNumber(cost)} Pixel</div>
-      </button>
-    `;
-  }).join("");
+      <button type="button" class="pf-game-card pf-game-card--building ${can ? "pf-game-card--afford" : "pf-game-card--expensive"}" data-buy-building="${b.id}">
+        <div class="pf-card-icon pf-card-icon--building">${b.icon}</div>
+        <div class="pf-card-main">
+          <h3 class="pf-card-title">${b.name} <span class="pf-card-badge">${cnt}</span></h3>
+          <p class="pf-card-effect pf-card-effect--pps">+${fmtPps(b.pps)} <span class="pf-effect-label">PPS</span> <small>pro Stück</small></p>
+        </div>
+        <span class="pf-card-buy">${fmtNumber(cost)} <span class="pf-pixel-unit">Pixel</span></span>
+      </button>`;
+  }).join("")}</div>`;
 
   ui.shopMain.querySelectorAll("[data-buy-building]").forEach((btn) => {
     btn.addEventListener("click", () => buyBuilding(btn.dataset.buyBuilding));
@@ -850,41 +864,69 @@ function renderShopCards() {
 }
 
 function renderUpgradeCards() {
+  const lineHint = state.meta.lineLocked
+    ? "Die Linie ist bis zum nächsten Prestige fest – danach kannst du wechseln."
+    : "Wähle eine Linie für den Linienbaum (Tab „Linienbaum“).";
+
   const lineButtons = `
-    <div class="path-grid">
+    <div class="pf-path-grid">
       ${Object.keys(LINE_TREES).map((line) => `
-        <button class="path-card ${state.meta.selectedLine === line ? "aktiv" : ""}" data-line-pick="${line}">
-          <strong>${line.toUpperCase()}-Line ${state.meta.selectedLine === line ? "(Aktiv)" : ""}</strong>
-          <span>${line === "speed" ? "Offensiv mit Burst-Zweigen" : line === "efficiency" ? "Kontrolliert mit Stabilitäts-Zweigen" : "Automatisierung mit Produktions-Zweigen"}</span>
+        <button type="button" class="pf-path-card ${state.meta.selectedLine === line ? "pf-path-card--active" : ""}" data-line-pick="${line}">
+          <span class="pf-path-card__tag">${line === "speed" ? "⚡" : line === "efficiency" ? "✓" : "🤖"}</span>
+          <strong class="pf-path-card__title">${line.toUpperCase()}</strong>
+          <span class="pf-path-card__sub">${line === "speed" ? "Burst & Tempo" : line === "efficiency" ? "Stabilität & Kontrolle" : "Auto & Offline"}</span>
+          ${state.meta.selectedLine === line ? '<span class="pf-path-card__ribbon">Aktiv</span>' : ""}
         </button>
       `).join("")}
     </div>
-    <div class="upgrade-text">Jede Line startet mit einem Kern-Upgrade und verzweigt sich danach in mehrere Pfade. Linie kann nur nach Prestige neu gewählt werden.</div>
+    <p class="pf-section-hint">${lineHint}</p>
   `;
 
-  const upgrades = UPGRADES.map((u) => {
+  const byKind = { click: [], prod: [], other: [] };
+  for (const u of UPGRADES) {
+    const k = upgradeCardKind(u);
+    if (k === "click") byKind.click.push(u);
+    else if (k === "prod") byKind.prod.push(u);
+    else byKind.other.push(u);
+  }
+
+  function cardHtml(u) {
     const discovered = !!state.session.discoveredUpgrades[u.id];
     if (!discovered) {
       return `
-        <button class="upgrade-eintrag gesperrt" disabled>
-          <div class="upgrade-name">???</div>
-          <div class="upgrade-text">Noch nicht entdeckt</div>
-          <div class="upgrade-preis">???</div>
-        </button>
-      `;
+        <button type="button" class="pf-game-card pf-game-card--upgrade pf-game-card--locked" disabled>
+          <div class="pf-card-main">
+            <h3 class="pf-card-title">???</h3>
+            <p class="pf-card-meta">Noch nicht entdeckt</p>
+          </div>
+          <span class="pf-card-buy pf-card-buy--disabled">???</span>
+        </button>`;
     }
     const bought = state.economy.boughtUpgrades.includes(u.id);
     const can = !bought && state.economy.pixel >= u.cost;
+    const kind = upgradeCardKind(u);
+    const effClass = kind === "click" ? "pf-card-effect--ppk" : kind === "prod" ? "pf-card-effect--ppsu" : "pf-card-effect--misc";
+    const stateClass = bought ? "pf-game-card--bought" : can ? "pf-game-card--afford" : "pf-game-card--expensive";
     return `
-      <button class="upgrade-eintrag ${bought ? "gesperrt" : (can ? "leistbar" : "zu-teuer")}" data-buy-upgrade="${u.id}" ${bought ? "disabled" : ""}>
-        <div class="upgrade-name">${u.name}</div>
-        <div class="upgrade-text">${u.desc}</div>
-        <div class="upgrade-preis">${bought ? "Gekauft" : `${fmtNumber(u.cost)} Pixel`}</div>
-      </button>
-    `;
-  }).join("");
+      <button type="button" class="pf-game-card pf-game-card--upgrade pf-game-card--${kind} ${stateClass}" data-buy-upgrade="${u.id}" ${bought ? "disabled" : ""}>
+        <div class="pf-card-main">
+          <h3 class="pf-card-title">${u.name}</h3>
+          <p class="pf-card-effect ${effClass}">${u.desc}</p>
+        </div>
+        <span class="pf-card-buy">${bought ? "Gekauft" : `${fmtNumber(u.cost)} Pixel`}</span>
+      </button>`;
+  }
 
-  ui.shopUpgrades.innerHTML = `${lineButtons}<div class="upgrade-list">${upgrades}</div>`;
+  const sec = (title, arr) =>
+    arr.length
+      ? `<div class="pf-upgrade-section"><h4 class="pf-upgrade-section__title">${title}</h4><div class="pf-card-grid pf-card-grid--upgrades">${arr.map(cardHtml).join("")}</div></div>`
+      : "";
+
+  ui.shopUpgrades.innerHTML = `${lineButtons}
+    ${sec("Klickkraft (PPC)", byKind.click)}
+    ${sec("Produktion (PPS)", byKind.prod)}
+    ${sec("Sonstiges", byKind.other)}`;
+
   ui.shopUpgrades.querySelectorAll("[data-buy-upgrade]").forEach((btn) => {
     btn.addEventListener("click", () => buyUpgrade(btn.dataset.buyUpgrade));
   });
@@ -893,40 +935,70 @@ function renderUpgradeCards() {
   });
 }
 
+function skillNodeButtonClass(line, n) {
+  const lvl = levelOfNode(line, n.id);
+  if (lvl >= n.max) return "pf-skill-node pf-skill-node--done";
+  if (canUpgradeLineNode(line, n)) return "pf-skill-node pf-skill-node--ready";
+  return "pf-skill-node pf-skill-node--locked";
+}
+
 function renderLineTree() {
   const line = state.meta.selectedLine;
   if (!line) {
     ui.shopLine.innerHTML = `
-      <div class="rework-panel">
-        <strong>Kein Baum aktiv</strong>
-        <div class="upgrade-text">Wähle zuerst eine Line im Upgrade-Tab.</div>
-      </div>
-    `;
+      <div class="pf-line-intro">
+        <strong>Kein Linienbaum aktiv</strong>
+        <p class="pf-section-hint">Wähle im Tab „Upgrades“ eine Line (Speed, Efficiency oder Automation). Danach erscheint der verzweigte Baum hier.</p>
+      </div>`;
     return;
   }
-  const nodes = LINE_TREES[line].map((n) => {
+  const tree = LINE_TREES[line];
+  const edgeLines = [];
+  for (const n of tree) {
+    if (!n.req) continue;
+    const p = tree.find((x) => x.id === n.req);
+    if (!p || p.lx == null || n.lx == null) continue;
+    edgeLines.push(`<line class="pf-skill-edge" x1="${p.lx}" y1="${p.ly}" x2="${n.lx}" y2="${n.ly}" />`);
+  }
+  const nodesHtml = tree.map((n) => {
     const lvl = levelOfNode(line, n.id);
     const can = canUpgradeLineNode(line, n);
-    const reqNode = n.req ? LINE_TREES[line].find((x) => x.id === n.req) : null;
-    const reqTxt = reqNode ? ` · Benötigt ${reqNode.name}` : "";
+    const reqNode = n.req ? tree.find((x) => x.id === n.req) : null;
+    const reqTxt = reqNode && lvl === 0 && !can ? `Benötigt: ${reqNode.name}` : "";
+    const cls = skillNodeButtonClass(line, n);
+    const maxed = lvl >= n.max;
+    const tip = `${n.name} (${lvl}/${n.max})${reqTxt ? " · " + reqTxt : ""}`;
     return `
-      <button class="upgrade-eintrag ${can ? "leistbar" : "zu-teuer"} ${lvl >= n.max ? "gesperrt" : ""}" data-line-node="${n.id}" ${lvl >= n.max ? "disabled" : ""}>
-        <div class="upgrade-name">${n.name} <small>${lvl}/${n.max}</small></div>
-        <div class="upgrade-text">${n.desc}${reqTxt}</div>
-        <div class="upgrade-preis">${n.cost} Prestigepunkt(e)</div>
-      </button>
-    `;
+      <button type="button"
+        class="${cls}"
+        style="left:${n.lx}%;top:${n.ly}%;"
+        data-line-node="${n.id}"
+        ${maxed || !can ? "disabled" : ""}
+        title="${tip.replace(/"/g, "'")}">
+        <span class="pf-skill-node__name">${n.name}</span>
+        <span class="pf-skill-node__lvl">${lvl}/${n.max}</span>
+        <span class="pf-skill-node__cost">${n.cost} PP</span>
+      </button>`;
   }).join("");
+
   ui.shopLine.innerHTML = `
-    <div class="rework-panel">
-      <div><strong>Aktive Line:</strong> ${line.toUpperCase()}</div>
-      <div><strong>Prestigepunkte:</strong> ${state.meta.prestigePoints}</div>
-      <div class="upgrade-text">Hier investierst du Prestigepunkte in deinen Linien-Baum.</div>
+    <div class="pf-line-tree-head">
+      <div>
+        <strong class="pf-line-tree-head__line">${line.toUpperCase()}-Linie</strong>
+        <span class="pf-line-tree-head__qp">Prestigepunkte: <b>${state.meta.prestigePoints}</b></span>
+      </div>
+      <p class="pf-section-hint">Startkern in der Mitte – Verzweigungen zeigen Abhängigkeiten. Gold = voll, leuchtender Rand = kaufbar.</p>
     </div>
-    <div class="upgrade-list">${nodes}</div>
+    <div class="pf-skill-tree-board">
+      <svg class="pf-skill-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${edgeLines.join("")}</svg>
+      <div class="pf-skill-nodes">${nodesHtml}</div>
+    </div>
   `;
   ui.shopLine.querySelectorAll("[data-line-node]").forEach((btn) => {
-    btn.addEventListener("click", () => upgradeLineNode(line, btn.dataset.lineNode));
+    btn.addEventListener("click", () => {
+      if (btn.disabled) return;
+      upgradeLineNode(line, btn.dataset.lineNode);
+    });
   });
 }
 
@@ -1236,6 +1308,8 @@ function bindEvents() {
       ui.shopMain.classList.toggle("versteckt", runtime.tab !== "gebaeude");
       ui.shopUpgrades.classList.toggle("versteckt", runtime.tab !== "upgrades");
       ui.shopLine.classList.toggle("versteckt", runtime.tab !== "prestige");
+      const bulk = document.getElementById("bulkLeiste");
+      if (bulk) bulk.classList.toggle("versteckt", runtime.tab !== "gebaeude");
       runtime.forceShopRender = true;
     });
   });

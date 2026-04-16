@@ -56,12 +56,16 @@
     <div id="shopco" style="font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;font-size:clamp(11px,2vw,14px);color:#c8900a;margin-bottom:clamp(8px,1.5vw,12px);"><span style="display:inline-block;width:11px;height:11px;background:#ffd700;border-radius:50%;border:2px solid #c8900a;vertical-align:middle;margin-right:4px;"></span><span id="shopcoVal">0</span></div>
     <div style="display:flex;flex-wrap:wrap;margin-bottom:clamp(8px,1.5vw,14px);border-radius:8px;overflow:hidden;border:2px solid #ddd;width:fit-content;max-width:100%;">
       <button class="stab active" id="tab-loot" onclick="shopTab('loot')">Lootbox</button>
+      <button class="stab" id="tab-prev" onclick="shopTab('prev')">Vorschau</button>
       <button class="stab" id="tab-up" onclick="shopTab('up')">Upgrades</button>
       <button class="stab" id="tab-cd" onclick="shopTab('cd')">Code</button>
     </div>
     <div id="tc-up" style="display:none;width:min(480px,94vw);"></div>
+    <div id="tc-prev" style="display:none;width:min(480px,94vw);text-align:left;padding:clamp(6px,1.2vw,12px);">
+      <div id="skinVorschauGrid"></div>
+    </div>
     <div id="tc-loot" style="display:block;width:min(480px,94vw);text-align:center;padding:clamp(6px,1.2vw,12px);">
-      <p style="font-family:'Nunito',Arial,sans-serif;font-size:clamp(11px,1.9vw,14px);color:#555;margin:0 0 10px;line-height:1.45;">Seltenheit beim Zufall: Gewöhnlich 60&nbsp;% · Selten 25&nbsp;% · Episch 12&nbsp;% · Legendär 3&nbsp;%.</p>
+      <p style="font-family:'Nunito',Arial,sans-serif;font-size:clamp(11px,1.9vw,14px);color:#555;margin:0 0 10px;line-height:1.45;">Zuerst wird eine Seltenheitsstufe gewürfelt (siehe Tab „Vorschau“), dann ein Skin aus dieser Stufe, den du noch nicht hast.</p>
       <button type="button" class="btn btn-g" id="lootOpenBtn" style="font-size:clamp(12px,2vw,15px);">Lootbox öffnen</button>
       <div id="lootResult" aria-live="polite" style="min-height:100px;margin-top:clamp(10px,2vw,16px);"></div>
     </div>
@@ -102,6 +106,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../../auth.js"></script>
 <script>PZ.pruefeSpielStatus('pixel-jump');</script>
+<script src="pj-skins.js"></script>
 <script src="game.js"></script>
 </body>
 </html>

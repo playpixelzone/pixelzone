@@ -97,3 +97,18 @@ input[type=text]{font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;f
 #multlbl{display:none;}
 #multtimer{display:none;}
 #multfill{display:none;}
+/* Skin-Vorschau (Shop) */
+#skinVorschauGrid{max-height:min(70vh,520px);overflow-y:auto;padding-right:4px;}
+.skin-prev-hinweis{font-family:'Nunito',Arial,sans-serif;font-size:clamp(10px,1.75vw,13px);color:#666;line-height:1.45;margin:0 0 10px;}
+.skin-prev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:clamp(8px,2vw,12px);margin-bottom:10px;}
+.skin-prev-card{background:#faf8f5;border:2px solid #e0dbd4;border-radius:12px;padding:clamp(8px,1.5vw,10px);text-align:center;}
+.skin-prev-card.tier-c{border-color:#b0bec5;}
+.skin-prev-card.tier-r{border-color:#81c784;}
+.skin-prev-card.tier-sr{border-color:#64b5f6;}
+.skin-prev-card.tier-e{border-color:#ba68c8;}
+.skin-prev-card.tier-m{border-color:#ffb74d;box-shadow:0 0 0 1px rgba(255,183,77,0.25);}
+.skin-prev-card.tier-l{border-color:#ffd54f;box-shadow:0 0 12px rgba(255,213,79,0.35);}
+.skin-prev-name{font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;font-size:clamp(11px,2vw,13px);color:#333;margin-top:6px;}
+.skin-prev-stufe{font-family:'Nunito',Arial,sans-serif;font-size:clamp(9px,1.5vw,11px);color:#5a7a4a;font-weight:700;margin-top:2px;}
+.skin-prev-pct{font-family:'Nunito',Arial,sans-serif;font-size:clamp(8px,1.4vw,10px);color:#888;margin-top:3px;}
+.skin-prev-legende{font-family:'Nunito',Arial,sans-serif;font-size:clamp(9px,1.5vw,11px);color:#999;line-height:1.4;margin:0;padding-top:4px;border-top:1px solid #e8e3db;}

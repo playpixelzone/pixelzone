@@ -5,6 +5,10 @@ window.onerror=function(msg,src,line,col,err){
 window.onunhandledrejection=function(e){console.warn('Unhandled promise:',e.reason);};
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const isTouchDevice=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+if(typeof PJ_SPRITES==='undefined'){
+  console.error('pj-skins.js fehlt – Skins können nicht geladen werden.');
+}
+const SPRITES=typeof PJ_SPRITES!=='undefined'?PJ_SPRITES:[];
 
 // ── SPIELERDATEN (Supabase-Sync, ohne localStorage) ─────────────────────────
 const LOOT_BOX_PREIS_STD=75;
@@ -100,51 +104,46 @@ function resize(){
 resize();
 window.addEventListener('resize',function(){resize();});
 
-// ── CHARACTERS ────────────────────────────────────────────────────────────────
+// ── CHARACTERS (Farben zu pj-skins.js Pixelwerten 1–6) ───────────────────────
 const CHARS=[
-  {name:'Grüni',  price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#7ecf4a',dark:'#2d6e0f',acc:'#ffe066',code:null,img:null},
-  {name:'Ozean',  price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#22c5ef',dark:'#0a5a8a',acc:'#ffffff',code:null,img:null},
-  {name:'Feuer',  price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ff5a1a',dark:'#aa1a00',acc:'#ffcc00',code:null,img:null},
-  {name:'Neon',   price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#b46aef',dark:'#6a1aaa',acc:'#ffaaff',code:null,img:null},
-  {name:'Robot',  price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#8aaabb',dark:'#334455',acc:'#44ffff',code:null,img:null},
-  {name:'Gold',   price:0, scoreReq:0, tier:'e', lootOnly:true, body:'#ffd700',dark:'#996600',acc:'#ffffff',code:null,img:null},
-  {name:'Geist',  price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#dde0ff',dark:'#6677cc',acc:'#ffffff',code:null,img:null},
-  {name:'Alien',  price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#4aef8a',dark:'#1a7a3a',acc:'#ffff44',code:null,img:null},
-  {name:'Tim',    price:0, scoreReq:0, tier:'l', lootOnly:true, body:'#f0c090',dark:'#8b4513',acc:'#4a90d9', code:null, img:'__TIM__'},
-  {name:'Kirsch', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ff6b9a',dark:'#9d174d',acc:'#fff0f5',code:null,img:null},
-  {name:'Limette',price:0,   scoreReq:0, tier:'c', lootOnly:true, body:'#c8f542',dark:'#3d6e0a',acc:'#2d5016',code:null,img:null},
-  {name:'Mitternacht',price:0,scoreReq:0,tier:'r',lootOnly:true,body:'#3d4f7a',dark:'#1a2238',acc:'#8eb4ff',code:null,img:null},
-  {name:'Pfirsich',price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ffb38a',dark:'#c45c2d',acc:'#fff5e6',code:null,img:null},
-  {name:'Lava',   price:0,   scoreReq:0, tier:'e', lootOnly:true, body:'#ff4500',dark:'#5c1000',acc:'#ffd000',code:null,img:null},
-  {name:'Polar',  price:0,   scoreReq:0, tier:'r', lootOnly:true, body:'#e0f4ff',dark:'#4a7aa8',acc:'#1e90ff',code:null,img:null},
-  {name:'Schatten',price:0,  scoreReq:0, tier:'e', lootOnly:true, body:'#6a5acd',dark:'#2e1a5e',acc:'#dda0ff',code:null,img:null},
-  {name:'Sonnenuntergang',price:0,scoreReq:0,tier:'l',lootOnly:true,body:'#ff8c42',dark:'#8b3a00',acc:'#ffccff',code:null,img:null},
+  {name:'Nimbulus', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#8ec5ff', dark:'#3d6eaa', light:'#eaf6ff', trim:'#5b9cff', acc:'#4a8ae0', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Tropfi', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#5bc0de', dark:'#1a6f85', light:'#d9f4fc', trim:'#2ea3cc', acc:'#39b0d0', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Twinkle', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ffd54f', dark:'#c49000', light:'#fff8e1', trim:'#ffb300', acc:'#ff8f00', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Fungo', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ef9a9a', dark:'#b71c1c', light:'#ffebee', trim:'#c62828', acc:'#ff7961', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Quader', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#90caf9', dark:'#1565c0', light:'#e3f2fd', trim:'#0d47a1', acc:'#42a5f5', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Zappa', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#fff176', dark:'#f9a825', light:'#fffde7', trim:'#fbc02d', acc:'#fdd835', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Petalo', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#f48fb1', dark:'#ad1457', light:'#fce4ec', trim:'#c2185b', acc:'#f06292', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Kobbl', price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#a1887f', dark:'#4e342e', light:'#efebe9', trim:'#5d4037', acc:'#8d6e63', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Tim', price:0, scoreReq:0, tier:'l', lootOnly:true, body:'#f0c090', dark:'#8b4513', light:'#ffe8d0', trim:'#6ab4e8', acc:'#4a90d9', spark:'#fff8e1', myth:'#ffffff', code:null, img:'__TIM__'},
+  {name:'Krake', price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#ce93d8', dark:'#6a1b9a', light:'#f3e5f5', trim:'#8e24aa', acc:'#e1bee7', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Komet', price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#ffab91', dark:'#bf360c', light:'#fbe9e7', trim:'#d84315', acc:'#ff7043', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Glitch', price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#80cbc4', dark:'#00695c', light:'#e0f2f1', trim:'#00897b', acc:'#4db6ac', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Sensei', price:0, scoreReq:0, tier:'r', lootOnly:true, body:'#b0bec5', dark:'#37474f', light:'#eceff1', trim:'#455a64', acc:'#90a4ae', spark:'#ffffff', myth:'#ffffff', code:null, img:null},
+  {name:'Phantom', price:0, scoreReq:0, tier:'sr', lootOnly:true, body:'#9fa8da', dark:'#283593', light:'#e8eaf6', trim:'#3949ab', acc:'#7986cb', spark:'#e8eaf6', myth:'#ffffff', code:null, img:null},
+  {name:'Obsidian', price:0, scoreReq:0, tier:'e', lootOnly:true, body:'#7e57c2', dark:'#311b92', light:'#ede7f6', trim:'#5e35b1', acc:'#b39ddb', spark:'#d1c4e9', myth:'#ffffff', code:null, img:null},
+  {name:'Nova', price:0, scoreReq:0, tier:'m', lootOnly:true, body:'#4fc3f7', dark:'#01579b', light:'#e1f5fe', trim:'#0277bd', acc:'#81d4fa', spark:'#ffffff', myth:'#b3e5fc', code:null, img:null},
+  {name:'Astral', price:0, scoreReq:0, tier:'l', lootOnly:true, body:'#ffd740', dark:'#ff6f00', light:'#fff8e1', trim:'#ffab00', acc:'#ffecb3', spark:'#fff59d', myth:'#ffffff', code:null, img:null},
 ];
-// inject photo
-
-
-const SPRITES=[
-// 0 Grüni - happy round blob
-[[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],[0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[0,1,1,2,2,1,1,1,1,2,2,1,1,0,0,0],[0,1,1,2,2,1,1,1,1,2,2,1,1,0,0,0],[1,1,1,1,1,3,3,3,3,1,1,1,1,1,0,0],[1,1,1,1,3,3,3,3,3,3,1,1,1,1,0,0],[1,1,1,1,3,3,2,2,3,3,1,1,1,1,0,0],[1,1,1,3,3,3,3,3,3,3,3,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],[0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0],[0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0],[0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0],[0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0]],
-// 1 Ozean - fish-like blue guy
-[[0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0],[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],[0,0,1,1,2,1,1,1,1,2,1,1,0,0,0,0],[0,1,1,1,2,1,1,1,1,2,1,1,1,0,0,0],[0,1,1,1,1,3,3,3,3,1,1,1,1,0,0,0],[0,1,1,1,3,3,3,3,3,3,1,1,1,0,0,0],[0,1,1,1,3,3,2,2,3,3,1,1,1,0,0,0],[0,1,1,3,3,3,3,3,3,3,3,1,1,0,0,0],[3,3,1,1,1,1,1,1,1,1,1,1,3,3,0,0],[3,3,1,1,1,2,1,1,1,1,1,1,3,3,0,0],[0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[0,0,0,1,1,1,0,0,1,1,1,0,0,0,0,0],[0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0],[0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0]],
-// 2 Feuer - flame character
-[[0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0],[0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0],[0,0,0,1,1,2,1,1,1,1,0,0,0,0,0,0],[0,0,1,1,2,2,2,1,1,1,1,0,0,0,0,0],[0,1,1,1,2,2,1,1,1,1,1,1,0,0,0,0],[0,1,1,1,1,1,3,3,1,1,1,1,0,0,0,0],[0,1,1,1,3,3,3,3,3,3,1,1,0,0,0,0],[1,1,1,3,3,3,3,3,3,3,3,1,1,0,0,0],[1,1,1,1,3,3,2,2,3,3,1,1,1,0,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],[0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[0,0,1,1,1,1,0,0,1,1,1,0,0,0,0,0],[0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0],[0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0]],
-// 3 Neon - spiky purple
-[[0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0],[0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0],[0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],[1,1,2,1,1,2,1,1,1,2,1,1,2,1,0,0],[1,1,2,1,1,2,1,1,1,2,1,1,2,1,0,0],[1,1,1,1,3,3,3,3,3,3,1,1,1,1,0,0],[1,1,1,3,3,3,2,2,3,3,3,1,1,1,0,0],[1,1,1,3,3,3,3,3,3,3,3,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],[0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0],[0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0],[0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0],[0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0]],
-// 4 Robot - angular metal
-[[0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[1,1,3,3,3,3,3,3,3,3,3,3,1,0,0,0],[1,3,3,2,3,3,3,3,3,3,2,3,3,0,0,0],[1,3,3,2,3,3,3,3,3,3,2,3,3,0,0,0],[1,3,3,3,3,1,1,1,1,3,3,3,3,0,0,0],[1,1,3,3,3,1,2,2,1,3,3,3,1,0,0,0],[1,1,3,3,1,2,2,2,2,1,3,3,1,0,0,0],[1,1,1,3,3,3,3,3,3,3,3,1,1,0,0,0],[0,1,1,1,3,3,3,3,3,3,1,1,0,0,0,0],[0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0],[0,0,0,1,3,0,0,0,0,3,1,0,0,0,0,0],[0,0,1,1,3,0,0,0,0,3,1,1,0,0,0,0],[0,0,1,3,3,0,0,0,0,3,3,1,0,0,0,0],[0,1,1,3,0,0,0,0,0,0,3,1,1,0,0,0],[0,1,3,3,0,0,0,0,0,0,3,3,1,0,0,0]],
-// 5 Gold - shiny crowned blob
-[[0,0,0,3,0,3,0,3,0,3,0,0,0,0,0,0],[0,0,0,3,3,3,3,3,3,3,3,0,0,0,0,0],[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],[0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[0,1,1,2,2,1,1,1,1,2,2,1,1,0,0,0],[0,1,1,2,2,1,1,1,1,2,2,1,1,0,0,0],[0,1,1,1,1,3,3,3,3,1,1,1,1,0,0,0],[1,1,1,1,3,3,3,3,3,3,1,1,1,1,0,0],[1,1,1,3,3,3,2,2,3,3,3,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[0,0,0,1,1,1,0,0,1,1,1,0,0,0,0,0],[0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0],[0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,0],[0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0]],
-// 6 Geist - ghost floaty
-[[0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0],[0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0],[0,1,1,2,1,1,1,1,1,2,1,1,0,0,0,0],[0,1,1,2,1,1,1,1,1,2,1,1,0,0,0,0],[1,1,1,1,3,3,3,3,3,1,1,1,1,0,0,0],[1,1,1,3,3,3,3,3,3,3,1,1,1,0,0,0],[1,1,1,3,3,2,2,2,3,3,1,1,1,0,0,0],[1,1,1,1,3,3,3,3,3,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],[1,0,1,0,1,0,1,1,1,0,1,0,1,0,0,0],[1,0,1,0,1,0,1,1,1,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
-// 7 Alien - 3-eyed green
-[[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],[0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[0,1,1,2,1,2,1,1,2,1,2,1,1,0,0,0],[0,1,1,2,1,2,1,1,2,1,2,1,1,0,0,0],[1,1,1,1,3,1,3,3,1,3,1,1,1,1,0,0],[1,1,1,3,3,3,3,3,3,3,3,1,1,1,0,0],[1,1,1,3,3,2,3,3,2,3,3,1,1,1,0,0],[1,1,3,3,3,3,3,3,3,3,3,3,1,1,0,0],[0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],[0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],[0,0,1,0,1,1,0,0,1,1,0,1,0,0,0,0],[0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0],[0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0]],
-// 8 Tim - hoodie guy with short hair
-[[0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0],[0,0,1,1,3,3,3,3,3,1,1,0,0,0,0,0],[0,1,1,3,3,1,1,1,3,3,1,1,0,0,0,0],[0,1,1,3,2,1,1,1,2,3,1,1,0,0,0,0],[0,1,1,3,3,3,3,3,3,3,1,1,0,0,0,0],[0,0,1,1,3,3,3,3,3,1,1,0,0,0,0,0],[0,0,1,4,4,4,4,4,4,4,1,0,0,0,0,0],[0,1,4,4,4,4,4,4,4,4,4,1,0,0,0,0],[0,1,4,4,4,3,3,4,4,4,4,1,0,0,0,0],[0,1,4,4,3,3,3,3,4,4,4,1,0,0,0,0],[0,0,1,4,4,4,4,4,4,4,1,0,0,0,0,0],[0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0],[0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0]],
-];
-// Zusätzliche Skins: variierte Silhouetten (Farben kommen aus CHARS)
-SPRITES.push(SPRITES[1],SPRITES[4],SPRITES[2],SPRITES[6],SPRITES[3],SPRITES[5],SPRITES[7],SPRITES[0]);
+/** Loot: Zuerst Stufe würfeln (Summe 100), dann Skin aus Pool ohne Duplikate. */
+const LOOT_TIER_WEIGHTS={c:48,r:22,sr:12,e:9,m:5,l:4};
+const LOOT_TIER_ORDER=['c','r','sr','e','m','l'];
+function tierLabelDe(t){
+  const M={c:'Gewöhnlich',r:'Selten',sr:'Sehr selten',e:'Episch',m:'Mythisch',l:'Legendär'};
+  return M[t]||t;
+}
+function zaehleSkinsInStufe(stufe){
+  let n=0;
+  for(let i=0;i<CHARS.length;i++){if(CHARS[i].tier===stufe)n++;}
+  return n;
+}
+/** Geschätzte Chance in % für genau diesen Skin (wenn noch nicht im Besitz), unter gleichmäßiger Verteilung innerhalb der Stufe. */
+function geschaetzteSkinChanceProzent(i){
+  const st=CHARS[i].tier;
+  const w=LOOT_TIER_WEIGHTS[st];
+  const an=zaehleSkinsInStufe(st);
+  if(!w||!an)return 0;
+  return Math.round((w/an)*10)/10;
+}
 function shade(hex,amt){
   const r=Math.max(0,Math.min(255,parseInt(hex.slice(1,3),16)+amt));
   const g=Math.max(0,Math.min(255,parseInt(hex.slice(3,5),16)+amt));
@@ -170,35 +169,83 @@ function getCharImg(ci){
   }
   const img=new Image();img.src=ch.img;IMG_CACHE[ci]=img;return img;
 }
-function drawChar(c2,ci,x,y,sz,flip){
+function pxFill(ch,v){
+  if(v===1)return ch.body;
+  if(v===2)return ch.light||'#ffffff';
+  if(v===3)return ch.dark;
+  if(v===4)return ch.trim||ch.acc;
+  if(v===5)return ch.spark||ch.acc;
+  if(v===6)return ch.myth||'#ffffff';
+  return ch.acc||ch.body;
+}
+/** time: Tick für Glow-Animation (Mythisch/Legendär). */
+function drawChar(c2,ci,x,y,sz,flip,time){
+  time=time||0;
   const ch=CHARS[ci]||CHARS[0];
-  // Photo skin: draw image
+  const tTier=ch.tier||'c';
   if(ch.img){
     const img=getCharImg(ci);
     if(img&&img.complete&&img.naturalWidth>0){
       c2.save();
+      if(tTier==='l'){
+        const pu=0.55+0.45*Math.sin(time*0.12);
+        c2.shadowColor=ch.acc||'#ffd700';
+        c2.shadowBlur=14*SC*pu;
+      }
       c2.beginPath();c2.arc(x+sz/2,y+sz/2,sz/2,0,Math.PI*2);c2.clip();
       c2.drawImage(img,x,y,sz,sz);
       c2.restore();
+      if(tTier==='l'){
+        const pu=0.5+0.5*Math.sin(time*0.1);
+        c2.save();
+        c2.strokeStyle='rgba(255,220,120,'+(0.42*pu)+')';
+        c2.lineWidth=3*SC;
+        c2.beginPath();c2.arc(x+sz/2,y+sz/2,sz*0.52,0,Math.PI*2);c2.stroke();
+        c2.restore();
+      }
     } else {
-      // Fallback circle while loading
       c2.fillStyle=ch.body;c2.beginPath();c2.arc(x+sz/2,y+sz/2,sz/2,0,Math.PI*2);c2.fill();
     }
     return;
   }
-  // Pixel sprite
   const sp=SPRITES[ci]||SPRITES[0];
-  const grid=sp.length; // 8 or 16
+  const grid=sp.length;
   const p=sz/grid;
   for(let row=0;row<grid;row++){
     for(let col=0;col<grid;col++){
       const v=sp[row][col];
       if(!v)continue;
-      c2.fillStyle=v===1?ch.body:v===2?'#ffffff':v===3?ch.dark:(ch.acc||ch.body);
+      c2.fillStyle=pxFill(ch,v);
       let dc=col;
       if(row>=Math.floor(grid*0.7)&&flip)dc=grid-1-col;
       c2.fillRect(Math.floor(x+dc*p),Math.floor(y+row*p),Math.ceil(p),Math.ceil(p));
     }
+  }
+  if(tTier==='m'||tTier==='l'){
+    const pulse=0.45+0.55*Math.sin(time*0.1);
+    c2.save();
+    c2.globalCompositeOperation='lighter';
+    c2.strokeStyle=tTier==='l'?'rgba(255,220,120,'+(0.38*pulse)+')':'rgba(160,220,255,'+(0.24*pulse)+')';
+    c2.lineWidth=tTier==='l'?3*SC:2*SC;
+    c2.beginPath();
+    c2.arc(x+sz/2,y+sz/2,sz*(tTier==='l'?0.56:0.5),0,Math.PI*2);
+    c2.stroke();
+    if(tTier==='l'){
+      c2.globalAlpha=0.32*pulse;
+      c2.beginPath();
+      c2.arc(x+sz/2,y+sz/2,sz*0.72,0,Math.PI*2);
+      c2.stroke();
+      c2.globalAlpha=0.9;
+      for(let i=0;i<8;i++){
+        const ang=time*0.06+i*Math.PI/4;
+        const rr=sz*(0.68+0.04*Math.sin(time*0.08+i));
+        c2.fillStyle='#fff9c4';
+        c2.beginPath();
+        c2.arc(x+sz/2+Math.cos(ang)*rr,y+sz/2+Math.sin(ang)*rr,2.2*SC,0,Math.PI*2);
+        c2.fill();
+      }
+    }
+    c2.restore();
   }
 }
 
@@ -821,7 +868,7 @@ function render(){
         ctx.beginPath();ctx.arc(player.x+player.w*0.82,player.y+player.h*0.75,player.w*0.12,0,Math.PI*2);ctx.fill();
       }
     }
-    drawChar(ctx,player.ci,player.x,player.y,player.w,player.animF%2===1&&player.vy!==0);
+    drawChar(ctx,player.ci,player.x,player.y,player.w,player.animF%2===1&&player.vy!==0,tick);
   }
 
   // Trail update
@@ -920,9 +967,26 @@ const CODES={
 };
 
 let curTab='loot';
+let skinPrevRafId=null;
+function stopSkinPrevAnim(){
+  if(skinPrevRafId){cancelAnimationFrame(skinPrevRafId);skinPrevRafId=null;}
+}
+function skinPrevTick(){
+  if(curTab!=='prev'){stopSkinPrevAnim();return;}
+  const wrap=document.getElementById('skinVorschauGrid');
+  if(!wrap||!wrap._pjSkinPrev)return;
+  const t=performance.now()*0.07;
+  wrap._pjSkinPrev.forEach(function(cv,i){
+    const c2=cv.getContext('2d');
+    c2.clearRect(0,0,cv.width,cv.height);
+    drawChar(c2,i,0,0,cv.width,false,t+i*9);
+  });
+  skinPrevRafId=requestAnimationFrame(skinPrevTick);
+}
 function shopTab(t){
+  if(curTab==='prev'&&t!=='prev')stopSkinPrevAnim();
   curTab=t;
-  ['up','cd','loot'].forEach(function(id){
+  ['up','cd','loot','prev'].forEach(function(id){
     const p=document.getElementById('tc-'+id);
     if(p)p.style.display=id===t?'':'none';
     const tab=document.getElementById('tab-'+id);
@@ -930,6 +994,7 @@ function shopTab(t){
   });
   if(t==='up')renderUpgrades();
   if(t==='loot')renderLootTab();
+  if(t==='prev')renderSkinVorschau();
 }
 function renderShop(){pd=loadPD();const s=document.getElementById('shopcoVal');if(s)s.textContent=pd.coins;curTab='loot';shopTab('loot');}
 
@@ -961,7 +1026,7 @@ function renderMenuSkins(){
     const mc=document.createElement('canvas');
     mc.width=sz;mc.height=sz;
     mc.style.width=sz+'px';mc.style.height=sz+'px';mc.style.imageRendering='pixelated';
-    drawChar(mc.getContext('2d'),i,0,0,sz,false);
+    drawChar(mc.getContext('2d'),i,0,0,sz,false,performance.now()*0.08);
     btn.appendChild(mc);
     btn.title=CHARS[i]?CHARS[i].name:'';
     (function(idx){
@@ -1006,7 +1071,7 @@ function renderUpgrades(){
   });
 }
 
-/** Zufälliger noch nicht besessener Skin (Seltenheit wie zuvor); null = Sammlung komplett. */
+/** Zufälliger noch nicht besessener Skin (6 Stufen, Summe 100 %); null = Sammlung komplett. */
 function rollLootSkinIndex(){
   pd=loadPD();
   const besitz=new Set(pd.owned||[]);
@@ -1015,15 +1080,64 @@ function rollLootSkinIndex(){
     if(!besitz.has(i))unowned.push(i);
   }
   if(!unowned.length)return null;
-  const r=Math.random()*100;
-  let tier='c';
-  if(r<60) tier='c';
-  else if(r<85) tier='r';
-  else if(r<97) tier='e';
-  else tier='l';
+  const r0=Math.random()*100;
+  let acc=0;
+  let tier='l';
+  for(let ti=0;ti<LOOT_TIER_ORDER.length;ti++){
+    const k=LOOT_TIER_ORDER[ti];
+    acc+=LOOT_TIER_WEIGHTS[k];
+    if(r0<acc){tier=k;break;}
+  }
   let pool=unowned.filter(function(i){return (CHARS[i].tier||'c')===tier;});
   if(!pool.length)pool=unowned.slice();
   return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function renderSkinVorschau(){
+  const el=document.getElementById('skinVorschauGrid');
+  if(!el)return;
+  stopSkinPrevAnim();
+  el.innerHTML='';
+  el._pjSkinPrev=null;
+  const hin=document.createElement('p');
+  hin.className='skin-prev-hinweis';
+  hin.innerHTML='Jede Lootbox würfelt zuerst eine <strong>Seltenheitsstufe</strong>, dann einen Skin aus dieser Stufe (nur Skins, die du noch nicht hast). Die Prozentzahl ist die <strong>erwartete Chance</strong> für diesen Skin pro Box, wenn er noch fehlt.';
+  el.appendChild(hin);
+  const wrap=document.createElement('div');
+  wrap.className='skin-prev-grid';
+  const canvases=[];
+  CHARS.forEach(function(ch,i){
+    const card=document.createElement('div');
+    card.className='skin-prev-card tier-'+ch.tier;
+    const cv=document.createElement('canvas');
+    const sz=Math.min(72,Math.round(CW*0.16));
+    cv.width=sz;cv.height=sz;
+    cv.style.width=cv.style.height=sz+'px';
+    cv.style.imageRendering='pixelated';
+    drawChar(cv.getContext('2d'),i,0,0,sz,false,performance.now()*0.07+i*5);
+    canvases.push(cv);
+    card.appendChild(cv);
+    const nm=document.createElement('div');
+    nm.className='skin-prev-name';
+    nm.textContent=ch.name;
+    card.appendChild(nm);
+    const st=document.createElement('div');
+    st.className='skin-prev-stufe';
+    st.textContent=tierLabelDe(ch.tier);
+    card.appendChild(st);
+    const pct=document.createElement('div');
+    pct.className='skin-prev-pct';
+    pct.textContent='~'+geschaetzteSkinChanceProzent(i)+'% / Box';
+    card.appendChild(pct);
+    wrap.appendChild(card);
+  });
+  el.appendChild(wrap);
+  el._pjSkinPrev=canvases;
+  skinPrevRafId=requestAnimationFrame(skinPrevTick);
+  const leg=document.createElement('p');
+  leg.className='skin-prev-legende';
+  leg.innerHTML='Stufen-Gewichte: Gewöhnlich '+LOOT_TIER_WEIGHTS.c+'% · Selten '+LOOT_TIER_WEIGHTS.r+'% · Sehr selten '+LOOT_TIER_WEIGHTS.sr+'% · Episch '+LOOT_TIER_WEIGHTS.e+'% · Mythisch '+LOOT_TIER_WEIGHTS.m+'% · Legendär '+LOOT_TIER_WEIGHTS.l+'%.';
+  el.appendChild(leg);
 }
 
 function renderLootTab(){
@@ -1054,11 +1168,7 @@ function openLootbox(){
     return;
   }
   pd.coins-=preis;
-  let tierLabel=(CHARS[pick].tier||'c').toUpperCase();
-  if(tierLabel==='C')tierLabel='Gewöhnlich';
-  else if(tierLabel==='R')tierLabel='Selten';
-  else if(tierLabel==='E')tierLabel='Episch';
-  else if(tierLabel==='L')tierLabel='Legendär';
+  const tierLabel=tierLabelDe(CHARS[pick].tier||'c');
   if(!pd.owned)pd.owned=[];
   pd.owned.push(pick);
   pd.sel=pick;
@@ -1087,7 +1197,15 @@ function zeigeLootKaufAnimation(pick,msg){
     const wrap=document.createElement('div');wrap.className='loot-reveal loot-reveal-burst';
     const cv=document.createElement('canvas');const sz=Math.min(128,Math.round(CW*0.3));
     cv.width=sz;cv.height=sz;cv.style.width=cv.style.height=sz+'px';cv.style.imageRendering='pixelated';
-    drawChar(cv.getContext('2d'),pick,0,0,sz,false);
+    const cLoot=cv.getContext('2d');
+    let lootAnimFr=0;
+    function animLootReveal(){
+      lootAnimFr++;
+      cLoot.clearRect(0,0,sz,sz);
+      drawChar(cLoot,pick,0,0,sz,false,lootAnimFr*2.2);
+      if(lootAnimFr<200)requestAnimationFrame(animLootReveal);
+    }
+    requestAnimationFrame(animLootReveal);
     wrap.appendChild(cv);
     const tx=document.createElement('div');tx.className='loot-msg loot-ok';tx.textContent=msg;wrap.appendChild(tx);
     resEl.appendChild(wrap);
@@ -1179,7 +1297,7 @@ if(isTouchDevice){
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
 ctx.fillStyle='#c8e8ff';ctx.fillRect(0,0,CW,CH);
-drawChar(ctx,0,CW/2-20,CH/2-60,40,false);
+drawChar(ctx,0,CW/2-20,CH/2-60,40,false,0);
 goTo('sMenu');
 if(typeof renderMenuSkins==='function')renderMenuSkins();
 const lootBtnBoot=document.getElementById('lootOpenBtn');

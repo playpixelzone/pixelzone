@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Pixel Factory – PIXELZONE</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -47,7 +47,7 @@
       <div class="pc-behalten">✓ Linienbaum-Upgrades bleiben</div>
       <div class="pc-behalten">✓ Skins bleiben</div>
       <div class="pc-behalten">✓ Mutationen bleiben aktiv</div>
-      <div class="pc-behalten talent-punkt-hint">⭐ +1 Prestigepunkt erhalten!</div>
+      <div class="pc-behalten">⭐ +1 Prestigepunkt erhalten!</div>
     </div>
     <div class="pc-buttons">
       <button class="pc-btn-nein" id="prestigeConfirmNein">Abbrechen</button>
@@ -73,27 +73,15 @@
   <!-- LINKS: Stats + Aktionen -->
   <section class="spiel-links">
 
-    <!-- Statistiken -->
-    <div class="stats-panel">
+    <!-- Statistiken (kompakt, eine Zeile pro Wert) -->
+    <div class="stats-panel pf-stats-kompakt">
       <div class="stat-haupt" id="statPixel">0 Pixel</div>
-      <div class="stats-grid">
-        <div class="stat-karte pps-karte">
-          <div class="stat-k-label">pro Sekunde</div>
-          <div class="stat-k-wert" id="statPPS">0</div>
-        </div>
-        <div class="stat-karte ppk-karte">
-          <div class="stat-k-label">pro Klick</div>
-          <div class="stat-k-wert" id="statPPK">1</div>
-        </div>
-        <div class="stat-karte qp-karte">
-          <div class="stat-k-label">Prestigepunkte</div>
-          <div class="stat-k-wert" id="statQP">0</div>
-        </div>
-        <div class="stat-karte pre-karte">
-          <div class="stat-k-label">Prestige</div>
-          <div class="stat-k-wert" id="statPrestige">0</div>
-        </div>
-      </div>
+      <ul class="stats-zeilen" aria-label="Kernwerte">
+        <li><span class="sz-label">px/s</span><span class="sz-wert" id="statPPS">0</span></li>
+        <li><span class="sz-label">Klick</span><span class="sz-wert" id="statPPK">1</span></li>
+        <li><span class="sz-label">Prestige</span><span class="sz-wert" id="statPrestige">0</span></li>
+        <li><span class="sz-label">Punkte</span><span class="sz-wert" id="statQP">0</span></li>
+      </ul>
     </div>
 
     <!-- Aktionen -->
@@ -106,10 +94,7 @@
         <button class="btn-aktion" id="ranglisteBtn">🏆 Rangliste</button>
         <button class="btn-aktion" id="errungenschaftenBtn">🎖 Erfolge</button>
       </div>
-      <div class="aktionen-reihe">
-        <button class="btn-aktion btn-talent" id="talentBtn">⭐ Talente <span class="talent-badge versteckt" id="talentBadge">0</span></button>
-      </div>
-      <div class="autosave-indikator" id="autosaveInd">✓ Gespeichert</div>
+      <div class="autosave-indikator" id="autosaveInd" aria-live="polite"></div>
     </div>
 
   </section>
@@ -183,15 +168,6 @@
   </div>
 </div>
 
-<div class="modal-hintergrund versteckt" id="talentModal">
-  <div class="modal modal-breit">
-    <button class="modal-schliessen" id="talentSchliessen">✕</button>
-    <h2>⭐ Talente</h2>
-    <div id="talentPunkteBadge"></div>
-    <div id="talentGrid"></div>
-  </div>
-</div>
-
 <div class="modal-hintergrund versteckt" id="skinModal">
   <div class="modal modal-breit">
     <button class="modal-schliessen" id="skinSchliessen">✕</button>
@@ -224,17 +200,12 @@
       <button id="adm-qp-btn" class="adm-btn">Setzen</button>
     </div>
     <div class="adm-row">
-      <input id="adm-talente" type="number" placeholder="Talentpunkte" class="adm-input">
-      <button id="adm-talente-btn" class="adm-btn">Setzen</button>
-    </div>
-    <div class="adm-row">
       <input id="adm-vorspulen" type="number" placeholder="Stunden" class="adm-input">
       <button id="adm-vorspulen-btn" class="adm-btn">Vorspulen</button>
     </div>
     <button id="adm-alle-upgrades" class="adm-btn adm-full">Alle Upgrades</button>
     <button id="adm-alle-skins"    class="adm-btn adm-full">Alle Skins</button>
     <button id="adm-alle-err"      class="adm-btn adm-full">Alle Errungenschaften</button>
-    <button id="adm-alle-talente"  class="adm-btn adm-full">Alle Talente Max</button>
   </div>
 </div>
 

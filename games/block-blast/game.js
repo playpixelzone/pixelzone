@@ -30,6 +30,9 @@ const PALETTE = [
   '#e8c030', // Honig
 ];
 
+/** Eine gemeinsame Anzeigefarbe für alle Blöcke (Logik nutzt weiter PALETTE pro Zelle). */
+const BLOCK_FARBE_EINHEIT = '#4f6fd8';
+
 // --- Formen: Zellen [dr,dc] relativ, (0,0) ist immer die obere linke Ecke des Bounding-Box ---
 const ROH_FORMEN = [
   { id: 'm1', z: [[0, 0]], stufe: 0 },
@@ -381,44 +384,13 @@ function hexZuRgb(hex) {
   };
 }
 
-/** 3D-Bevel: bei lückenlosem Raster etwas flachere Ecken, damit benachbarte Steine zusammenwirken */
-function bevelZelle(c, x, y, size, fillHex, alpha = 1) {
-  const { r, g, b } = hexZuRgb(fillHex);
+/** Flaches Feld: eine Farbe, kein Schatten/Verlauf (Flat Design). */
+function flacheZelle(c, x, y, size, fillHex, alpha = 1) {
   const rad = Math.min(3, size * 0.1);
   c.save();
   c.globalAlpha = alpha;
   c.fillStyle = fillHex;
   rundesRechteck(c, x, y, size, size, rad);
-  c.fill();
-  const rH = Math.min(255, r + 42);
-  const gH = Math.min(255, g + 42);
-  const bH = Math.min(255, b + 42);
-  const rS = Math.max(0, r - 48);
-  const gS = Math.max(0, g - 48);
-  const bS = Math.max(0, b - 48);
-  c.beginPath();
-  c.moveTo(x + rad, y + 1.5);
-  c.lineTo(x + size - rad, y + 1.5);
-  c.lineTo(x + size * 0.42, y + size * 0.38);
-  c.lineTo(x + size * 0.08, y + size * 0.3);
-  c.closePath();
-  c.fillStyle = `rgba(${rH},${gH},${bH},0.55)`;
-  c.fill();
-  c.beginPath();
-  c.moveTo(x + size - 1.5, y + size - rad);
-  c.lineTo(x + size - 1.5, y + rad);
-  c.lineTo(x + size * 0.55, y + size * 0.42);
-  c.lineTo(x + size * 0.88, y + size * 0.58);
-  c.closePath();
-  c.fillStyle = `rgba(${rS},${gS},${bS},0.45)`;
-  c.fill();
-  c.beginPath();
-  c.moveTo(x + 1.5, y + size - rad);
-  c.lineTo(x + rad, y + size - 1.5);
-  c.lineTo(x + size * 0.28, y + size * 0.65);
-  c.lineTo(x + size * 0.12, y + size * 0.45);
-  c.closePath();
-  c.fillStyle = `rgba(${rS},${gS},${bS},0.38)`;
   c.fill();
   c.restore();
 }
@@ -439,7 +411,7 @@ function boardZeichnen() {
         ctx.fillStyle = '#2a2e42';
         ctx.fillRect(x, y, zellenPixel, zellenPixel);
       } else {
-        bevelZelle(ctx, x, y, zellenPixel, z.farbe, 1);
+        flacheZelle(ctx, x, y, zellenPixel, BLOCK_FARBE_EINHEIT, 1);
       }
     }
   }
@@ -511,14 +483,14 @@ let debugPlatzierungen = [];
 function zeichneVorschau() {
   if (!dragStueck) return;
   const alpha = vorschauGueltig ? 0.52 : 0.42;
-  const farbe = vorschauGueltig ? dragStueck.farbe : '#ff6b6b';
+  const farbe = vorschauGueltig ? BLOCK_FARBE_EINHEIT : '#ff6b6b';
   ctx.save();
   for (const [dr, dc] of dragStueck.zellen) {
     const r = vorschauR0 + dr;
     const c = vorschauC0 + dc;
     if (r < 0 || r >= RASTER || c < 0 || c >= RASTER) continue;
     const { x, y } = rasterZuPixel(r, c);
-    bevelZelle(ctx, x, y, zellenPixel, farbe, alpha);
+    flacheZelle(ctx, x, y, zellenPixel, farbe, alpha);
   }
   ctx.restore();
 }
@@ -604,8 +576,8 @@ function dragStart(e, idx) {
       gc.style.width = `${dragCS}px`;
       gc.style.height = `${dragCS}px`;
       if (occ.has(`${r},${c}`)) {
-        gc.style.background = s.farbe;
-        gc.style.boxShadow = 'inset 0 3px 0 rgba(255,255,255,.32), inset 0 -2px 0 rgba(0,0,0,.22)';
+        gc.style.background = BLOCK_FARBE_EINHEIT;
+        gc.style.boxShadow = 'none';
         gc.style.borderRadius = '3px';
       } else gc.style.background = 'transparent';
       ghost.appendChild(gc);
@@ -833,7 +805,7 @@ function trayRendern() {
         const mc = document.createElement('div');
         mc.className = occ.has(`${r},${c}`) ? 'mini-cell filled' : 'mini-cell';
         if (occ.has(`${r},${c}`)) {
-          mc.style.background = s.farbe;
+          mc.style.background = BLOCK_FARBE_EINHEIT;
         } else mc.style.background = 'transparent';
         mg.appendChild(mc);
       }

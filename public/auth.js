@@ -210,10 +210,14 @@ const PZ = {
    * @returns {Array}
    */
   async getLeaderboard(spielName, limit = 10) {
-    const { data } = await this.db.rpc('get_leaderboard', {
+    const { data, error } = await this.db.rpc('get_leaderboard', {
       p_spiel: spielName,
       p_limit: limit,
     });
+    if (error) {
+      console.error('[PZ] Rangliste RPC fehlgeschlagen:', spielName, error.message, error);
+      return [];
+    }
     return data || [];
   },
 

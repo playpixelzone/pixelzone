@@ -52,13 +52,19 @@
   <div class="scr h" id="sShop" style="background:#f5f0e8;justify-content:flex-start;padding-top:clamp(14px,3vw,22px);overflow-y:auto;">
     <div class="ttl" style="font-size:clamp(18px,4vw,28px);margin-bottom:4px;">Shop</div>
     <div id="shopco" style="font-family:'Nunito','Arial Rounded MT Bold',Arial,sans-serif;font-size:clamp(11px,2vw,14px);color:#c8900a;margin-bottom:clamp(8px,1.5vw,12px);"><span style="display:inline-block;width:11px;height:11px;background:#ffd700;border-radius:50%;border:2px solid #c8900a;vertical-align:middle;margin-right:4px;"></span><span id="shopcoVal">0</span></div>
-    <div style="display:flex;margin-bottom:clamp(8px,1.5vw,14px);border-radius:8px;overflow:hidden;border:2px solid #ddd;width:fit-content;">
+    <div style="display:flex;flex-wrap:wrap;margin-bottom:clamp(8px,1.5vw,14px);border-radius:8px;overflow:hidden;border:2px solid #ddd;width:fit-content;max-width:100%;">
       <button class="stab active" id="tab-sk" onclick="shopTab('sk')">Skins</button>
       <button class="stab" id="tab-up" onclick="shopTab('up')">Upgrades</button>
+      <button class="stab" id="tab-loot" onclick="shopTab('loot')">Lootbox</button>
       <button class="stab" id="tab-cd" onclick="shopTab('cd')">Code</button>
     </div>
     <div id="tc-sk"><div class="sgrid" id="sgrid"></div></div>
     <div id="tc-up" style="display:none;width:min(480px,94vw);"></div>
+    <div id="tc-loot" style="display:none;width:min(480px,94vw);text-align:center;padding:clamp(6px,1.2vw,12px);">
+      <p style="font-family:'Nunito',Arial,sans-serif;font-size:clamp(11px,1.9vw,14px);color:#555;margin:0 0 10px;line-height:1.45;">Seltenheit beim Zufall: Gewöhnlich 60&nbsp;% · Selten 25&nbsp;% · Episch 12&nbsp;% · Legendär 3&nbsp;%.</p>
+      <button type="button" class="btn btn-g" id="lootOpenBtn" style="font-size:clamp(12px,2vw,15px);">Lootbox öffnen</button>
+      <div id="lootResult" aria-live="polite" style="min-height:100px;margin-top:clamp(10px,2vw,16px);"></div>
+    </div>
     <div id="tc-cd" style="display:none;text-align:center;padding:10px 0;">
       <div style="font-family:'Nunito',Arial,sans-serif;font-size:clamp(12px,2vw,15px);color:#555;margin-bottom:12px;">Code eingeben und einlösen:</div>
       <input id="codeInp" type="text" maxlength="20" placeholder="Code hier..." style="font-family:'Nunito',Arial,sans-serif;font-size:clamp(13px,2.2vw,16px);padding:9px 14px;border:2px solid #5a9a3a;border-radius:8px;width:clamp(180px,40vw,240px);outline:none;text-align:center;margin-bottom:10px;display:block;margin-left:auto;margin-right:auto;">

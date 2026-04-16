@@ -669,11 +669,46 @@ function dragEnd(e) {
   drag.ghostSpalte = -1;
 }
 
+/** Zählt belegte phys-Zellen in einem Bereich (visuelle Gitterkoordinaten inklusive). */
+function zaehleBloeckeImVisBereich(visS0, visS1, visZ0, visZ1) {
+  const ps0 = Math.max(0, visS0) * BLOCK_SCALE;
+  const ps1 = Math.min(GRID_BREITE, visS1 + 1) * BLOCK_SCALE;
+  const pz0 = Math.max(0, visZ0) * BLOCK_SCALE;
+  const pz1 = Math.min(GRID_HOEHE, visZ1 + 1) * BLOCK_SCALE;
+  let n = 0;
+  for (let pz = pz0; pz < pz1; pz++) {
+    for (let ps = ps0; ps < ps1; ps++) {
+      if (physGitter[pz][ps]) n++;
+    }
+  }
+  return n;
+}
+
+/** Max. belegte Zellen in einem 3×3-Gitterfeld an einer Ecke – verhindert Dauer-Spam in derselben Ecke. */
+const MAX_BLOECKE_PRO_3X3 = 28;
+
 // ── Block ins Spielfeld setzen ────────────────────────────────────────────────
 function blockPlatzieren(panelIdx, startVisSpalte) {
   physikWarRuhig = false;
   stabileFrames  = 0;
   const block = panelBloecke[panelIdx];
+
+  // Ecke-Spam: in der 3×3-Zone um die geplante untere linke Zelle nicht zu voll werden lassen
+  let minBs = Infinity;
+  let maxBs = -Infinity;
+  let maxBz = 0;
+  for (const [bz, bs] of block.zellen) {
+    minBs = Math.min(minBs, bs);
+    maxBs = Math.max(maxBs, bs);
+    maxBz = Math.max(maxBz, bz);
+  }
+  const untenLinksVisS = startVisSpalte + minBs;
+  const untenLinksVisZ = maxBz;
+  const eckeSpalte = untenLinksVisS <= GRID_BREITE / 2 ? 0 : GRID_BREITE - 3;
+  const eckeZeile = untenLinksVisZ >= GRID_HOEHE / 2 ? GRID_HOEHE - 3 : 0;
+  if (zaehleBloeckeImVisBereich(eckeSpalte, eckeSpalte + 2, eckeZeile, eckeZeile + 2) >= MAX_BLOECKE_PRO_3X3) {
+    return;
+  }
 
   // Jede Block-Zelle [bz, bs] → 7×7 Cluster in physGitter
   block.zellen.forEach(([bz, bs]) => {

@@ -3,9 +3,10 @@
 
 const GAME_ID = "pixel-factory";
 const SAVE_SCHEMA_VERSION = 3;
-const AUTOSAVE_MS = 45000;
+const AUTOSAVE_MS = 10000;
 const BASE_EVENT_INTERVAL_MS = 210000;
 const COMBO_WINDOW_MS = 1400;
+/** @deprecated Nur noch für Fallback; echte Erneuerung über Halbstunden-Grenze (siehe msBisNaechsteHalbeStunde). */
 const MISSION_ROTATE_MS = 30 * 60 * 1000;
 const PRESTIGE_BASE = 9000;
 const PRESTIGE_GROWTH = 1.5;
@@ -148,6 +149,21 @@ const MISSIONS = [
   { id: "m_combo", type: "combo", name: "Flow-Kette", desc: "Erreiche eine Kombo von {target}", baseTarget: 20, reward: { season: 28, timedProd: 1.45 } },
 ];
 
+/** Millisekunden bis zur nächsten vollen oder halben Stunde (echte Uhr). */
+function msBisNaechsteHalbeStunde() {
+  const jetzt = new Date();
+  const minuten = jetzt.getMinutes();
+  const sekunden = jetzt.getSeconds();
+  const ms = jetzt.getMilliseconds();
+  const sekBis = (minuten < 30 ? 30 - minuten : 60 - minuten) * 60 - sekunden;
+  return sekBis * 1000 - ms;
+}
+
+/** Zeitpunkt (ms) des nächsten Wechsels an Halbstunden-Grenze. */
+function naechsterMissionenWechselZeitpunkt() {
+  return Date.now() + msBisNaechsteHalbeStunde();
+}
+
 const state = makeDefaultState();
 const runtime = {
   running: false,
@@ -212,7 +228,7 @@ function makeDefaultState() {
       activeEffects: [],
       activeEvent: null,
       nextEventAt: Date.now() + BASE_EVENT_INTERVAL_MS,
-      nextMissionRefreshAt: Date.now() + MISSION_ROTATE_MS,
+      nextMissionRefreshAt: naechsterMissionenWechselZeitpunkt(),
       comboCount: 0,
       comboUntil: 0,
       discoveredBuildings: { worker: true },
@@ -457,7 +473,7 @@ function randomMissionSet() {
     out.push({ ...m, target, progress: 0, done: false });
   }
   state.session.missions = out;
-  state.session.nextMissionRefreshAt = Date.now() + MISSION_ROTATE_MS;
+  state.session.nextMissionRefreshAt = naechsterMissionenWechselZeitpunkt();
 }
 
 function missionProgress(m) {
@@ -479,7 +495,7 @@ function completeMission(m) {
 
 function updateMissions() {
   if (!state.session.nextMissionRefreshAt) {
-    state.session.nextMissionRefreshAt = Date.now() + MISSION_ROTATE_MS;
+    state.session.nextMissionRefreshAt = naechsterMissionenWechselZeitpunkt();
   }
   if (Date.now() >= state.session.nextMissionRefreshAt) {
     randomMissionSet();
@@ -599,14 +615,29 @@ function applyOfflineBonus(lastTs) {
   addPixels(bonus, "Offline");
 }
 
-async function saveGame(withToast = false) {
+/** Kurzer sichtbarer Hinweis nach automatischem Supabase-Speichern. */
+function zeigeSpeicherHinweis() {
+  const el = document.getElementById("autosaveInd");
+  if (!el) return;
+  el.textContent = "Gespeichert ✓";
+  el.classList.add("autosave-sichtbar");
+  clearTimeout(zeigeSpeicherHinweis._t);
+  zeigeSpeicherHinweis._t = setTimeout(() => {
+    el.textContent = "";
+    el.classList.remove("autosave-sichtbar");
+  }, 1000);
+}
+
+async function saveGame(withToast = false, zeigeHinweis = false) {
   if (location.search.includes("admin=1")) return;
   const user = await PZ.getUser();
   if (!user) return;
   state.session.lastSaveAt = Date.now();
   const payload = deepClone(state);
-  await PZ.saveGameData(GAME_ID, Math.floor(state.economy.lifetimePixel), state.meta.prestige, payload);
+  const res = await PZ.saveGameData(GAME_ID, Math.floor(state.economy.lifetimePixel), state.meta.prestige, payload);
+  if (res.error) console.error("[Pixel Factory] Speichern fehlgeschlagen:", res.error);
   if (withToast) toast("Gespeichert");
+  if (zeigeHinweis && !res.error) zeigeSpeicherHinweis();
 }
 
 async function loadGame() {
@@ -681,6 +712,7 @@ async function loadGame() {
   state.schemaVersion = SAVE_SCHEMA_VERSION;
 
   if (!Array.isArray(state.session.missions) || state.session.missions.length === 0) randomMissionSet();
+  if (state.session.nextMissionRefreshAt < Date.now()) randomMissionSet();
   recomputeMetaFromLineAndMutations();
   applyOfflineBonus(state.session.lastSaveAt);
 }
@@ -926,15 +958,26 @@ function renderEventModal() {
 }
 
 async function renderLeaderboard(mode) {
-  const rows = await PZ.getLeaderboard(GAME_ID, 60);
-  const filtered = rows.filter((r) => r.extra_daten?.schemaVersion === SAVE_SCHEMA_VERSION);
-  let sorted = [...filtered];
+  let rows = [];
+  try {
+    rows = await PZ.getLeaderboard(GAME_ID, 60);
+  } catch (e) {
+    console.error("[Pixel Factory] Rangliste getLeaderboard:", e);
+    ui.rankContent.innerHTML = `<div class="rang-fehler">Rangliste konnte nicht geladen werden. Details in der Konsole.</div>`;
+    return;
+  }
+  const filteredV3 = rows.filter((r) => r.extra_daten?.schemaVersion === SAVE_SCHEMA_VERSION);
+  if (rows.length > 0 && filteredV3.length === 0) {
+    console.warn("[Pixel Factory] Rangliste: Keine Einträge mit Schema v3 – zeige alle gespeicherten Zeilen.");
+  }
+  const nutze = filteredV3.length > 0 ? filteredV3 : rows;
+  let sorted = [...nutze];
   if (mode === "prestige") sorted.sort((a, b) => (b.level || 0) - (a.level || 0));
   else if (mode === "season") sorted.sort((a, b) => (b.extra_daten?.meta?.seasonPoints || 0) - (a.extra_daten?.meta?.seasonPoints || 0));
   else sorted.sort((a, b) => (b.punkte || 0) - (a.punkte || 0));
 
   if (sorted.length === 0) {
-    ui.rankContent.innerHTML = `<div style="padding:14px;text-align:center;color:var(--text-muted)">Noch keine Rework-v3 Einträge.</div>`;
+    ui.rankContent.innerHTML = `<div style="padding:14px;text-align:center;color:var(--text-muted)">Noch keine Einträge. Nach dem Anmelden wird der Spielstand automatisch gespeichert.</div>`;
     return;
   }
   ui.rankContent.innerHTML = `
@@ -1130,8 +1173,6 @@ function bindEvents() {
   ui.prestigeBtn.addEventListener("click", openPrestigeModal);
   document.getElementById("prestigeConfirmNein").addEventListener("click", () => ui.prestigeModal.classList.add("versteckt"));
 
-  document.getElementById("talentBtn").classList.add("versteckt");
-
   document.getElementById("errungenschaftenBtn").textContent = "📅 Saison";
   document.getElementById("errungenschaftenBtn").addEventListener("click", renderSeasonModal);
   document.getElementById("errungenschaftenSchliessen").addEventListener("click", () => document.getElementById("errungenschaftenModal").classList.add("versteckt"));
@@ -1192,7 +1233,7 @@ function frame(ts) {
   runtime.autosave += dt * 1000;
   if (runtime.autosave >= AUTOSAVE_MS) {
     runtime.autosave = 0;
-    saveGame(false);
+    saveGame(false, true);
   }
 
   drawPile();
@@ -1219,7 +1260,6 @@ async function init() {
 
   runtime.running = true;
   requestAnimationFrame(frame);
-  setInterval(() => saveGame(false), 120000);
   window.addEventListener("beforeunload", () => { state.session.lastSaveAt = Date.now(); });
 }
 

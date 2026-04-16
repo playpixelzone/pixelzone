@@ -7,9 +7,31 @@ window.onunhandledrejection=function(e){console.warn('Unhandled promise:',e.reas
 const isTouchDevice=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 
 // ── SPIELERDATEN (Supabase-Sync, ohne localStorage) ─────────────────────────
-let pdCache={coins:0,owned:[0],sel:0,name:'',upgrades:{}};
+const LOOT_BOX_PREIS_STD=150;
+let pdCache={coins:0,owned:[0],sel:0,name:'',upgrades:{},usedCodes:[],lootBoxPreis:LOOT_BOX_PREIS_STD};
 function loadPD(){return pdCache;}
-function savePD(d){pdCache=d||{coins:0,owned:[0],sel:0,name:'',upgrades:{}};}
+function savePD(d){pdCache=d||{coins:0,owned:[0],sel:0,name:'',upgrades:{},usedCodes:[],lootBoxPreis:LOOT_BOX_PREIS_STD};}
+
+/** Alle Felder für Supabase extra_daten (ohne Highscore). */
+function buildPJExtra(){
+  pd=loadPD();
+  return{
+    coins:pd.coins||0,
+    owned:pd.owned||[0],
+    sel:pd.sel||0,
+    upgrades:pd.upgrades||{},
+    usedCodes:pd.usedCodes||[],
+    lootBoxPreis:pd.lootBoxPreis!=null?pd.lootBoxPreis:LOOT_BOX_PREIS_STD,
+  };
+}
+function getLootPreis(){pd=loadPD();return pd.lootBoxPreis!=null?pd.lootBoxPreis:LOOT_BOX_PREIS_STD;}
+function syncSpielstandPJ(){
+  if(typeof PZ==='undefined'||adminModus)return Promise.resolve();
+  return PZ.getUser().then(function(u){
+    if(!u)return;
+    return PZ.saveGameData('pixel-jump',bestScore,1,buildPJExtra());
+  }).catch(function(){});
+}
 
 // SPIELERDATEN AUS SUPABASE LADEN
 let adminModus=false;
@@ -35,6 +57,8 @@ async function initPlayer(){
         pd.owned   =data.extra_daten.owned   ||[0];
         pd.sel     =data.extra_daten.sel     ||0;
         pd.upgrades=data.extra_daten.upgrades||{};
+        pd.usedCodes=data.extra_daten.usedCodes||[];
+        if(data.extra_daten.lootBoxPreis!=null)pd.lootBoxPreis=data.extra_daten.lootBoxPreis;
       }
       if(username)pd.name=username;
       savePD(pd);
@@ -61,15 +85,23 @@ window.addEventListener('resize',function(){resize();});
 
 // ── CHARACTERS ────────────────────────────────────────────────────────────────
 const CHARS=[
-  {name:'Grüni',  price:0,   scoreReq:0,    body:'#7ecf4a',dark:'#2d6e0f',acc:'#ffe066',code:null,img:null},
-  {name:'Ozean',  price:50,  scoreReq:0,    body:'#22c5ef',dark:'#0a5a8a',acc:'#ffffff',code:null,img:null},
-  {name:'Feuer',  price:80,  scoreReq:0,    body:'#ff5a1a',dark:'#aa1a00',acc:'#ffcc00',code:null,img:null},
-  {name:'Neon',   price:100, scoreReq:0,    body:'#b46aef',dark:'#6a1aaa',acc:'#ffaaff',code:null,img:null},
-  {name:'Robot',  price:120, scoreReq:0,    body:'#8aaabb',dark:'#334455',acc:'#44ffff',code:null,img:null},
-  {name:'Gold',   price:200, scoreReq:0,    body:'#ffd700',dark:'#996600',acc:'#ffffff',code:null,img:null},
-  {name:'Geist',  price:150, scoreReq:0,    body:'#dde0ff',dark:'#6677cc',acc:'#ffffff',code:null,img:null},
-  {name:'Alien',  price:90,  scoreReq:0,    body:'#4aef8a',dark:'#1a7a3a',acc:'#ffff44',code:null,img:null},
-  {name:'Tim',    price:0,   scoreReq:0,    body:'#f0c090',dark:'#8b4513',acc:'#4a90d9',  code:'timgioh', img:'__TIM__'},
+  {name:'Grüni',  price:0,   scoreReq:0, tier:'c', body:'#7ecf4a',dark:'#2d6e0f',acc:'#ffe066',code:null,img:null},
+  {name:'Ozean',  price:50,  scoreReq:0, tier:'c', body:'#22c5ef',dark:'#0a5a8a',acc:'#ffffff',code:null,img:null},
+  {name:'Feuer',  price:80,  scoreReq:0, tier:'c', body:'#ff5a1a',dark:'#aa1a00',acc:'#ffcc00',code:null,img:null},
+  {name:'Neon',   price:100, scoreReq:0, tier:'r', body:'#b46aef',dark:'#6a1aaa',acc:'#ffaaff',code:null,img:null},
+  {name:'Robot',  price:120, scoreReq:0, tier:'r', body:'#8aaabb',dark:'#334455',acc:'#44ffff',code:null,img:null},
+  {name:'Gold',   price:200, scoreReq:0, tier:'e', body:'#ffd700',dark:'#996600',acc:'#ffffff',code:null,img:null},
+  {name:'Geist',  price:150, scoreReq:0, tier:'r', body:'#dde0ff',dark:'#6677cc',acc:'#ffffff',code:null,img:null},
+  {name:'Alien',  price:90,  scoreReq:0, tier:'c', body:'#4aef8a',dark:'#1a7a3a',acc:'#ffff44',code:null,img:null},
+  {name:'Tim',    price:0,   scoreReq:0, tier:'l', body:'#f0c090',dark:'#8b4513',acc:'#4a90d9',  code:'timgioh', img:'__TIM__'},
+  {name:'Kirsch', price:0,   scoreReq:0, tier:'c', lootOnly:true, body:'#ff6b9a',dark:'#9d174d',acc:'#fff0f5',code:null,img:null},
+  {name:'Limette',price:0,   scoreReq:0, tier:'c', lootOnly:true, body:'#c8f542',dark:'#3d6e0a',acc:'#2d5016',code:null,img:null},
+  {name:'Mitternacht',price:0,scoreReq:0,tier:'r',lootOnly:true,body:'#3d4f7a',dark:'#1a2238',acc:'#8eb4ff',code:null,img:null},
+  {name:'Pfirsich',price:0, scoreReq:0, tier:'c', lootOnly:true, body:'#ffb38a',dark:'#c45c2d',acc:'#fff5e6',code:null,img:null},
+  {name:'Lava',   price:0,   scoreReq:0, tier:'e', lootOnly:true, body:'#ff4500',dark:'#5c1000',acc:'#ffd000',code:null,img:null},
+  {name:'Polar',  price:0,   scoreReq:0, tier:'r', lootOnly:true, body:'#e0f4ff',dark:'#4a7aa8',acc:'#1e90ff',code:null,img:null},
+  {name:'Schatten',price:0,  scoreReq:0, tier:'e', lootOnly:true, body:'#6a5acd',dark:'#2e1a5e',acc:'#dda0ff',code:null,img:null},
+  {name:'Sonnenuntergang',price:0,scoreReq:0,tier:'l',lootOnly:true,body:'#ff8c42',dark:'#8b3a00',acc:'#ffccff',code:null,img:null},
 ];
 // inject photo
 
@@ -94,6 +126,8 @@ const SPRITES=[
 // 8 Tim - hoodie guy with short hair
 [[0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0],[0,0,1,1,3,3,3,3,3,1,1,0,0,0,0,0],[0,1,1,3,3,1,1,1,3,3,1,1,0,0,0,0],[0,1,1,3,2,1,1,1,2,3,1,1,0,0,0,0],[0,1,1,3,3,3,3,3,3,3,1,1,0,0,0,0],[0,0,1,1,3,3,3,3,3,1,1,0,0,0,0,0],[0,0,1,4,4,4,4,4,4,4,1,0,0,0,0,0],[0,1,4,4,4,4,4,4,4,4,4,1,0,0,0,0],[0,1,4,4,4,3,3,4,4,4,4,1,0,0,0,0],[0,1,4,4,3,3,3,3,4,4,4,1,0,0,0,0],[0,0,1,4,4,4,4,4,4,4,1,0,0,0,0,0],[0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0],[0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0],[0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0]],
 ];
+// Zusätzliche Skins: variierte Silhouetten (Farben kommen aus CHARS)
+SPRITES.push(SPRITES[1],SPRITES[4],SPRITES[2],SPRITES[6],SPRITES[3],SPRITES[5],SPRITES[7],SPRITES[0]);
 function shade(hex,amt){
   const r=Math.max(0,Math.min(255,parseInt(hex.slice(1,3),16)+amt));
   const g=Math.max(0,Math.min(255,parseInt(hex.slice(3,5),16)+amt));
@@ -432,7 +466,9 @@ function loop(ts){
 
   // Gravity or jetpack
   if(jetActive){
-    player.vy=JET_VY*psc;
+    const jl=getUL('jetpack');
+    const jetSpd=Math.min(1.38,1+jl*0.042);
+    player.vy=JET_VY*psc*jetSpd;
     if(tick%3===0) addParts(player.x+player.w/2,player.y+player.h,'#ff8800',2,0.7);
   } else {
     player.vy+=GRAV*psc*dt;
@@ -809,11 +845,12 @@ function endGame(){
   goTo('sOver');
   // Supabase speichern + Rang ermitteln
   if(typeof PZ!=='undefined'){
-    if(!adminModus)PZ.saveGameData('pixel-jump',score,1,{coins:pd.coins,owned:pd.owned||[0],sel:pd.sel||0,upgrades:pd.upgrades||{}})
-      .then(function(res){
-        if(res&&res.isNewRecord&&score>bestScore){
-          bestScore=score; // lokalen Vergleichswert aktualisieren
-          document.getElementById('nbst').classList.remove('h');
+    if(!adminModus)PZ.saveGameData('pixel-jump',score,1,buildPJExtra())
+      .then(function(){
+        if(score>bestScore){
+          bestScore=score;
+          const nb=document.getElementById('nbst');
+          if(nb)nb.classList.remove('h');
         }
       })
       .catch(function(){});
@@ -843,12 +880,22 @@ function goTo(id){
 
 // ── SHOP ──────────────────────────────────────────────────────────────────────
 const UPGRADES=[
-  {id:'jetpack',   name:'Jetpack',      icon:'🚀', desc:'Dauer', base:360, perLvl:120, costs:[60,120,200,300], max:4},
-  {id:'jumpboost', name:'Jump Boost',   icon:'⬆️', desc:'Dauer', base:300, perLvl:100, costs:[50,100,160,250], max:4},
-  {id:'multiplier',name:'x2 Punkte',    icon:'⭐', desc:'Dauer', base:900, perLvl:300, costs:[80,150,250,400], max:4},
+  {id:'jetpack',   name:'Jetpack',      icon:'🚀', desc:'Dauer', base:360, perLvl:12, costBase:60, max:10},
+  {id:'jumpboost', name:'Jump Boost',   icon:'⬆️', desc:'Dauer', base:300, perLvl:10, costBase:50, max:10},
+  {id:'multiplier',name:'x2 Punkte',    icon:'⭐', desc:'Dauer', base:900, perLvl:28, costBase:80, max:10},
 ];
 function getUL(id){pd=loadPD();if(!pd.upgrades)pd.upgrades={};return pd.upgrades[id]||0;}
-function getID(id){const u=UPGRADES.find(function(u){return u.id===id;});if(!u)return 300;return u.base+getUL(id)*u.perLvl;}
+/** Dauer in Zeitschritten (wie bisher: Anzeige ≈ Wert/60 Sekunden). */
+function getID(id){
+  const u=UPGRADES.find(function(x){return x.id===id;});
+  if(!u)return 300;
+  const lvl=getUL(id);
+  return Math.max(30,Math.floor(u.base*Math.pow(1.1,lvl)+lvl*(u.perLvl||0)));
+}
+function upgradeKosten(u,lvl){
+  if(lvl>=u.max)return 0;
+  return Math.max(1,Math.floor(u.costBase*Math.pow(1.22,lvl)));
+}
 
 const CODES={
   'timgioh':{type:'skin',idx:8},
@@ -858,12 +905,15 @@ const CODES={
 let curTab='sk';
 function shopTab(t){
   curTab=t;
-  ['sk','up','cd'].forEach(function(id){
-    document.getElementById('tc-'+id).style.display=id===t?'':'none';
-    document.getElementById('tab-'+id).classList.toggle('active',id===t);
+  ['sk','up','cd','loot'].forEach(function(id){
+    const p=document.getElementById('tc-'+id);
+    if(p)p.style.display=id===t?'':'none';
+    const tab=document.getElementById('tab-'+id);
+    if(tab)tab.classList.toggle('active',id===t);
   });
   if(t==='sk')renderSkins();
   if(t==='up')renderUpgrades();
+  if(t==='loot')renderLootTab();
 }
 function renderShop(){pd=loadPD();const s=document.getElementById('shopcoVal');if(s)s.textContent=pd.coins;curTab='sk';shopTab('sk');}
 
@@ -874,9 +924,11 @@ function renderSkins(){
     const owned=(pd.owned||[0]).indexOf(i)>=0;
     const active=(pd.sel||0)===i;
     const codeLocked=ch.code&&!owned;
+    const lootOnly=ch.lootOnly&&!owned;
     const div=document.createElement('div');
     div.className='sc'+(owned?' own':'')+(active?' act':'');
     if(codeLocked){div.style.opacity='0.55';div.style.background='#f8f8f8';}
+    if(lootOnly){div.style.opacity='0.7';}
     const sz=Math.round(Math.min(CW*0.09,46));
     const mc=document.createElement('canvas');mc.width=sz;mc.height=sz;
     mc.style.width=sz+'px';mc.style.height=sz+'px';mc.style.imageRendering='pixelated';
@@ -885,14 +937,16 @@ function renderSkins(){
     const nm=document.createElement('div');nm.className='snm';nm.textContent=ch.name;div.appendChild(nm);
     const pr=document.createElement('div');pr.className='spr'+(owned?' own':'');
     if(codeLocked)pr.innerHTML='<span class="lockbg">Code</span>';
+    else if(lootOnly)pr.textContent='Lootbox';
     else pr.textContent=owned?(active?'✓ Aktiv':'Besitz'):(ch.price===0?'Gratis':ch.price+' C');
     div.appendChild(pr);
     div.onclick=function(){
+      if(lootOnly){shopTab('loot');return;}
       if(codeLocked){document.getElementById('codeMsg').textContent='';shopTab('cd');return;}
       pd=loadPD();
-      if((pd.owned||[0]).indexOf(i)>=0){pd.sel=i;savePD(pd);renderSkins();return;}
-      if(ch.price===0){if(!pd.owned)pd.owned=[0];pd.owned.push(i);pd.sel=i;savePD(pd);renderSkins();return;}
-      if(pd.coins>=ch.price){pd.coins-=ch.price;if(!pd.owned)pd.owned=[0];pd.owned.push(i);pd.sel=i;savePD(pd);renderSkins();}
+      if((pd.owned||[0]).indexOf(i)>=0){pd.sel=i;savePD(pd);syncSpielstandPJ();renderSkins();return;}
+      if(ch.price===0&&!ch.lootOnly){if(!pd.owned)pd.owned=[0];pd.owned.push(i);pd.sel=i;savePD(pd);syncSpielstandPJ();renderSkins();return;}
+      if(pd.coins>=ch.price){pd.coins-=ch.price;if(!pd.owned)pd.owned=[0];pd.owned.push(i);pd.sel=i;savePD(pd);syncSpielstandPJ();renderSkins();}
       else{div.style.borderColor='#bf3a3a';setTimeout(function(){div.style.borderColor='';},500);}
     };
     grid.appendChild(div);
@@ -904,15 +958,15 @@ function renderUpgrades(){
   const el=document.getElementById('tc-up');el.innerHTML='';
   const cols={jetpack:'#ff7700',jumpboost:'#22bb55',multiplier:'#ffd700'};
   UPGRADES.forEach(function(u){
-    const lvl=getUL(u.id);const isMax=lvl>=u.max;const cost=isMax?0:u.costs[lvl];
-    const dur=Math.round((u.base+lvl*u.perLvl)/60);
-    const ndur=isMax?null:Math.round((u.base+(lvl+1)*u.perLvl)/60);
+    const lvl=getUL(u.id);const isMax=lvl>=u.max;const cost=isMax?0:upgradeKosten(u,lvl);
+    const dur=Math.round(getID(u.id)/60);
+    const nextSecs=isMax?null:Math.max(30,Math.floor(u.base*Math.pow(1.1,lvl+1)+(lvl+1)*(u.perLvl||0)))/60;
     const card=document.createElement('div');card.className='ugcard';
     const ic=document.createElement('div');ic.className='ugicon';
     ic.style.background=(cols[u.id]||'#aaa')+'22';ic.style.border='2px solid '+(cols[u.id]||'#aaa')+'55';
     ic.textContent=u.icon;card.appendChild(ic);
     const info=document.createElement('div');info.className='uginfo';
-    info.innerHTML='<div class="ugnm">'+u.name+'</div><div class="ugdesc">'+u.desc+': '+dur+'s'+(ndur?' → '+ndur+'s':'')+'</div>';
+    info.innerHTML='<div class="ugnm">'+u.name+'</div><div class="ugdesc">'+u.desc+': '+dur+'s'+(nextSecs!=null?' → '+String(nextSecs.toFixed(1)).replace(/\.0$/,'')+'s':'')+' · Stufe '+lvl+'/'+u.max+'</div>';
     const stars=document.createElement('div');stars.className='ugstars';
     for(let s2=0;s2<u.max;s2++){const st=document.createElement('div');st.className='ugstar'+(s2<lvl?' on':'');stars.appendChild(st);}
     info.appendChild(stars);card.appendChild(info);
@@ -920,11 +974,82 @@ function renderUpgrades(){
     btn.textContent=isMax?'MAX':'⬆ '+cost+' C';
     (function(uid,c2,mx){btn.onclick=function(){
       if(mx)return;pd=loadPD();
-      if(pd.coins>=c2){pd.coins-=c2;if(!pd.upgrades)pd.upgrades={};pd.upgrades[uid]=(pd.upgrades[uid]||0)+1;savePD(pd);renderUpgrades();const sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;}
+      if(pd.coins>=c2){pd.coins-=c2;if(!pd.upgrades)pd.upgrades={};pd.upgrades[uid]=(pd.upgrades[uid]||0)+1;savePD(pd);syncSpielstandPJ();renderUpgrades();const sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;}
       else{card.style.borderColor='#bf3a3a';setTimeout(function(){card.style.borderColor='';},500);}
     };})(u.id,cost,isMax);
     card.appendChild(btn);el.appendChild(card);
   });
+}
+
+function rollLootSkinIndex(){
+  const r=Math.random()*100;
+  let tier='c';
+  if(r<60) tier='c';
+  else if(r<85) tier='r';
+  else if(r<97) tier='e';
+  else tier='l';
+  const pool=[];
+  for(let i=0;i<CHARS.length;i++){
+    if(i===8) continue;
+    if((CHARS[i].tier||'c')===tier) pool.push(i);
+  }
+  if(!pool.length){
+    for(let j=0;j<CHARS.length;j++){ if(j!==8) pool.push(j); }
+  }
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function renderLootTab(){
+  pd=loadPD();
+  const preis=getLootPreis();
+  const btn=document.getElementById('lootOpenBtn');
+  if(btn)btn.textContent='Lootbox öffnen ('+preis+' Münzen)';
+}
+
+function openLootbox(){
+  pd=loadPD();
+  const preis=getLootPreis();
+  const resEl=document.getElementById('lootResult');
+  if((pd.coins||0)<preis){
+    if(resEl)resEl.innerHTML='<div class="loot-msg loot-err">Nicht genug Münzen.</div>';
+    return;
+  }
+  pd.coins-=preis;
+  const pick=rollLootSkinIndex();
+  const owned=(pd.owned||[0]).slice();
+  const schonDrin=owned.indexOf(pick)>=0;
+  let msg='';
+  let tierLabel=(CHARS[pick].tier||'c').toUpperCase();
+  if(tierLabel==='C')tierLabel='Gewöhnlich';
+  else if(tierLabel==='R')tierLabel='Selten';
+  else if(tierLabel==='E')tierLabel='Episch';
+  else if(tierLabel==='L')tierLabel='Legendär';
+  if(schonDrin){
+    const bonus=28;
+    pd.coins+=bonus;
+    msg='Du hattest „'+CHARS[pick].name+'“ schon · +'+bonus+' Münzen';
+  } else {
+    if(!pd.owned)pd.owned=[0];
+    pd.owned.push(pick);
+    pd.sel=pick;
+    msg='Neu: „'+CHARS[pick].name+'“ ('+tierLabel+')';
+  }
+  savePD(pd);
+  const sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;
+  syncSpielstandPJ();
+  if(resEl){
+    resEl.innerHTML='';
+    resEl.classList.remove('loot-pop');
+    void resEl.offsetWidth;
+    resEl.classList.add('loot-pop');
+    const wrap=document.createElement('div');wrap.className='loot-reveal';
+    const cv=document.createElement('canvas');const sz=Math.min(120,Math.round(CW*0.28));
+    cv.width=sz;cv.height=sz;cv.style.width=cv.style.height=sz+'px';cv.style.imageRendering='pixelated';
+    drawChar(cv.getContext('2d'),pick,0,0,sz,false);
+    wrap.appendChild(cv);
+    const tx=document.createElement('div');tx.className='loot-msg loot-ok';tx.textContent=msg;wrap.appendChild(tx);
+    resEl.appendChild(wrap);
+  }
 }
 
 function redeemCode(){
@@ -942,11 +1067,11 @@ function redeemCode(){
   if(c.type==='skin'){
     const idx=c.idx;if(!pd.owned)pd.owned=[0];
     if(pd.owned.indexOf(idx)<0)pd.owned.push(idx);
-    pd.sel=idx;savePD(pd);
+    pd.sel=idx;savePD(pd);syncSpielstandPJ();
     msg.style.color='#5a9a3a';msg.textContent='🎉 Skin "'+CHARS[idx].name+'" freigeschaltet!';
     renderSkins();
   } else if(c.type==='coins'){
-    pd.coins=(pd.coins||0)+c.amount;savePD(pd);
+    pd.coins=(pd.coins||0)+c.amount;savePD(pd);syncSpielstandPJ();
     msg.style.color='#5a9a3a';msg.textContent='🪙 +'+c.amount+' Münzen!';
     const sv=document.getElementById('shopcoVal');if(sv)sv.textContent=pd.coins;
   }
@@ -1020,4 +1145,6 @@ if(isTouchDevice){
 ctx.fillStyle='#c8e8ff';ctx.fillRect(0,0,CW,CH);
 drawChar(ctx,0,CW/2-20,CH/2-60,40,false);
 goTo('sMenu');
+const lootBtnBoot=document.getElementById('lootOpenBtn');
+if(lootBtnBoot)lootBtnBoot.addEventListener('click',openLootbox);
 if(typeof PZ!=='undefined')initPlayer();

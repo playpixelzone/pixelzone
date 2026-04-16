@@ -6,6 +6,17 @@ const PADDLE_W = 14;
 const PADDLE_H = 96;
 const BALL_SIZE = 14;
 const TARGET_SCORE = 7;
+/** Rally: Geschwindigkeit steigt pro Schläger-Treffer, wird nach jedem Punkt zurückgesetzt. */
+const BALL_SPEED_MIN = 280;
+const BALL_SPEED_MAX = 780;
+const RALLY_SPEED_FACTOR = 1.05;
+
+/** Singleplayer-Power-ups (erscheinen zufällig, nur linker Spieler kann sie einfangen). */
+let spPowerUps = [];
+let spNextPowerupAt = 0;
+let spPaddleWideUntil = 0;
+let spSlowBallUntil = 0;
+const SP_POWERUP_R = 11;
 const ROOM_POLL_MS = 900;
 const BROADCAST_FRAME_MS = 33;
 const DB_SYNC_MS = 450;
@@ -71,6 +82,7 @@ function createBaseGameState() {
     ballVy: 140,
     leftScore: 0,
     rightScore: 0,
+    rallyBoost: 1,
   };
 }
 
@@ -92,13 +104,15 @@ function clamp(value, min, max) {
 }
 
 function resetBall(toRight = true) {
-  // Ball wird nach jedem Punkt in die Mitte gesetzt
-  state.game.ballX = CANVAS_W / 2 - BALL_SIZE / 2;
-  state.game.ballY = CANVAS_H / 2 - BALL_SIZE / 2;
+  // Ball wird nach jedem Punkt in die Mitte gesetzt – Grundgeschwindigkeit wiederherstellen
+  const g = state.game;
+  g.ballX = CANVAS_W / 2 - BALL_SIZE / 2;
+  g.ballY = CANVAS_H / 2 - BALL_SIZE / 2;
+  g.rallyBoost = 1;
   const speedX = 300 + Math.random() * 40;
   const speedY = (Math.random() * 220 - 110);
-  state.game.ballVx = toRight ? speedX : -speedX;
-  state.game.ballVy = speedY;
+  g.ballVx = toRight ? speedX : -speedX;
+  g.ballVy = speedY;
 }
 
 function startSingleplayer() {
@@ -107,6 +121,12 @@ function startSingleplayer() {
   state.winner = null;
   state.running = true;
   state.game = createBaseGameState();
+  spPowerUps = [];
+  spNextPowerupAt = performance.now() + 6000;
+  spPaddleWideUntil = 0;
+  spSlowBallUntil = 0;
+  const ph = $('powerup-hint');
+  if (ph) ph.textContent = '';
   resetBall(Math.random() > 0.5);
   $('game-mode-label').textContent = `Singleplayer · ${DIFFICULTIES[state.difficulty].label}`;
   $('target-score').textContent = String(TARGET_SCORE);
@@ -187,6 +207,82 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 }
 
+function powerupLabel(typ) {
+  if (typ === 'breit') return 'Breiter Schläger';
+  if (typ === 'langsam') return 'Langsamer Ball';
+  if (typ === 'blitz') return 'Blitz-Ball';
+  return typ;
+}
+
+/** Kreis (cx,cy,r) vs. Achsenparalleles Rechteck */
+function kreisTrifftRechteck(cx, cy, r, rx, ry, rw, rh) {
+  const nx = Math.max(rx, Math.min(cx, rx + rw));
+  const ny = Math.max(ry, Math.min(cy, ry + rh));
+  const dx = cx - nx;
+  const dy = cy - ny;
+  return dx * dx + dy * dy <= r * r;
+}
+
+function updateSingleplayerPowerups() {
+  const now = performance.now();
+  if (spPowerUps.length < 2 && now >= spNextPowerupAt) {
+    spNextPowerupAt = now + 10000 + Math.random() * 8000;
+    const r = Math.random();
+    const typ = r < 0.34 ? 'breit' : (r < 0.67 ? 'langsam' : 'blitz');
+    spPowerUps.push({
+      x: 120 + Math.random() * (CANVAS_W - 240),
+      y: 80 + Math.random() * (CANVAS_H - 160),
+      typ,
+    });
+  }
+
+  const g = state.game;
+  const lx = 26;
+  const lw = linkesPaddleBreite();
+  const ly = g.leftY;
+  const naechste = [];
+  for (const p of spPowerUps) {
+    const hit = kreisTrifftRechteck(p.x, p.y, SP_POWERUP_R, lx, ly, lw, PADDLE_H);
+    if (hit) {
+      if (p.typ === 'breit') {
+        spPaddleWideUntil = now + 5000;
+        powerupHintSet(`${powerupLabel('breit')} aktiv (5s)`);
+      } else if (p.typ === 'langsam') {
+        spSlowBallUntil = now + 3000;
+        powerupHintSet(`${powerupLabel('langsam')} aktiv (3s)`);
+      } else if (p.typ === 'blitz') {
+        const gg = state.game;
+        const sp = Math.hypot(gg.ballVx, gg.ballVy) * 2.8;
+        const s = clamp(sp, 420, 920);
+        const dir = gg.ballVx >= 0 ? 1 : -1;
+        gg.ballVx = dir * s * 0.92;
+        gg.ballVy = (Math.random() * 0.4 - 0.2) * s;
+        powerupHintSet('Blitz-Ball!');
+      }
+    } else {
+      naechste.push(p);
+    }
+  }
+  spPowerUps = naechste;
+
+  const ph = $('powerup-hint');
+  if (!ph) return;
+  if (now < spPaddleWideUntil && now < spSlowBallUntil) {
+    ph.textContent = `Aktiv: Breiter Schläger + langsamer Ball (${Math.ceil((Math.min(spPaddleWideUntil, spSlowBallUntil) - now) / 1000)}s)`;
+  } else if (now < spPaddleWideUntil) {
+    ph.textContent = `Aktiv: Breiter Schläger (${Math.ceil((spPaddleWideUntil - now) / 1000)}s)`;
+  } else if (now < spSlowBallUntil) {
+    ph.textContent = `Aktiv: Langsamer Ball (${Math.ceil((spSlowBallUntil - now) / 1000)}s)`;
+  } else if (!spPowerUps.length && ph.textContent.startsWith('Aktiv:')) {
+    ph.textContent = '';
+  }
+}
+
+function powerupHintSet(msg) {
+  const ph = $('powerup-hint');
+  if (ph) ph.textContent = msg;
+}
+
 function drawGame() {
   const g = state.game;
   ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
@@ -202,9 +298,27 @@ function drawGame() {
   ctx.stroke();
   ctx.setLineDash([]);
 
+  const lwDraw = linkesPaddleBreite();
   ctx.fillStyle = '#3767d4';
-  ctx.fillRect(26, g.leftY, PADDLE_W, PADDLE_H);
+  ctx.fillRect(26, g.leftY, lwDraw, PADDLE_H);
   ctx.fillRect(CANVAS_W - 26 - PADDLE_W, g.rightY, PADDLE_W, PADDLE_H);
+
+  if (state.mode === 'single') {
+    for (const p of spPowerUps) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, SP_POWERUP_R, 0, Math.PI * 2);
+      ctx.fillStyle = p.typ === 'breit' ? '#22c55e' : (p.typ === 'langsam' ? '#38bdf8' : '#fbbf24');
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,.2)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px system-ui,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.typ === 'breit' ? '↔' : (p.typ === 'langsam' ? '❄' : '⚡'), p.x, p.y);
+    }
+  }
 
   ctx.fillStyle = '#ff6f91';
   ctx.fillRect(g.ballX, g.ballY, BALL_SIZE, BALL_SIZE);
@@ -238,29 +352,37 @@ function updateAi(dt) {
   state.game.rightY = clamp(state.game.rightY, 0, CANVAS_H - PADDLE_H);
 }
 
+function linkesPaddleBreite() {
+  const extra = performance.now() < spPaddleWideUntil ? 36 : 0;
+  return PADDLE_W + extra;
+}
+
 function bounceFromPaddle(isLeft) {
   // Je näher am Paddle-Rand getroffen wird, desto steiler der Winkel
   const g = state.game;
   const paddleY = isLeft ? g.leftY : g.rightY;
+  const pw = isLeft ? linkesPaddleBreite() : PADDLE_W;
   const paddleX = isLeft ? 26 : CANVAS_W - 26 - PADDLE_W;
   const ballCenterY = g.ballY + BALL_SIZE / 2;
   const paddleCenterY = paddleY + PADDLE_H / 2;
   const rel = clamp((ballCenterY - paddleCenterY) / (PADDLE_H / 2), -1, 1);
   const diffCfg = DIFFICULTIES[state.difficulty];
   const maxAngle = diffCfg.maxAngle;
-  const speed = clamp(Math.hypot(g.ballVx, g.ballVy) * 1.03, 260, 720);
+  let speed = Math.hypot(g.ballVx, g.ballVy) * RALLY_SPEED_FACTOR;
+  speed = clamp(speed, BALL_SPEED_MIN, BALL_SPEED_MAX);
   const angle = rel * maxAngle;
   const dir = isLeft ? 1 : -1;
 
   g.ballVx = Math.cos(angle) * speed * dir;
   g.ballVy = Math.sin(angle) * speed;
-  g.ballX = isLeft ? paddleX + PADDLE_W + 1 : paddleX - BALL_SIZE - 1;
+  g.ballX = isLeft ? 26 + pw + 1 : paddleX - BALL_SIZE - 1;
 }
 
 function simulateBall(dt) {
   const g = state.game;
-  g.ballX += g.ballVx * dt;
-  g.ballY += g.ballVy * dt;
+  const slowMul = state.mode === 'single' && performance.now() < spSlowBallUntil ? 0.52 : 1;
+  g.ballX += g.ballVx * dt * slowMul;
+  g.ballY += g.ballVy * dt * slowMul;
 
   if (g.ballY <= 0) {
     g.ballY = 0;
@@ -271,11 +393,16 @@ function simulateBall(dt) {
   }
 
   const leftX = 26;
+  const leftW = linkesPaddleBreite();
   const rightX = CANVAS_W - 26 - PADDLE_W;
-  const hitLeft = g.ballX <= leftX + PADDLE_W && g.ballX >= leftX && g.ballY + BALL_SIZE >= g.leftY && g.ballY <= g.leftY + PADDLE_H && g.ballVx < 0;
+  const hitLeft = g.ballX <= leftX + leftW && g.ballX >= leftX && g.ballY + BALL_SIZE >= g.leftY && g.ballY <= g.leftY + PADDLE_H && g.ballVx < 0;
   const hitRight = g.ballX + BALL_SIZE >= rightX && g.ballX + BALL_SIZE <= rightX + PADDLE_W && g.ballY + BALL_SIZE >= g.rightY && g.ballY <= g.rightY + PADDLE_H && g.ballVx > 0;
   if (hitLeft) bounceFromPaddle(true);
   if (hitRight) bounceFromPaddle(false);
+
+  if (state.mode === 'single' && state.running) {
+    updateSingleplayerPowerups();
+  }
 
   if (g.ballX + BALL_SIZE < 0) {
     g.rightScore += 1;

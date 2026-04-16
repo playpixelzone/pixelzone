@@ -1,5 +1,20 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## Session 2026-04-16 — Spielverbesserungen (Pixel Factory, Drop, Jump, Blast, Pong)
+
+- **Pixel Factory:** Viewport gegen Zoom; Rangliste/Fehlerlogging; Talente entfernt; Missionen an Halbstunden-Takt; Infotafel kompakt; Autosave 10 s + Hinweis; UI-Anpassungen (siehe frühere Commits in dieser Session).
+- **Pixel Drop:** Anti-Spam in Ecken (max. Blöcke pro 3×3-Bereich).
+- **Pixel Jump (`games/pixel-jump/`):**
+  - **Highscore-Banner:** nur wenn `score > bestScore` (lokaler Vergleich nach Speichern).
+  - **Skins:** 8 neue Charaktere (Kirsch, Limette, Mitternacht, Pfirsich, Lava, Polar, Schatten, Sonnenuntergang) mit `tier` für Lootbox; nur per Lootbox (`lootOnly`); SPRITES um 8 Silhouetten ergänzt.
+  - **Lootbox:** Tab im Shop; Zufall nach Seltenheit (60/25/12/3); Duplikat → +28 Münzen; Preis `lootBoxPreis` (Standard 150) in `extra_daten`; `buildPJExtra()` / `syncSpielstandPJ()`.
+  - **Upgrades:** bis Stufe 10; Kosten exponentiell; Dauer +10 % pro Stufe (Basisformel); Jetpack-Geschwindigkeit mit Cap.
+  - **Supabase:** `extra_daten` mit `usedCodes`, `lootBoxPreis`; Shop/Code/Lootbox syncen Spielstand.
+- **Block Blast:** Blöcke einfarbig/flat ohne 3D/Schatten auf Zellen.
+- **Pong:** Ball beschleunigt pro Schläger-Treffer (mit Cap); Reset beim Punkt; Power-ups (Singleplayer).
+- **auth.js:** Leaderboard-Fehler für Debugging (z. B. Pixel Factory).
+- **Geänderte Pfade:** `games/pixel-factory/*`, `games/pixel-drop/game.js`, `games/pixel-jump/*`, `games/block-blast/*`, `games/pong/*`, `public/auth.js`, `NOTES.md`.
+
 ## Umsetzung (2026-04-16) — Vite + Phaser 3, Next.js entfernt ✅
 
 - **Vorhaben:** Build-Tool **Vite**, Framework **Phaser 3**; bestehende Spiele unter `games/` erhalten.

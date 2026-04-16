@@ -25,6 +25,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
+  touch-action: pan-y;
   font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
   background:
     radial-gradient(circle at 0% 0%, rgba(79,110,248,.16), transparent 22%),
@@ -191,6 +192,61 @@ body {
   text-align: center;
   line-height: 1;
 }
+/* Kompakte Infozeilen (links) – einheitliche Breite, kurze Labels */
+.stats-zeilen {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stats-zeilen li {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, 32%) 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.sz-label {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sz-wert {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pf-stats-kompakt .stat-haupt {
+  margin-bottom: 10px;
+}
+.rang-fehler {
+  padding: 14px;
+  text-align: center;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+.autosave-indikator {
+  min-height: 1.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--emerald);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.autosave-indikator.autosave-sichtbar {
+  opacity: 1;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

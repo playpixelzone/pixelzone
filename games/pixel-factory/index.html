@@ -196,13 +196,20 @@
     </div>
     <div id="lineTreeModalBody" class="pf-line-tree-modal__body">
       <p class="pf-skill-pan-hint">Am leeren Bereich ziehen, um den Baum zu verschieben</p>
+      <div id="lineTreeHeadSlot" class="pf-line-tree-head-slot"></div>
       <div id="skillTreePanViewport" class="pf-skill-pan-viewport">
         <div id="skillTreePanInner" class="pf-skill-pan-inner"></div>
       </div>
     </div>
   </div>
 </div>
-<div id="lineTreeTooltip" class="pf-line-tooltip versteckt" role="tooltip" hidden></div>
+<div id="lineTreeTooltip" class="pf-line-tooltip pf-line-tooltip--rich versteckt" role="dialog" aria-modal="true" aria-labelledby="lineTreeTooltipTitle" hidden>
+  <div class="pf-line-tooltip__header">
+    <span id="lineTreeTooltipTitle" class="pf-line-tooltip__title">Skill-Info</span>
+    <button type="button" class="pf-line-tooltip__close" id="lineTreeTooltipClose" aria-label="Schließen">×</button>
+  </div>
+  <div class="pf-line-tooltip__body" id="lineTreeTooltipBody"></div>
+</div>
 
 <!-- Toast + Goldene Pixel -->
 <div class="toast-container" id="toastContainer"></div>

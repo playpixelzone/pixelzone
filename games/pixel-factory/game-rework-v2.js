@@ -369,6 +369,7 @@ const runtime = {
   nextShopRenderAt: 0,
   recentEvents: [],
   lineTreeModalWired: false,
+  lineTreeCenterNext: false,
   eventUiRaf: 0,
   eventDeadline: 0,
   prestigeMutationChoices: [],
@@ -758,15 +759,26 @@ function setEventVignetteTheme(theme) {
   else vig.classList.add("pf-event-vignette--soft");
 }
 
+function closeLineTreeTooltip() {
+  if (!ui.lineTreeTooltip) return;
+  ui.lineTreeTooltip.classList.add("versteckt");
+  ui.lineTreeTooltip.hidden = true;
+  const body = document.getElementById("lineTreeTooltipBody");
+  if (body) body.textContent = "";
+}
+
 function showPfFloatingTooltip(anchor, text) {
   if (!ui.lineTreeTooltip || !text) return;
-  ui.lineTreeTooltip.textContent = text;
+  const body = document.getElementById("lineTreeTooltipBody");
+  if (body) body.textContent = text;
+  else ui.lineTreeTooltip.textContent = text;
   ui.lineTreeTooltip.classList.remove("versteckt");
   ui.lineTreeTooltip.hidden = false;
   const r = anchor.getBoundingClientRect();
   const pad = 8;
-  ui.lineTreeTooltip.style.left = `${Math.min(window.innerWidth - 280, Math.max(pad, r.left + r.width / 2 - 130))}px`;
-  ui.lineTreeTooltip.style.top = `${Math.min(window.innerHeight - 120, r.bottom + pad)}px`;
+  const tw = 300;
+  ui.lineTreeTooltip.style.left = `${Math.min(window.innerWidth - tw - pad, Math.max(pad, r.left + r.width / 2 - tw / 2))}px`;
+  ui.lineTreeTooltip.style.top = `${Math.min(window.innerHeight - 160, r.bottom + pad)}px`;
 }
 
 function autoResolveEventWorst() {
@@ -1463,6 +1475,170 @@ function edgeSvgClass(parentLine, parentId, childLine, childId, branchLine) {
   return cls;
 }
 
+/** Hierarchisches Grid-Layout (Speed ←, Efficiency ↑, Automation →, Synergy ↓). */
+const SKILL_TREE = {
+  COL: 92,
+  ROW: 88,
+  DEPTH: 4,
+  PAD: 140,
+};
+
+let _skillTreeLayoutCache = null;
+
+function buildLineChildrenMap(tree) {
+  const ids = new Set(tree.map((n) => n.id));
+  const m = new Map();
+  for (const n of tree) {
+    if (!n.req || !ids.has(n.req)) continue;
+    if (!m.has(n.req)) m.set(n.req, []);
+    m.get(n.req).push(n.id);
+  }
+  for (const [, arr] of m) arr.sort((a, b) => a.localeCompare(b));
+  return m;
+}
+
+function layoutTreeLeftRight(tree, rootId, dir) {
+  const cm = buildLineChildrenMap(tree);
+  const pos = new Map();
+  let nextY = 0;
+  const dx = SKILL_TREE.DEPTH * (dir === "left" ? -1 : 1);
+  function dfs(nodeId, depth) {
+    const kids = cm.get(nodeId) || [];
+    if (kids.length === 0) {
+      const y = nextY++;
+      pos.set(nodeId, { gx: depth * dx, gy: y });
+      return y;
+    }
+    const ys = kids.map((k) => dfs(k, depth + 1));
+    const y = ys.reduce((a, b) => a + b, 0) / ys.length;
+    pos.set(nodeId, { gx: depth * dx, gy: y });
+    return y;
+  }
+  dfs(rootId, 0);
+  const ys = [...pos.values()].map((p) => p.gy);
+  const mid = (Math.min(...ys) + Math.max(...ys)) / 2;
+  for (const p of pos.values()) p.gy -= mid;
+  return pos;
+}
+
+function layoutTreeUpDown(tree, rootId, dir) {
+  const cm = buildLineChildrenMap(tree);
+  const pos = new Map();
+  let nextX = 0;
+  const dy = SKILL_TREE.DEPTH * (dir === "up" ? -1 : 1);
+  function dfs(nodeId, depth) {
+    const kids = cm.get(nodeId) || [];
+    if (kids.length === 0) {
+      const x = nextX++;
+      pos.set(nodeId, { gx: x, gy: depth * dy });
+      return x;
+    }
+    const xs = kids.map((k) => dfs(k, depth + 1));
+    const x = xs.reduce((a, b) => a + b, 0) / xs.length;
+    pos.set(nodeId, { gx: x, gy: depth * dy });
+    return x;
+  }
+  dfs(rootId, 0);
+  const xs = [...pos.values()].map((p) => p.gx);
+  const mid = (Math.min(...xs) + Math.max(...xs)) / 2;
+  for (const p of pos.values()) p.gx -= mid;
+  return pos;
+}
+
+function orthSkillEdgePath(px, py, cx, cy, lineKey) {
+  if (lineKey === "efficiency" || lineKey === "synergy") {
+    if (Math.abs(px - cx) < 2) return `M ${px} ${py} L ${cx} ${cy}`;
+    const my = (py + cy) / 2;
+    return `M ${px} ${py} L ${px} ${my} L ${cx} ${my} L ${cx} ${cy}`;
+  }
+  if (Math.abs(py - cy) < 2) return `M ${px} ${py} L ${cx} ${cy}`;
+  const mx = (px + cx) / 2;
+  return `M ${px} ${py} L ${mx} ${py} L ${mx} ${cy} L ${cx} ${cy}`;
+}
+
+function skillNodeIsRelevant(line, node) {
+  if (!node) return false;
+  if (levelOfNode(line, node.id) > 0) return true;
+  return canUpgradeLineNode(line, node);
+}
+
+function getSkillTreeLayout() {
+  if (_skillTreeLayoutCache) return _skillTreeLayoutCache;
+
+  const speedT = LINE_TREES.speed || [];
+  const effT = LINE_TREES.efficiency || [];
+  const autoT = LINE_TREES.automation || [];
+  const synT = LINE_TREES.synergy || [];
+
+  const sp = layoutTreeLeftRight(speedT, "s_core", "left");
+  const ep = layoutTreeUpDown(effT, "e_core", "up");
+  const ap = layoutTreeLeftRight(autoT, "a_core", "right");
+  const yp = layoutTreeUpDown(synT, "syn_seed", "down");
+
+  const anchor = {
+    speed: { gx: -12, gy: 0 },
+    efficiency: { gx: 0, gy: -12 },
+    automation: { gx: 12, gy: 0 },
+    synergy: { gx: 0, gy: 13 },
+  };
+
+  const merged = [];
+  for (const [id, p] of sp) merged.push({ line: "speed", id, gx: anchor.speed.gx + p.gx, gy: anchor.speed.gy + p.gy });
+  for (const [id, p] of ep) merged.push({ line: "efficiency", id, gx: anchor.efficiency.gx + p.gx, gy: anchor.efficiency.gy + p.gy });
+  for (const [id, p] of ap) merged.push({ line: "automation", id, gx: anchor.automation.gx + p.gx, gy: anchor.automation.gy + p.gy });
+  for (const [id, p] of yp) merged.push({ line: "synergy", id, gx: anchor.synergy.gx + p.gx, gy: anchor.synergy.gy + p.gy });
+
+  let minGx = Infinity;
+  let minGy = Infinity;
+  let maxGx = -Infinity;
+  let maxGy = -Infinity;
+  for (const m of merged) {
+    minGx = Math.min(minGx, m.gx);
+    minGy = Math.min(minGy, m.gy);
+    maxGx = Math.max(maxGx, m.gx);
+    maxGy = Math.max(maxGy, m.gy);
+  }
+
+  const { COL, ROW, PAD } = SKILL_TREE;
+  const pad = PAD;
+  const w = (maxGx - minGx) * COL + 2 * pad;
+  const h = (maxGy - minGy) * ROW + 2 * pad;
+  const offX = pad - minGx * COL;
+  const offY = pad - minGy * ROW;
+
+  const nodePixel = new Map();
+  for (const m of merged) {
+    const cx = offX + m.gx * COL;
+    const cy = offY + m.gy * ROW;
+    nodePixel.set(`${m.line}:${m.id}`, { cx, cy, line: m.line, id: m.id });
+  }
+
+  const edges = [];
+  for (const lineKey of Object.keys(LINE_TREES)) {
+    const tree = LINE_TREES[lineKey];
+    if (!tree) continue;
+    for (const n of tree) {
+      if (!n.req) continue;
+      const p = findLineNode(lineKey, n.req);
+      if (!p) continue;
+      const pk = `${lineKey}:${n.req}`;
+      const ck = `${lineKey}:${n.id}`;
+      const P = nodePixel.get(pk);
+      const C = nodePixel.get(ck);
+      if (!P || !C) continue;
+      edges.push({
+        lineKey,
+        pId: n.req,
+        cId: n.id,
+        d: orthSkillEdgePath(P.cx, P.cy, C.cx, C.cy, lineKey),
+      });
+    }
+  }
+
+  _skillTreeLayoutCache = { width: w, height: h, nodePixel, edges };
+  return _skillTreeLayoutCache;
+}
+
 function renderShopPrestigePlaceholder() {
   if (!ui.shopLine) return;
   if (runtime.tab !== "prestige") return;
@@ -1477,6 +1653,7 @@ function renderShopPrestigePlaceholder() {
 
 function openLineTreeModal() {
   if (!ui.lineTreeModal) return;
+  runtime.lineTreeCenterNext = true;
   ui.lineTreeModal.classList.remove("versteckt");
   document.body.classList.add("pf-line-tree-open");
   renderLineTree();
@@ -1486,24 +1663,30 @@ function closeLineTreeModal() {
   if (!ui.lineTreeModal) return;
   ui.lineTreeModal.classList.add("versteckt");
   document.body.classList.remove("pf-line-tree-open");
-  if (ui.lineTreeTooltip) {
-    ui.lineTreeTooltip.classList.add("versteckt");
-    ui.lineTreeTooltip.textContent = "";
-    ui.lineTreeTooltip.hidden = true;
-  }
+  closeLineTreeTooltip();
 }
 
 function showLineNodeTooltip(btn) {
   if (!ui.lineTreeTooltip) return;
-  const text = btn.dataset.detail || "";
+  const text = btn?.dataset?.detail || "";
   if (!text) return;
-  ui.lineTreeTooltip.textContent = text;
+  const body = document.getElementById("lineTreeTooltipBody");
+  if (body) body.textContent = text;
+  else ui.lineTreeTooltip.textContent = text;
   ui.lineTreeTooltip.classList.remove("versteckt");
   ui.lineTreeTooltip.hidden = false;
   const r = btn.getBoundingClientRect();
-  const pad = 8;
-  ui.lineTreeTooltip.style.left = `${Math.min(window.innerWidth - 280, Math.max(pad, r.left + r.width / 2 - 130))}px`;
-  ui.lineTreeTooltip.style.top = `${Math.min(window.innerHeight - 120, r.bottom + pad)}px`;
+  const pad = 10;
+  const tw = 300;
+  ui.lineTreeTooltip.style.left = `${Math.min(window.innerWidth - tw - pad, Math.max(pad, r.left + r.width / 2 - tw / 2))}px`;
+  ui.lineTreeTooltip.style.top = `${Math.min(window.innerHeight - 180, r.bottom + pad)}px`;
+}
+
+function onDocPointerDownCloseLineTooltip(e) {
+  if (!ui.lineTreeTooltip || ui.lineTreeTooltip.classList.contains("versteckt")) return;
+  if (e.target.closest("#lineTreeTooltip")) return;
+  if (e.target.closest(".pf-skill-help")) return;
+  closeLineTreeTooltip();
 }
 
 function wireLineTreeModalOnce() {
@@ -1513,21 +1696,30 @@ function wireLineTreeModalOnce() {
     e.preventDefault();
     closeLineTreeModal();
   });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && ui.lineTreeModal && !ui.lineTreeModal.classList.contains("versteckt")) closeLineTreeModal();
+  document.getElementById("lineTreeTooltipClose")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    closeLineTreeTooltip();
   });
-  ui.lineTreeModalBody?.addEventListener("click", (e) => {
-    const help = e.target.closest?.("[data-line-help]");
-    if (help) {
-      e.preventDefault();
-      e.stopPropagation();
-      showLineNodeTooltip(help);
+  document.addEventListener("pointerdown", onDocPointerDownCloseLineTooltip, true);
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !ui.lineTreeModal || ui.lineTreeModal.classList.contains("versteckt")) return;
+    if (ui.lineTreeTooltip && !ui.lineTreeTooltip.classList.contains("versteckt")) {
+      closeLineTreeTooltip();
       return;
     }
-    if (e.target.closest(".pf-skill-node")) return;
-    if (ui.lineTreeTooltip && !e.target.closest("#lineTreeTooltip")) {
-      ui.lineTreeTooltip.classList.add("versteckt");
-    }
+    closeLineTreeModal();
+  });
+  const vp = document.getElementById("skillTreePanViewport");
+  vp?.addEventListener("click", (e) => {
+    const help = e.target.closest?.("[data-line-help]");
+    if (!help) return;
+    e.preventDefault();
+    e.stopPropagation();
+    showLineNodeTooltip(help);
+  });
+  window.addEventListener("resize", () => {
+    if (ui.lineTreeModal && !ui.lineTreeModal.classList.contains("versteckt")) clampSkillTreePan();
   });
 }
 
@@ -1553,6 +1745,7 @@ function wireSkillTreePanOnce() {
 
   vp.addEventListener("pointerdown", (e) => {
     if (e.target.closest(".pf-skill-help") || e.target.closest(".pf-skill-node")) return;
+    if (e.target.closest("#lineTreeTooltip")) return;
     dragging = true;
     try {
       vp.setPointerCapture(e.pointerId);
@@ -1567,46 +1760,49 @@ function wireSkillTreePanOnce() {
     if (!dragging) return;
     const dx = e.clientX - startCX;
     const dy = e.clientY - startCY;
-    let nx = originX + dx;
-    let ny = originY + dy;
-    const lim = 160;
-    nx = Math.max(-lim, Math.min(lim, nx));
-    ny = Math.max(-lim, Math.min(lim, ny));
+    const nx = originX + dx;
+    const ny = originY + dy;
     runtime.skillTreePan = { x: nx, y: ny };
     const inner = document.getElementById("skillTreePanInner");
     if (inner) inner.style.transform = `translate(${nx}px, ${ny}px)`;
   });
   const endDrag = () => {
+    if (!dragging) return;
     dragging = false;
     vp.classList.remove("pf-skill-pan-viewport--dragging");
+    clampSkillTreePan();
   };
   vp.addEventListener("pointerup", endDrag);
   vp.addEventListener("pointercancel", endDrag);
 }
 
+function edgePathClass(lineKey, pId, cId) {
+  const base = edgeSvgClass(lineKey, pId, lineKey, cId, lineKey);
+  const pN = findLineNode(lineKey, pId);
+  const cN = findLineNode(lineKey, cId);
+  const bright = skillNodeIsRelevant(lineKey, pN) || skillNodeIsRelevant(lineKey, cN);
+  return `${base}${bright ? "" : " pf-skill-edge--dim"}`;
+}
+
 function renderLineTree() {
-  const target = document.getElementById("skillTreePanInner") || ui.lineTreeModalBody;
+  const headSlot = document.getElementById("lineTreeHeadSlot");
+  const target = document.getElementById("skillTreePanInner");
   if (!target) return;
 
-  const edgeLines = [];
-  for (const lineKey of Object.keys(LINE_TREES)) {
-    const tree = LINE_TREES[lineKey];
-    if (!tree) continue;
-    for (const n of tree) {
-      if (!n.req) continue;
-      const p = findLineNode(lineKey, n.req);
-      if (!p || p.lx == null || n.lx == null) continue;
-      edgeLines.push(
-        `<line class="${edgeSvgClass(lineKey, n.req, lineKey, n.id, lineKey)}" x1="${p.lx}" y1="${p.ly}" x2="${n.lx}" y2="${n.ly}" />`,
-      );
-    }
-  }
+  const layout = getSkillTreeLayout();
+
+  const edgeLines = layout.edges.map(
+    (e) =>
+      `<path class="${edgePathClass(e.lineKey, e.pId, e.cId)}" d="${e.d}" />`,
+  );
 
   const nodesHtml = [];
   for (const lineKey of Object.keys(LINE_TREES)) {
     const tree = LINE_TREES[lineKey];
     if (!tree) continue;
     for (const n of tree) {
+      const pix = layout.nodePixel.get(`${lineKey}:${n.id}`);
+      if (!pix) continue;
       const lvl = levelOfNode(lineKey, n.id);
       const can = canUpgradeLineNode(lineKey, n);
       const reqNode = n.req ? findLineNode(lineKey, n.req) : null;
@@ -1622,9 +1818,11 @@ function renderLineTree() {
       const maxed = lvl >= n.max;
       const tip = `${n.name} (${lvl}/${n.max})${reqTxt ? " · " + reqTxt : ""}`;
       const detail = n.detail || n.desc || "";
+      const rel = skillNodeIsRelevant(lineKey, n);
+      const dimWrap = rel ? "" : " pf-skill-node-wrap--dimmed";
       nodesHtml.push(`
-      <div class="pf-skill-node-wrap pf-skill-node-wrap--${lineKey}" style="left:${n.lx}%;top:${n.ly}%;">
-        <button type="button" class="pf-skill-help" data-line-help="1" data-detail="${escapeHtmlPf(detail)}" aria-label="Beschreibung" title="Info">?</button>
+      <div class="pf-skill-node-wrap pf-skill-node-wrap--${lineKey}${dimWrap}" style="left:${pix.cx}px;top:${pix.cy}px;">
+        <button type="button" class="pf-skill-help" data-line-help="1" data-detail="${escapeHtmlPf(detail)}" aria-label="Beschreibung">?</button>
         <button type="button"
           class="${cls}"
           data-line="${lineKey}"
@@ -1641,28 +1839,36 @@ function renderLineTree() {
     }
   }
 
-  target.innerHTML = `
+  const headHtml = `
     <div class="pf-line-tree-head pf-line-tree-head--modal">
       <div>
         <strong class="pf-line-tree-head__line">Linienbaum</strong>
         <span class="pf-line-tree-head__qp">Prestigepunkte: <b>${state.meta.prestigePoints}</b></span>
       </div>
-      <p class="pf-section-hint">Mitte: drei Kerne (links Speed, oben Efficiency, rechts Automation) · unten Synergien. Gold = voll. Leuchtende Kanten = freigeschalteter Pfad.</p>
-    </div>
-    <div class="pf-skill-tree-board pf-skill-tree-board--modal">
-      <svg class="pf-skill-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${edgeLines.join("")}</svg>
+      <p class="pf-section-hint">Mitte: Speed links · Efficiency oben · Automation rechts · Synergy unten. Rechtwinklige Pfade. Nur freigeschaltete oder kaufbare Knoten leuchten.</p>
+    </div>`;
+  if (headSlot) headSlot.innerHTML = headHtml;
+
+  target.innerHTML = `
+    <div class="pf-skill-tree-board pf-skill-tree-board--modal pf-skill-tree-board--sized" style="width:${layout.width}px;height:${layout.height}px">
+      <svg class="pf-skill-svg" viewBox="0 0 ${layout.width} ${layout.height}" width="${layout.width}" height="${layout.height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${edgeLines.join("")}</svg>
       <div class="pf-skill-nodes">${nodesHtml.join("")}</div>
     </div>
   `;
 
-  const panInner = document.getElementById("skillTreePanInner");
-  if (panInner) {
-    const { x, y } = runtime.skillTreePan || { x: 0, y: 0 };
-    panInner.style.transform = `translate(${x}px, ${y}px)`;
-  }
+  target.style.width = `${layout.width}px`;
+  target.style.height = `${layout.height}px`;
 
+  requestAnimationFrame(() => {
+    if (runtime.lineTreeCenterNext) {
+      centerSkillTreePan();
+      runtime.lineTreeCenterNext = false;
+    } else {
+      clampSkillTreePan();
+    }
+    updateSkillTreeFlowSpeed();
+  });
   wireSkillTreePanOnce();
-  updateSkillTreeFlowSpeed();
 
   target.querySelectorAll("[data-line-node]").forEach((btn) => {
     btn.addEventListener("click", (ev) => {
@@ -1671,6 +1877,49 @@ function renderLineTree() {
       upgradeLineNode(btn.dataset.line, btn.dataset.lineNode);
     });
   });
+}
+
+function centerSkillTreePan() {
+  const vp = document.getElementById("skillTreePanViewport");
+  const inner = document.getElementById("skillTreePanInner");
+  if (!vp || !inner) return;
+  const bw = inner.offsetWidth || 800;
+  const bh = inner.offsetHeight || 600;
+  const vw = vp.clientWidth;
+  const vh = vp.clientHeight;
+  const x = (vw - bw) / 2;
+  const y = (vh - bh) / 2;
+  runtime.skillTreePan = { x, y };
+  inner.style.transform = `translate(${x}px, ${y}px)`;
+}
+
+function clampSkillTreePan() {
+  const vp = document.getElementById("skillTreePanViewport");
+  const inner = document.getElementById("skillTreePanInner");
+  if (!vp || !inner) return;
+  const bw = inner.offsetWidth;
+  const bh = inner.offsetHeight;
+  if (bw < 8 || bh < 8) return;
+  const vw = vp.clientWidth;
+  const vh = vp.clientHeight;
+  const margin = 32;
+  let minX = Math.min(margin, vw - bw - margin);
+  let maxX = Math.max(vw - bw - margin, margin);
+  let minY = Math.min(margin, vh - bh - margin);
+  let maxY = Math.max(vh - bh - margin, margin);
+  if (minX > maxX) {
+    const t = (minX + maxX) / 2;
+    minX = maxX = t;
+  }
+  if (minY > maxY) {
+    const t = (minY + maxY) / 2;
+    minY = maxY = t;
+  }
+  let { x, y } = runtime.skillTreePan || { x: 0, y: 0 };
+  x = Math.max(minX, Math.min(maxX, x));
+  y = Math.max(minY, Math.min(maxY, y));
+  runtime.skillTreePan = { x, y };
+  inner.style.transform = `translate(${x}px, ${y}px)`;
 }
 
 function maybeRenderShop() {

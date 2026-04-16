@@ -177,6 +177,21 @@
           s.meta.lineClickMult *= 1 + 0.45 * lvl;
         },
       },
+      {
+        id: "s_depth7",
+        name: "Nachbrenner",
+        desc: "+10 % PPS, +5 % PPC",
+        detail: "Flavour: Siebte Ebene im Speed-Zweig – letzte Feinjustierung nach dem Klick-Ultimate.",
+        max: 1,
+        cost: 3,
+        req: "s_cap_r",
+        lx: 2,
+        ly: 96,
+        effect: (s, lvl) => {
+          s.meta.lineProdMult *= 1 + 0.1 * lvl;
+          s.meta.lineClickMult *= 1 + 0.05 * lvl;
+        },
+      },
     ],
     efficiency: [
       {
@@ -333,6 +348,21 @@
           s.economy.offlineEff += 0.25 * lvl;
         },
       },
+      {
+        id: "e_depth7",
+        name: "Null-Raum",
+        desc: "Events −6 %, +8 % PPS",
+        detail: "Flavour: siebte Ebene Efficiency – nahezu störungsfreier Betrieb.",
+        max: 1,
+        cost: 3,
+        req: "e_cap",
+        lx: 18,
+        ly: 2,
+        effect: (s, lvl) => {
+          s.meta.eventRateMult *= 1 - 0.06 * lvl;
+          s.meta.lineProdMult *= 1 + 0.08 * lvl;
+        },
+      },
     ],
     automation: [
       {
@@ -476,6 +506,20 @@
         effect: (s, lvl) => {
           s.meta.lineProdMult *= 1 + 0.38 * lvl;
           s.meta.lineClickMult *= 1 + 0.1 * lvl;
+        },
+      },
+      {
+        id: "a_depth7",
+        name: "Singularität",
+        desc: "+15 % PPS",
+        detail: "Flavour: siebte Ebene Automation – maximale Fabrikdichte.",
+        max: 1,
+        cost: 3,
+        req: "a_cap",
+        lx: 98,
+        ly: 8,
+        effect: (s, lvl) => {
+          s.meta.lineProdMult *= 1 + 0.15 * lvl;
         },
       },
     ],

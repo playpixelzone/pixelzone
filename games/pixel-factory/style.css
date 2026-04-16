@@ -1722,7 +1722,7 @@ body {
   align-items: stretch;
   text-align: left;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 12px 12px 10px;
   background: linear-gradient(165deg, #ffffff 0%, #f8fbff 100%);
   box-shadow: 0 2px 8px rgba(61, 91, 216, 0.06);
@@ -2104,8 +2104,10 @@ body {
 }
 .pf-line-tree-modal__body {
   flex: 1;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   padding: 12px 14px 24px;
 }
 
@@ -2168,7 +2170,7 @@ body {
   transform: none;
   width: 100%;
   min-height: 88px;
-  padding-top: 22px;
+  padding-top: 30px;
 }
 .pf-skill-node-wrap .pf-skill-node:hover:not(:disabled) {
   transform: translateY(-2px);
@@ -2275,6 +2277,122 @@ body.pf-line-tree-open {
   .pf-skill-node-wrap .pf-skill-node {
     min-height: 96px;
   }
+}
+
+/* ── Linienbaum: Pan, Hex-Knoten, SVG-Fluss (PPS → Tempo) ── */
+.pf-skill-pan-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  text-align: center;
+}
+.pf-skill-pan-viewport {
+  position: relative;
+  flex: 1;
+  min-height: min(72vh, 640px);
+  overflow: hidden;
+  border-radius: 18px;
+  touch-action: none;
+  cursor: grab;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: radial-gradient(ellipse at 50% 45%, #f8fbff 0%, #eef4ff 55%, #f0f4ff 100%);
+}
+.pf-skill-pan-viewport--dragging {
+  cursor: grabbing;
+}
+.pf-skill-pan-inner {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+
+.pf-skill-svg {
+  --pf-flow-dur: 2s;
+}
+.pf-skill-edge--flow.pf-skill-edge--lit {
+  stroke-dasharray: 2.8 4.5;
+  stroke-dashoffset: 0;
+  animation: pfSkillEdgeFlow var(--pf-flow-dur, 2s) linear infinite;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+}
+.pf-skill-edge--speed.pf-skill-edge--flow.pf-skill-edge--lit {
+  filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.85));
+}
+.pf-skill-edge--efficiency.pf-skill-edge--flow.pf-skill-edge--lit {
+  filter: drop-shadow(0 0 4px rgba(52, 211, 153, 0.85));
+}
+.pf-skill-edge--automation.pf-skill-edge--flow.pf-skill-edge--lit {
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.9));
+}
+.pf-skill-edge--synergy.pf-skill-edge--flow.pf-skill-edge--lit {
+  filter: drop-shadow(0 0 4px rgba(167, 139, 250, 0.85));
+}
+@keyframes pfSkillEdgeFlow {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+
+.pf-skill-node {
+  position: relative;
+  padding-top: 30px;
+}
+.pf-skill-node__glyph {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  margin-left: -16px;
+  width: 32px;
+  height: 32px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(145deg, #e2e8f0, #cbd5e1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.pf-skill-node__glyph--speed {
+  background: linear-gradient(145deg, #bfdbfe, #3b82f6);
+}
+.pf-skill-node__glyph--efficiency {
+  background: linear-gradient(145deg, #a7f3d0, #10b981);
+}
+.pf-skill-node__glyph--automation {
+  background: linear-gradient(145deg, #fde68a, #f59e0b);
+}
+.pf-skill-node__glyph--synergy {
+  background: linear-gradient(145deg, #ddd6fe, #8b5cf6);
+}
+.pf-skill-node--done .pf-skill-node__glyph {
+  background: linear-gradient(145deg, #fde047, #eab308) !important;
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.8));
+}
+.pf-skill-node--ready .pf-skill-node__glyph {
+  animation: pfSkillNodePulse 1.35s ease-in-out infinite;
+}
+@keyframes pfSkillNodePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.06);
+    filter: brightness(1.08);
+  }
+}
+.pf-skill-node--locked .pf-skill-node__glyph {
+  opacity: 0.38;
+  filter: grayscale(0.4);
+}
+
+.pf-skill-help {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  font-size: 1.05rem;
 }
 
 /* ═══ Events & Prestige – Glasmorphism, Vignette, Karten ═══ */
@@ -2615,12 +2733,120 @@ body.pf-line-tree-open {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+.pf-slot-overlay.versteckt {
+  display: none !important;
+}
 .pf-slot-panel {
   max-width: 360px;
   width: 100%;
   padding: 28px 22px;
   border-radius: 18px;
   text-align: center;
+  transition: box-shadow 0.2s ease, transform 0.08s ease;
+}
+.pf-slot-panel--rolling {
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.35), 0 12px 40px rgba(139, 92, 246, 0.18);
+  animation: pfSlotPanelPulse 0.55s ease-in-out infinite;
+}
+@keyframes pfSlotPanelPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.35), 0 12px 40px rgba(139, 92, 246, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.45), 0 16px 48px rgba(251, 191, 36, 0.22);
+  }
+}
+#prestigeConfirmModal.pf-prestige-modal--rolling {
+  animation: pfPrestigeModalShake 0.12s ease-in-out infinite;
+}
+@keyframes pfPrestigeModalShake {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-2px, 1px);
+  }
+  50% {
+    transform: translate(2px, -1px);
+  }
+  75% {
+    transform: translate(-1px, -1px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+.pf-slot-strip {
+  min-height: 148px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.pf-mutation-card--slot-spin {
+  max-width: 100%;
+  animation: pfSlotCardTick 0.12s ease-out;
+}
+@keyframes pfSlotCardTick {
+  from {
+    opacity: 0.88;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.pf-mutation-card--result-reveal {
+  animation: pfMutationReveal 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pfMutationReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.pf-slot-result {
+  margin-top: 10px;
+  width: 100%;
+}
+.pf-slot-result.versteckt {
+  display: none !important;
+}
+.pf-mutation-card-wrap--result {
+  min-height: 0;
+}
+.pf-slot-finalize {
+  margin-top: 18px;
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  font-size: 1.05rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--prestige), var(--prestige-dark));
+  box-shadow: 0 8px 24px rgba(109, 40, 217, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.2s ease;
+}
+.pf-slot-finalize:hover:not(:disabled) {
+  filter: brightness(1.04);
+  transform: translateY(-2px);
+}
+.pf-slot-finalize:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pf-slot-finalize.versteckt {
+  display: none !important;
 }
 .pf-slot-reel {
   font-size: 1.35rem;

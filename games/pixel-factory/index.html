@@ -58,9 +58,11 @@
     </div>
   </div>
   <div id="mutationSlotOverlay" class="pf-slot-overlay versteckt" aria-live="polite">
-    <div class="pf-slot-panel pf-modal-glass__panel">
-      <div id="mutationSlotReel" class="pf-slot-reel">…</div>
-      <p class="pf-slot-sub">Die Mutation wird gewürfelt …</p>
+    <div class="pf-slot-panel pf-modal-glass__panel" id="mutationSlotPanel">
+      <div id="mutationSlotStrip" class="pf-slot-strip" aria-hidden="true"></div>
+      <p class="pf-slot-sub" id="mutationSlotStatus">Die Mutation wird gewürfelt …</p>
+      <div id="mutationSlotResult" class="pf-slot-result versteckt"></div>
+      <button type="button" class="pf-slot-finalize versteckt" id="prestigeFinalizeBtn">Prestige abschließen</button>
     </div>
   </div>
 </div>
@@ -192,7 +194,12 @@
       <h2 id="lineTreeModalTitle" class="pf-line-tree-modal__title">🌿 Linienbaum</h2>
       <button type="button" class="modal-schliessen pf-line-tree-modal__close" id="lineTreeModalClose" aria-label="Schließen">✕</button>
     </div>
-    <div id="lineTreeModalBody" class="pf-line-tree-modal__body"></div>
+    <div id="lineTreeModalBody" class="pf-line-tree-modal__body">
+      <p class="pf-skill-pan-hint">Am leeren Bereich ziehen, um den Baum zu verschieben</p>
+      <div id="skillTreePanViewport" class="pf-skill-pan-viewport">
+        <div id="skillTreePanInner" class="pf-skill-pan-inner"></div>
+      </div>
+    </div>
   </div>
 </div>
 <div id="lineTreeTooltip" class="pf-line-tooltip versteckt" role="tooltip" hidden></div>

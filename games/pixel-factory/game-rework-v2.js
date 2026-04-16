@@ -27,18 +27,18 @@ const BUILDINGS = [
   { id: "orbitalDock", name: "Orbital-Dock", icon: "🛸", baseCost: 115000000, growth: 1.232, pps: 690000, unlockAt: 70000000 },
 ];
 
-/** Kosten steigen pro Stufe stärker (PPS-Pfad teurer), Klick-Pfad stützt aktives Spiel (~10–20 % bei schnellem Klicken). */
+/** Kosten: PPS etwas teurer; Klick-Pfad hält Midgame-PPC bei ~10–20 % der Gesamtfeel-Production bei aktivem Spielen. */
 const UPGRADES = [
   { id: "u_click_1", name: "Präzisions-Klick", desc: "+3 Klickkraft", cost: 52, unlockAt: 32, apply: (s) => { s.economy.clickBase += 3; } },
-  { id: "u_click_2", name: "Servo-Hand", desc: "Klickkraft ×1.88", cost: 420, unlockAt: 200, apply: (s) => { s.economy.clickMult *= 1.88; } },
-  { id: "u_click_3", name: "Impuls-Handschuh", desc: "Klickkraft ×2.25", cost: 3200, unlockAt: 1500, apply: (s) => { s.economy.clickMult *= 2.25; } },
-  { id: "u_click_4", name: "Hyperfinger", desc: "Klickkraft ×2.65", cost: 22000, unlockAt: 10000, apply: (s) => { s.economy.clickMult *= 2.65; } },
-  { id: "u_click_5", name: "Neural-Link", desc: "Klickkraft ×3.35", cost: 195000, unlockAt: 120000, apply: (s) => { s.economy.clickMult *= 3.35; } },
+  { id: "u_click_2", name: "Servo-Hand", desc: "Klickkraft ×1.94", cost: 420, unlockAt: 200, apply: (s) => { s.economy.clickMult *= 1.94; } },
+  { id: "u_click_3", name: "Impuls-Handschuh", desc: "Klickkraft ×2.32", cost: 3200, unlockAt: 1500, apply: (s) => { s.economy.clickMult *= 2.32; } },
+  { id: "u_click_4", name: "Hyperfinger", desc: "Klickkraft ×2.75", cost: 22000, unlockAt: 10000, apply: (s) => { s.economy.clickMult *= 2.75; } },
+  { id: "u_click_5", name: "Neural-Link", desc: "Klickkraft ×3.48", cost: 195000, unlockAt: 120000, apply: (s) => { s.economy.clickMult *= 3.48; } },
   { id: "u_prod_1", name: "Schichtplan", desc: "Produktion ×1.28", cost: 580, unlockAt: 280, apply: (s) => { s.economy.prodMult *= 1.28; } },
   { id: "u_prod_2", name: "Qualitätskette", desc: "Produktion ×1.45", cost: 4800, unlockAt: 2600, apply: (s) => { s.economy.prodMult *= 1.45; } },
-  { id: "u_prod_3", name: "Fließband-KI", desc: "Produktion ×1.95", cost: 36000, unlockAt: 20000, apply: (s) => { s.economy.prodMult *= 1.95; } },
-  { id: "u_prod_4", name: "Takt-Optimierung", desc: "Produktion ×2.35", cost: 340000, unlockAt: 180000, apply: (s) => { s.economy.prodMult *= 2.35; } },
-  { id: "u_prod_5", name: "Parallel-Layer", desc: "Produktion ×2.75", cost: 2800000, unlockAt: 1900000, apply: (s) => { s.economy.prodMult *= 2.75; } },
+  { id: "u_prod_3", name: "Fließband-KI", desc: "Produktion ×1.95", cost: 39500, unlockAt: 20000, apply: (s) => { s.economy.prodMult *= 1.95; } },
+  { id: "u_prod_4", name: "Takt-Optimierung", desc: "Produktion ×2.35", cost: 365000, unlockAt: 180000, apply: (s) => { s.economy.prodMult *= 2.35; } },
+  { id: "u_prod_5", name: "Parallel-Layer", desc: "Produktion ×2.75", cost: 2950000, unlockAt: 1900000, apply: (s) => { s.economy.prodMult *= 2.75; } },
   { id: "u_combo_1", name: "Flow-Training", desc: "Kombo stärker (+0.1)", cost: 2100, unlockAt: 1000, apply: (s) => { s.economy.comboBonus += 0.1; } },
   { id: "u_combo_2", name: "Flow-Reflex", desc: "Kombo-Fenster +420ms", cost: 11000, unlockAt: 6000, apply: (s) => { s.economy.comboWindowBonus += 420; } },
   { id: "u_combo_3", name: "Burst-Kontrolle", desc: "Kombo stärker (+0.16)", cost: 88000, unlockAt: 48000, apply: (s) => { s.economy.comboBonus += 0.16; } },
@@ -373,6 +373,10 @@ const runtime = {
   eventDeadline: 0,
   prestigeMutationChoices: [],
   mutationSlotRunning: false,
+  mutationSlotRaf: 0,
+  pendingPrestigeMutationId: null,
+  skillTreePan: { x: 0, y: 0 },
+  skillTreePanWired: false,
 };
 
 const ui = {};
@@ -485,10 +489,10 @@ function currentPpk() {
     + Math.log10(state.economy.lifetimePixel + 10) * 0.4
     + state.meta.prestige * 0.2;
 
-  // Early/Midgame: Klick soll ~10–20 % der Gesamt-„Feel“-Produktion liefern (bei schnellem Klicken).
-  if (state.economy.lifetimePixel < 50_000) progressClickBoost *= 1.82;
-  else if (state.economy.lifetimePixel < 2_000_000) progressClickBoost *= 1.38;
-  else if (state.economy.lifetimePixel < 80_000_000) progressClickBoost *= 1.16;
+  // Early/Midgame: Klick soll ~10–20 % der Gesamt-„Feel“-Produktion liefern (bei ~5–8 Klicks/s + Kombo).
+  if (state.economy.lifetimePixel < 50_000) progressClickBoost *= 1.85;
+  else if (state.economy.lifetimePixel < 2_000_000) progressClickBoost *= 1.5;
+  else if (state.economy.lifetimePixel < 80_000_000) progressClickBoost *= 1.22;
 
   return state.economy.clickBase
     * state.economy.clickMult
@@ -869,38 +873,168 @@ function spawnPrestigeModalConfetti() {
   requestAnimationFrame(step);
 }
 
+const TUTORIAL_LS_KEY = "pf_pixel_factory_rework_tutorial_done";
+
+function syncTutorialSkipFromState() {
+  try {
+    if (state.meta.prestige > 0 || state.meta.prestigePoints > 0) {
+      localStorage.setItem(TUTORIAL_LS_KEY, "1");
+    }
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+function shouldShowTutorial() {
+  try {
+    if (localStorage.getItem(TUTORIAL_LS_KEY) === "1") return false;
+  } catch (_) {
+    /* ignore */
+  }
+  if (state.meta.prestige > 0) return false;
+  if (state.meta.prestigePoints > 0) return false;
+  return true;
+}
+
+function markTutorialDone() {
+  try {
+    localStorage.setItem(TUTORIAL_LS_KEY, "1");
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+function cancelMutationSlotAnimation() {
+  if (runtime.mutationSlotRaf) {
+    cancelAnimationFrame(runtime.mutationSlotRaf);
+    runtime.mutationSlotRaf = 0;
+  }
+  document.getElementById("prestigeConfirmModal")?.classList.remove("pf-prestige-modal--rolling");
+  document.getElementById("mutationSlotPanel")?.classList.remove("pf-slot-panel--rolling");
+}
+
+/** Zeigt während des Würfelns eine Karten-Vorschau (Sammelkarten-Look). */
+function renderSlotStripPreview(m) {
+  const strip = document.getElementById("mutationSlotStrip");
+  if (!strip || !m) return;
+  strip.innerHTML = `
+    <div class="pf-mutation-card pf-mutation-card--${mutationRarityClass(m.rarity)} pf-mutation-card--slot-spin">
+      <span class="pf-mutation-card__rarity">${mutationRarityLabel(m.rarity)}</span>
+      <span class="pf-mutation-card__icon" aria-hidden="true">${m.icon || "✦"}</span>
+      <strong class="pf-mutation-card__title">${escapeHtmlPf(m.title)}</strong>
+      <span class="pf-mutation-card__desc">${escapeHtmlPf(m.text)}</span>
+    </div>`;
+}
+
 function runMutationSlotMachine() {
   const choices = runtime.prestigeMutationChoices;
   if (!choices?.length || runtime.mutationSlotRunning) return;
+  cancelMutationSlotAnimation();
   runtime.mutationSlotRunning = true;
+  runtime.pendingPrestigeMutationId = null;
+
   const quickBtn = document.getElementById("prestigeConfirmJa");
+  const neinBtn = document.getElementById("prestigeConfirmNein");
+  const finalizeBtn = document.getElementById("prestigeFinalizeBtn");
   if (quickBtn) quickBtn.disabled = true;
+  if (neinBtn) neinBtn.disabled = false;
+
   const overlay = document.getElementById("mutationSlotOverlay");
-  const reel = document.getElementById("mutationSlotReel");
-  const allTitles = MUTATIONS.map((m) => m.title);
-  const final = choices[Math.floor(Math.random() * choices.length)];
-  let ticks = 0;
-  const maxTicks = 32 + Math.floor(Math.random() * 10);
+  const panel = document.getElementById("mutationSlotPanel");
+  const statusEl = document.getElementById("mutationSlotStatus");
+  const resultEl = document.getElementById("mutationSlotResult");
+  const modalBg = document.getElementById("prestigeConfirmModal");
+
+  if (resultEl) {
+    resultEl.classList.add("versteckt");
+    resultEl.innerHTML = "";
+  }
+  if (finalizeBtn) {
+    finalizeBtn.classList.add("versteckt");
+    finalizeBtn.disabled = true;
+  }
+
+  if (statusEl) statusEl.textContent = "Die Mutation wird gewürfelt …";
   if (overlay) overlay.classList.remove("versteckt");
-  const iv = setInterval(() => {
-    ticks += 1;
-    const flash = allTitles[Math.floor(Math.random() * allTitles.length)];
-    if (reel) reel.textContent = flash;
-    if (ticks >= maxTicks) {
-      clearInterval(iv);
-      if (reel) reel.textContent = final.title;
-      setTimeout(() => {
-        if (overlay) overlay.classList.add("versteckt");
-        runtime.mutationSlotRunning = false;
-        if (quickBtn) quickBtn.disabled = false;
-        doPrestige(final.id);
-      }, 500);
+  if (panel) panel.classList.add("pf-slot-panel--rolling");
+  if (modalBg) modalBg.classList.add("pf-prestige-modal--rolling");
+
+  spawnPrestigeModalConfetti();
+
+  const final = choices[Math.floor(Math.random() * choices.length)];
+  const rollMs = 2000 + Math.random() * 1000;
+  const t0 = performance.now();
+  let lastSparkle = t0;
+
+  function finishRoll() {
+    runtime.mutationSlotRunning = false;
+    if (panel) panel.classList.remove("pf-slot-panel--rolling");
+    if (modalBg) modalBg.classList.remove("pf-prestige-modal--rolling");
+
+    const strip = document.getElementById("mutationSlotStrip");
+    if (strip) strip.innerHTML = "";
+
+    runtime.pendingPrestigeMutationId = final.id;
+
+    if (statusEl) statusEl.textContent = "Deine Mutation:";
+    if (resultEl) {
+      resultEl.classList.remove("versteckt");
+      resultEl.innerHTML = `
+        <div class="pf-mutation-card-wrap pf-mutation-card-wrap--result">
+          <button type="button" class="pf-mutation-card__tip" data-math-detail="${escapeHtmlPf(final.mathDetail || final.detail)}" aria-label="Formeln">?</button>
+          <div class="pf-mutation-card pf-mutation-card--${mutationRarityClass(final.rarity)} pf-mutation-card--result-reveal">
+            <span class="pf-mutation-card__rarity">${mutationRarityLabel(final.rarity)}</span>
+            <span class="pf-mutation-card__icon" aria-hidden="true">${final.icon || "✦"}</span>
+            <strong class="pf-mutation-card__title">${escapeHtmlPf(final.title)}</strong>
+            <span class="pf-mutation-card__desc">${escapeHtmlPf(final.text)}</span>
+          </div>
+        </div>`;
+      const tip = resultEl.querySelector(".pf-mutation-card__tip");
+      tip?.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        showPfFloatingTooltip(tip, tip.dataset.mathDetail || "");
+      });
     }
-  }, 75);
+    if (finalizeBtn) {
+      finalizeBtn.classList.remove("versteckt");
+      finalizeBtn.disabled = false;
+    }
+    if (quickBtn) quickBtn.disabled = true;
+    if (neinBtn) neinBtn.disabled = false;
+  }
+
+  function tick(now) {
+    const elapsed = now - t0;
+    const i = Math.floor(elapsed / 85) % choices.length;
+    renderSlotStripPreview(choices[i]);
+    if (now - lastSparkle > 450) {
+      lastSparkle = now;
+      spawnPrestigeModalConfetti();
+    }
+    if (elapsed < rollMs) {
+      runtime.mutationSlotRaf = requestAnimationFrame(tick);
+    } else {
+      runtime.mutationSlotRaf = 0;
+      finishRoll();
+    }
+  }
+
+  runtime.mutationSlotRaf = requestAnimationFrame(tick);
 }
 
 function openPrestigeModal() {
   if (state.economy.lifetimePixel < prestigeThreshold()) return;
+  cancelMutationSlotAnimation();
+  runtime.mutationSlotRunning = false;
+  runtime.pendingPrestigeMutationId = null;
+  document.getElementById("mutationSlotOverlay")?.classList.add("versteckt");
+  document.getElementById("mutationSlotResult")?.classList.add("versteckt");
+  document.getElementById("prestigeFinalizeBtn")?.classList.add("versteckt");
+  const stripReset = document.getElementById("mutationSlotStrip");
+  if (stripReset) stripReset.innerHTML = "";
+  const statusReset = document.getElementById("mutationSlotStatus");
+  if (statusReset) statusReset.textContent = "Die Mutation wird gewürfelt …";
+
   const choices = [];
   const src = [...MUTATIONS];
   while (choices.length < 3 && src.length > 0) {
@@ -937,10 +1071,13 @@ function openPrestigeModal() {
   });
 
   const quickBtn = document.getElementById("prestigeConfirmJa");
+  const neinBtn = document.getElementById("prestigeConfirmNein");
   if (quickBtn) {
     quickBtn.textContent = "Zufällige Mutation";
+    quickBtn.disabled = false;
     quickBtn.onclick = () => runMutationSlotMachine();
   }
+  if (neinBtn) neinBtn.disabled = false;
   ui.prestigeModal.classList.remove("versteckt");
   requestAnimationFrame(() => spawnPrestigeModalConfetti());
 }
@@ -948,6 +1085,7 @@ function openPrestigeModal() {
 function doPrestige(mutationId) {
   const mutation = MUTATIONS.find((m) => m.id === mutationId);
   if (!mutation) return;
+  runtime.pendingPrestigeMutationId = null;
   state.meta.prestige += 1;
   state.meta.prestigePoints += calcPrestigeGain();
   state.meta.mutationIds.push(mutationId);
@@ -972,7 +1110,7 @@ function doPrestige(mutationId) {
   renderStats();
   renderMissions();
   renderLineTree();
-  toast(`Prestige ${state.meta.prestige} erreicht. +1 Prestigepunkt.`);
+  toast(`Prestige ${state.meta.prestige} · Mutation: ${mutation.title} · +1 Prestigepunkt`);
 }
 
 function applyOfflineBonus(lastTs) {
@@ -1320,7 +1458,7 @@ function edgeSvgClass(parentLine, parentId, childLine, childId, branchLine) {
   const lit = pLvl > 0 || cLvl > 0;
   const active = cLvl > 0;
   let cls = `pf-skill-edge pf-skill-edge--${branchLine}`;
-  if (lit) cls += " pf-skill-edge--lit";
+  if (lit) cls += " pf-skill-edge--lit pf-skill-edge--flow";
   if (active) cls += " pf-skill-edge--active";
   return cls;
 }
@@ -1393,8 +1531,61 @@ function wireLineTreeModalOnce() {
   });
 }
 
+/** Leitungs-Animation: schneller bei höherem PPS (duration in Sekunden). */
+function updateSkillTreeFlowSpeed() {
+  const svg = document.querySelector("#skillTreePanInner .pf-skill-svg");
+  if (!svg) return;
+  const pps = Math.max(0.15, currentPps());
+  const sec = Math.max(0.55, Math.min(3.4, 2.65 / Math.pow(Math.log10(pps + 12), 0.52)));
+  svg.style.setProperty("--pf-flow-dur", `${sec.toFixed(2)}s`);
+}
+
+function wireSkillTreePanOnce() {
+  if (runtime.skillTreePanWired) return;
+  const vp = document.getElementById("skillTreePanViewport");
+  if (!vp) return;
+  runtime.skillTreePanWired = true;
+  let dragging = false;
+  let startCX = 0;
+  let startCY = 0;
+  let originX = 0;
+  let originY = 0;
+
+  vp.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".pf-skill-help") || e.target.closest(".pf-skill-node")) return;
+    dragging = true;
+    try {
+      vp.setPointerCapture(e.pointerId);
+    } catch (_) { /* ignore */ }
+    startCX = e.clientX;
+    startCY = e.clientY;
+    originX = runtime.skillTreePan.x;
+    originY = runtime.skillTreePan.y;
+    vp.classList.add("pf-skill-pan-viewport--dragging");
+  });
+  vp.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startCX;
+    const dy = e.clientY - startCY;
+    let nx = originX + dx;
+    let ny = originY + dy;
+    const lim = 160;
+    nx = Math.max(-lim, Math.min(lim, nx));
+    ny = Math.max(-lim, Math.min(lim, ny));
+    runtime.skillTreePan = { x: nx, y: ny };
+    const inner = document.getElementById("skillTreePanInner");
+    if (inner) inner.style.transform = `translate(${nx}px, ${ny}px)`;
+  });
+  const endDrag = () => {
+    dragging = false;
+    vp.classList.remove("pf-skill-pan-viewport--dragging");
+  };
+  vp.addEventListener("pointerup", endDrag);
+  vp.addEventListener("pointercancel", endDrag);
+}
+
 function renderLineTree() {
-  const target = ui.lineTreeModalBody;
+  const target = document.getElementById("skillTreePanInner") || ui.lineTreeModalBody;
   if (!target) return;
 
   const edgeLines = [];
@@ -1440,6 +1631,7 @@ function renderLineTree() {
           data-line-node="${n.id}"
           ${maxed || !can ? "disabled" : ""}
           title="${escapeHtmlPf(tip)}">
+          <span class="pf-skill-node__glyph pf-skill-node__glyph--${lineKey}" aria-hidden="true"></span>
           <span class="pf-skill-node__tag">${lineKey === "speed" ? "SPD" : lineKey === "efficiency" ? "EFF" : lineKey === "automation" ? "AUTO" : "SYN"}</span>
           <span class="pf-skill-node__name">${escapeHtmlPf(n.name)}</span>
           <span class="pf-skill-node__lvl">${lvl}/${n.max}</span>
@@ -1462,6 +1654,15 @@ function renderLineTree() {
       <div class="pf-skill-nodes">${nodesHtml.join("")}</div>
     </div>
   `;
+
+  const panInner = document.getElementById("skillTreePanInner");
+  if (panInner) {
+    const { x, y } = runtime.skillTreePan || { x: 0, y: 0 };
+    panInner.style.transform = `translate(${x}px, ${y}px)`;
+  }
+
+  wireSkillTreePanOnce();
+  updateSkillTreeFlowSpeed();
 
   target.querySelectorAll("[data-line-node]").forEach((btn) => {
     btn.addEventListener("click", (ev) => {
@@ -1723,6 +1924,7 @@ function handleClick() {
 }
 
 function maybeRenderTutorial() {
+  if (!shouldShowTutorial()) return;
   const overlay = document.getElementById("tutorialOverlay");
   const title = document.getElementById("tutorialTitel");
   const text = document.getElementById("tutorialText");
@@ -1746,7 +1948,10 @@ function maybeRenderTutorial() {
     nextBtn.textContent = idx >= steps.length - 1 ? "Fertig" : "Weiter →";
     document.querySelectorAll(".tut-punkt").forEach((p, i) => p.classList.toggle("aktiv", i === idx));
   }
-  function close() { overlay.classList.add("versteckt"); }
+  function close() {
+    markTutorialDone();
+    overlay.classList.add("versteckt");
+  }
   nextBtn.onclick = () => {
     if (idx >= steps.length - 1) close();
     else { idx += 1; render(); }
@@ -1862,9 +2067,19 @@ function bindEvents() {
   ui.canvas.addEventListener("click", handleClick);
   ui.prestigeBtn.addEventListener("click", openPrestigeModal);
   document.getElementById("prestigeConfirmNein").addEventListener("click", () => {
+    cancelMutationSlotAnimation();
+    runtime.mutationSlotRunning = false;
+    runtime.pendingPrestigeMutationId = null;
+    document.getElementById("mutationSlotResult")?.classList.add("versteckt");
+    document.getElementById("prestigeFinalizeBtn")?.classList.add("versteckt");
     ui.prestigeModal.classList.add("versteckt");
     document.getElementById("mutationSlotOverlay")?.classList.add("versteckt");
-    runtime.mutationSlotRunning = false;
+  });
+
+  document.getElementById("prestigeFinalizeBtn")?.addEventListener("click", () => {
+    const id = runtime.pendingPrestigeMutationId;
+    if (!id) return;
+    doPrestige(id);
   });
 
   document.getElementById("errungenschaftenBtn").textContent = "📅 Saison";
@@ -1935,6 +2150,13 @@ function frame(ts) {
   renderMissions();
   maybeRenderShop();
 
+  if (ui.lineTreeModal && !ui.lineTreeModal.classList.contains("versteckt")) {
+    if (!runtime._lastFlowAt || ts - runtime._lastFlowAt > 350) {
+      runtime._lastFlowAt = ts;
+      updateSkillTreeFlowSpeed();
+    }
+  }
+
   requestAnimationFrame(frame);
 }
 
@@ -1956,6 +2178,7 @@ async function init() {
     await loadGame();
   }
   applySkin(state.cosmetics.skin);
+  syncTutorialSkipFromState();
   recomputeMetaFromLineAndMutations();
   renderStats();
   renderMissions();

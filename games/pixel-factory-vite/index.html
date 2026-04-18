@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Pixel Factory</title>
+  </head>
+  <body>
+    <div class="pf-shell">
+      <header class="pf-bar">
+        <div class="pf-stats" aria-label="Kernwerte">
+          <div class="pf-stat-main" id="statPixel">0 Pixel</div>
+          <ul class="pf-stats-rows">
+            <li><span class="pf-lbl">px/s</span><span id="statPPS">0</span></li>
+            <li><span class="pf-lbl">Klick</span><span id="statPPK">0</span></li>
+            <li><span class="pf-lbl">Prestige</span><span id="statPrestige">0</span></li>
+            <li><span class="pf-lbl">Punkte</span><span id="statQP">0</span></li>
+          </ul>
+          <p class="pf-mutation-hud" id="mutationHudLine" aria-live="polite" aria-hidden="true"></p>
+        </div>
+        <div class="pf-actions">
+          <button type="button" class="pf-prestige" id="prestigeBtn" disabled>
+            ✦ Prestige
+            <small id="prestigeInfo">Noch nicht verfügbar</small>
+          </button>
+        </div>
+      </header>
+
+      <div class="pf-kombo">
+        <div class="pf-kombo-lbl" id="komboLabel">Kombo</div>
+        <div class="pf-kombo-bar"><div class="pf-kombo-fill" id="komboFill"></div></div>
+      </div>
+
+      <div class="pf-play-wrap">
+        <div id="gameMount" class="pf-game"></div>
+        <p class="pf-hint" id="klickInfo">Tippe den Pixel-Block</p>
+      </div>
+
+      <nav class="pf-dock" aria-label="Menü">
+        <button type="button" class="pf-dock__btn" id="btnOpenShop">🛒 Shop</button>
+        <button type="button" class="pf-dock__btn" id="btnOpenSkills">✦ Skills</button>
+        <button type="button" class="pf-dock__btn" id="btnOpenEvents">📋 Events</button>
+      </nav>
+    </div>
+
+    <!-- Shop -->
+    <div id="shopOverlay" class="pf-overlay pf-overlay--hidden" aria-hidden="true">
+      <button type="button" class="pf-overlay__backdrop" data-close-overlay tabindex="-1" aria-label="Schließen"></button>
+      <div class="pf-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+        <header class="pf-overlay__head">
+          <h2 id="shopTitle">Shop</h2>
+          <button type="button" class="pf-overlay__close" data-close-overlay aria-label="Schließen">✕</button>
+        </header>
+        <div class="pf-overlay__body">
+          <div class="pf-shop-tabs">
+            <button type="button" class="pf-shop-tab pf-shop-tab--active" data-tab="gebaeude">Gebäude</button>
+            <button type="button" class="pf-shop-tab" data-tab="upgrades">Upgrades</button>
+          </div>
+          <div class="pf-bulk" id="shopBulkRow">
+            <span class="pf-bulk__label">Kaufen:</span>
+            <button type="button" class="pf-bulk-btn pf-bulk-btn--active" data-menge="1">×1</button>
+            <button type="button" class="pf-bulk-btn" data-menge="10">×10</button>
+            <button type="button" class="pf-bulk-btn" data-menge="50">×50</button>
+            <button type="button" class="pf-bulk-btn" data-menge="0">Max</button>
+          </div>
+          <div id="shopGebaeudePane">
+            <div id="shopBuildingsRoot"></div>
+          </div>
+          <div id="shopUpgradesPane" class="pf-hidden">
+            <div id="shopUpgradesRoot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill tree -->
+    <div id="skillOverlay" class="pf-overlay pf-skill-overlay pf-overlay--hidden" aria-hidden="true">
+      <button type="button" class="pf-overlay__backdrop" data-close-overlay tabindex="-1" aria-label="Schließen"></button>
+      <div class="pf-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="skillTreeTitle">
+        <header class="pf-overlay__head">
+          <h2 id="skillTreeTitle">Linienbaum</h2>
+          <button type="button" class="pf-overlay__close" data-close-overlay aria-label="Schließen">✕</button>
+        </header>
+        <div class="pf-overlay__body">
+          <div class="pf-line-tree-head">
+            <span class="pf-line-tree-head__line">Prestigepunkte</span>
+            <span class="pf-line-tree-head__qp">Verfügbar: <b id="skillTreeQp">0</b> PP</span>
+          </div>
+          <div class="pf-skill-pan-viewport" id="skillPanViewport">
+            <div class="pf-skill-pan-inner" id="skillPanInner">
+              <svg
+                class="pf-skill-svg"
+                id="skillTreeSvg"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              ></svg>
+              <div class="pf-skill-nodes" id="skillTreeNodes"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Events -->
+    <div id="eventsOverlay" class="pf-overlay pf-events-overlay pf-overlay--hidden" aria-hidden="true">
+      <button type="button" class="pf-overlay__backdrop" data-close-overlay tabindex="-1" aria-label="Schließen"></button>
+      <div class="pf-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="eventsTitle">
+        <header class="pf-overlay__head">
+          <h2 id="eventsTitle">Events &amp; Missionen</h2>
+          <button type="button" class="pf-overlay__close" data-close-overlay aria-label="Schließen">✕</button>
+        </header>
+        <div class="pf-overlay__body">
+          <section class="pf-events-section" aria-labelledby="missionsHeading">
+            <h3 class="pf-events-section__title" id="missionsHeading">Missionen</h3>
+            <p class="pf-mission-refresh" id="eventsMissionRefresh">Neue Missionen in —:—</p>
+            <div class="pf-action-cards" id="eventsMissionList"></div>
+          </section>
+          <section class="pf-events-section" aria-labelledby="mutationHeading">
+            <h3 class="pf-events-section__title" id="mutationHeading">Mutationen</h3>
+            <div class="pf-slot-machine">
+              <p class="pf-slot-machine__title">Slot-Maschine</p>
+              <p class="pf-slot-machine__sub">Drehen wendet eine zeitlich begrenzte PPS-/Klick-Mutation an (Triple &gt; Paar &gt; Mix).</p>
+              <p class="pf-mutation-active" id="mutationActiveLine" aria-live="polite"></p>
+              <div class="pf-slot-reels">
+                <div class="pf-slot-reel" id="slotReel1">
+                  <div class="pf-slot-reel__strip">
+                    <div class="pf-slot-cell">✦</div>
+                    <div class="pf-slot-cell">⚡</div>
+                    <div class="pf-slot-cell">◆</div>
+                    <div class="pf-slot-cell">★</div>
+                    <div class="pf-slot-cell">◎</div>
+                  </div>
+                </div>
+                <div class="pf-slot-reel" id="slotReel2">
+                  <div class="pf-slot-reel__strip">
+                    <div class="pf-slot-cell">⚡</div>
+                    <div class="pf-slot-cell">◆</div>
+                    <div class="pf-slot-cell">★</div>
+                    <div class="pf-slot-cell">◎</div>
+                    <div class="pf-slot-cell">✦</div>
+                  </div>
+                </div>
+                <div class="pf-slot-reel" id="slotReel3">
+                  <div class="pf-slot-reel__strip">
+                    <div class="pf-slot-cell">◆</div>
+                    <div class="pf-slot-cell">★</div>
+                    <div class="pf-slot-cell">◎</div>
+                    <div class="pf-slot-cell">✦</div>
+                    <div class="pf-slot-cell">⚡</div>
+                  </div>
+                </div>
+              </div>
+              <div class="pf-slot-actions">
+                <button type="button" class="pf-slot-spin" id="slotSpinBtn">Drehen</button>
+              </div>
+              <p class="pf-slot-result" id="slotResult"></p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

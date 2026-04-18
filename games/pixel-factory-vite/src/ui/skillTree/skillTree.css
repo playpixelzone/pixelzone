@@ -1,0 +1,253 @@
+/* Skill-Tree-Modal – SVG-Kanten, Flow, Pan-Bereich (Legacy angelehnt). */
+
+.pf-skill-overlay .pf-overlay__panel {
+  max-width: none;
+  width: min(100%, 560px);
+  max-height: min(96vh, 720px);
+}
+
+@media (min-width: 768px) {
+  .pf-skill-overlay .pf-overlay__panel {
+    border-radius: 20px;
+  }
+}
+
+.pf-line-tree-head {
+  margin-bottom: 8px;
+}
+
+.pf-line-tree-head__line {
+  font-size: 0.95rem;
+  font-weight: 900;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.pf-line-tree-head__qp {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.pf-line-tree-head__qp b {
+  color: var(--prestige-dark);
+}
+
+.pf-skill-pan-viewport {
+  position: relative;
+  overflow: auto;
+  max-height: min(520px, 62vh);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
+
+.pf-skill-pan-inner {
+  position: relative;
+  min-width: 100%;
+  min-height: 420px;
+  padding: 48px 40px;
+  background: radial-gradient(circle at 50% 48%, #f8fbff 0%, #eef4ff 42%, #f6f9ff 100%);
+  box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.85);
+}
+
+.pf-skill-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pf-skill-edge {
+  stroke: #b8c9e8;
+  stroke-width: 1.15;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.95;
+  stroke-dasharray: 6 10;
+  stroke-dashoffset: 0;
+}
+
+.pf-skill-edge--lit {
+  stroke: #6475f5;
+  stroke-width: 1.35;
+  opacity: 1;
+}
+
+.pf-skill-edge--flow.pf-skill-edge--lit {
+  animation: pfSkillEdgeFlow var(--pf-flow-dur, 1.8s) linear infinite;
+}
+
+@keyframes pfSkillEdgeFlow {
+  to {
+    stroke-dashoffset: -48;
+  }
+}
+
+.pf-skill-nodes {
+  position: relative;
+  z-index: 1;
+  min-height: 380px;
+}
+
+.pf-skill-node-wrap {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: min(132px, 42vw);
+  max-width: 150px;
+}
+
+.pf-skill-node-card {
+  position: relative;
+}
+
+.pf-skill-help-slot {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 3;
+}
+
+.pf-skill-help {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  transform: scale(0.7);
+  transform-origin: center center;
+}
+
+.pf-skill-help:active {
+  transform: scale(0.65);
+}
+
+.pf-skill-node {
+  width: 100%;
+  padding: 8px 8px 7px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, #ffffff, #f3f7ff);
+  box-shadow: 0 2px 8px rgba(61, 91, 216, 0.07);
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    opacity 0.15s,
+    filter 0.15s;
+}
+
+.pf-skill-node:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(61, 91, 216, 0.12);
+}
+
+.pf-skill-node:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.pf-skill-node--locked {
+  opacity: 0.48;
+  filter: grayscale(0.35);
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+.pf-skill-node--ready {
+  border-color: rgba(79, 110, 248, 0.65);
+  box-shadow:
+    0 0 0 2px rgba(129, 161, 255, 0.35),
+    0 6px 18px rgba(79, 110, 248, 0.15);
+  background: linear-gradient(180deg, #ffffff, #eef4ff);
+}
+
+.pf-skill-node--available {
+  opacity: 1;
+  filter: none;
+  cursor: not-allowed;
+  border-color: rgba(148, 163, 184, 0.55);
+  background: linear-gradient(180deg, #ffffff, #f4f8ff);
+}
+
+.pf-skill-node--available:disabled {
+  opacity: 1;
+  filter: none;
+}
+
+.pf-skill-node--done {
+  border-color: #eab308;
+  box-shadow:
+    0 0 0 2px rgba(234, 179, 8, 0.35),
+    0 4px 16px rgba(234, 179, 8, 0.2);
+  background: linear-gradient(180deg, #fffbeb, #fff7ed);
+  cursor: default;
+  opacity: 1;
+  filter: none;
+}
+
+.pf-skill-node__glyph {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+.pf-skill-node__name {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.pf-skill-node__lvl {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.pf-skill-node__cost {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--prestige);
+  margin-top: 4px;
+}
+
+.pf-skill-tooltip {
+  position: fixed;
+  z-index: 2000;
+  max-width: 240px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--text);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+  pointer-events: none;
+}
+
+.pf-skill-tooltip.pf-hidden {
+  display: none;
+}
+
+body.pf-modal-open {
+  overflow: hidden;
+}

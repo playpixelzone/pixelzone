@@ -282,10 +282,10 @@ if (ACHIEVEMENTS.length !== 100) {
   console.warn("[Pixel Factory] Erwartet 100 Errungenschaften, ist:", ACHIEVEMENTS.length);
 }
 
+/** Kombo: fest ×2 solange das Zeitfenster läuft (nicht höher). Beispiel: 5 Pixel Basis → 10 Pixel pro Klick. */
 function getComboMult() {
   if (Date.now() > state.session.comboUntil) return 1;
-  const base = 1 + Math.min(1.7, state.session.comboCount * (0.045 + state.economy.comboBonus));
-  return base;
+  return 2;
 }
 
 function activeMult(key) {
@@ -791,7 +791,7 @@ function renderStats() {
   const fill = comboActive ? Math.max(0, (state.session.comboUntil - Date.now()) / (COMBO_WINDOW_MS + state.economy.comboWindowBonus)) : 0;
   ui.comboFill.style.width = `${Math.floor(fill * 100)}%`;
   ui.comboLabel.textContent = comboActive
-    ? `Kombo x${getComboMult().toFixed(2)} (${state.session.comboCount})`
+    ? `Kombo ×2 (${state.session.comboCount})`
     : "Kombo";
 }
 

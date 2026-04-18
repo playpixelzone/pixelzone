@@ -1,5 +1,11 @@
 # NOTES.md — Fortschrittsprotokoll
 
+## 2026-04-18 — Neues Vite-Spiel „Gambler’s Table“ (Setup)
+
+- **Ordner:** `games/gamblers-table-vite/` — Vite 6, **Phaser 3.87**, TypeScript.
+- **Schritt 1:** `GameState` aus v2-Wirtschaft (Passiv + Klick, Kombo, Prestige-Schwelle, Shop-Upgrade-Boni), Gebäude als **Gambler-Assets** mit IDs `luckyCharm` / `weightedDice` / `cardCounter`; Währung **Chips**; `MainScene` mit dunklem Filz-Tisch, dynamischem Lichtpool, zentralem **Kartendeck** (Klick), Partikel-Feedback.
+- **Start:** `cd games/gamblers-table-vite` → `npm run dev` / `npm run build`.
+
 ## Session 2026-04-16 — Spielverbesserungen (Pixel Factory, Drop, Jump, Blast, Pong)
 
 - **Pixel Factory (iPad / Linienbaum, Commit 09fb0b8):** Shop-Grid max. 2 Spalten, größere Touch-Karten; Linienbaum als Vollbild-Modal mit Tab „Linienbaum“; `pf-line-trees.js` mit tiefen Pfaden (Speed/Efficiency/Automation) + Synergie-Knoten (`reqCross`); SVG-Kanten mit Pfad-Farben und Leuchten bei aktivem Pfad; (?)-Tooltips; alle gekauften Knoten wirken in `recompute`; Save-Schema v4 (Migration von v3); leichter PPC-Bonus auf Tablet-Breite. Dateien: `games/pixel-factory/game-rework-v2.js`, `pf-line-trees.js`, `index.html`, `style.css`.

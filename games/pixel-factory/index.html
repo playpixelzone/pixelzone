@@ -123,9 +123,8 @@
   <section class="spiel-rechts">
 
     <div class="shop-kopf">
-      <div class="shop-tabs">
-        <button class="shop-tab aktiv" data-tab="gebaeude">🛒 Shop</button>
-        <button class="shop-tab" data-tab="upgrades">⚡ Upgrades</button>
+      <div class="shop-tabs shop-tabs--single">
+        <span class="shop-tab shop-tab--static aktiv">🛒 Shop</span>
       </div>
       <div class="bulk-leiste" id="bulkLeiste">
         <span class="bulk-label">Kaufen:</span>
@@ -136,8 +135,7 @@
       </div>
     </div>
 
-    <div class="shop-inhalt" id="shopGebaeude"></div>
-    <div class="shop-inhalt versteckt" id="shopUpgrades"></div>
+    <div class="shop-inhalt shop-inhalt--scroll" id="shopGebaeude"></div>
 
   </section>
 
@@ -157,10 +155,11 @@
 </div>
 
 <div class="modal-hintergrund versteckt" id="errungenschaftenModal">
-  <div class="modal modal-breit">
+  <div class="modal modal-breit pf-modal-achievements">
     <button class="modal-schliessen" id="errungenschaftenSchliessen">✕</button>
     <h2>🎖 Errungenschaften</h2>
-    <div id="errungenschaftenGrid"></div>
+    <p class="pf-ach-lead" id="errungenschaftenLead">Lade…</p>
+    <div id="errungenschaftenGrid" class="pf-ach-grid-wrap"></div>
   </div>
 </div>
 

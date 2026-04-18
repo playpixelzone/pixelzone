@@ -1,8 +1,8 @@
-// Pixel Factory Rework v3.4
-// Fokus: Stabilität, klare UX, additive Shop-Upgrades (PPS / PPC).
+// Pixel Factory Rework v3.5
+// Shop: Gebäude + Dauer-Upgrades in einem Panel; 100 Errungenschaften mit sichtbaren Bedingungen.
 
 const GAME_ID = "pixel-factory";
-const SAVE_SCHEMA_VERSION = 5;
+const SAVE_SCHEMA_VERSION = 6;
 const AUTOSAVE_MS = 10000;
 const COMBO_WINDOW_MS = 1400;
 /** @deprecated Nur noch für Fallback; echte Erneuerung über Halbstunden-Grenze (siehe msBisNaechsteHalbeStunde). */
@@ -86,6 +86,7 @@ const runtime = {
   tab: "gebaeude",
   forceShopRender: true,
   nextShopRenderAt: 0,
+  achCheckAcc: 0,
 };
 
 const ui = {};
@@ -116,6 +117,13 @@ function makeDefaultState() {
     meta: {
       prestige: 0,
       prestigePoints: 0,
+      achievementsUnlocked: [],
+      track: {
+        maxLifetimePixelEver: 0,
+        totalClicksEver: 0,
+        totalMissionsEver: 0,
+        maxComboEver: 0,
+      },
     },
     session: {
       runToken: Date.now(),
@@ -149,6 +157,129 @@ function fmtNumber(v) {
 function fmtPps(v) {
   if (v < 1) return v.toFixed(2);
   return fmtNumber(v);
+}
+
+/** 100 Erfolge mit sichtbarer Bedingung im Modal. */
+function buildAchievements() {
+  const list = [];
+
+  const LP = [
+    100, 400, 1500, 6000, 20000, 50000, 120000, 300000, 750000, 2e6, 5e6, 12e6, 30e6, 75e6, 180e6, 450e6, 1.1e9, 2.8e9, 7e9, 18e9, 45e9, 110e9, 280e9, 700e9, 1.8e12,
+  ];
+  LP.forEach((t, i) => {
+    list.push({
+      id: `ach_lp_${i}`,
+      title: `Pixel-Bestand ${i + 1}`,
+      desc: `Erreiche mindestens ${fmtNumber(t)} Pixel in einem Durchgang (höchster Stand zählt).`,
+      check: () => (state.meta.track?.maxLifetimePixelEver || 0) >= t,
+    });
+  });
+
+  for (let p = 1; p <= 15; p += 1) {
+    list.push({
+      id: `ach_pr_${p}`,
+      title: `Prestige ${p}`,
+      desc: `Führe mindestens ${p} Prestige durch (Prestige-Stufe ≥ ${p}).`,
+      check: () => state.meta.prestige >= p,
+    });
+  }
+
+  const CL = [5, 15, 40, 100, 250, 600, 1200, 2500, 5000, 12000, 25000, 50000, 100000, 200000, 400000];
+  CL.forEach((t, i) => {
+    list.push({
+      id: `ach_cl_${i}`,
+      title: `Klick-Serie ${i + 1}`,
+      desc: `Führe insgesamt ${fmtNumber(t)} Klicks auf den Pixelhaufen aus (über alle Durchgänge).`,
+      check: () => (state.meta.track?.totalClicksEver || 0) >= t,
+    });
+  });
+
+  const CB = [3, 6, 10, 15, 22, 30, 40, 55, 75, 100];
+  CB.forEach((t, i) => {
+    list.push({
+      id: `ach_cb_${i}`,
+      title: `Kombo-Stufe ${i + 1}`,
+      desc: `Erreiche eine Kombo von mindestens ${t}.`,
+      check: () => (state.meta.track?.maxComboEver || 0) >= t,
+    });
+  });
+
+  const MS = [1, 3, 8, 15, 25, 40, 60, 85, 120, 200];
+  MS.forEach((t, i) => {
+    list.push({
+      id: `ach_ms_${i}`,
+      title: `Missionen ${i + 1}`,
+      desc: `Schließe insgesamt ${t} Missionen ab.`,
+      check: () => (state.meta.track?.totalMissionsEver || 0) >= t,
+    });
+  });
+
+  BUILDINGS.forEach((b) => {
+    list.push({
+      id: `ach_own_${b.id}`,
+      title: `Fabrik: ${b.name}`,
+      desc: `Besitze mindestens 1× „${b.name}“.`,
+      check: () => (state.economy.buildings[b.id] || 0) >= 1,
+    });
+  });
+
+  const BT = [5, 20, 50, 100, 250, 500, 1000];
+  BT.forEach((t, i) => {
+    list.push({
+      id: `ach_bt_${i}`,
+      title: `Großbetrieb ${i + 1}`,
+      desc: `Besitze mindestens ${t} Gebäude insgesamt (alle Typen addiert).`,
+      check: () => {
+        let n = 0;
+        for (const b of BUILDINGS) n += state.economy.buildings[b.id] || 0;
+        return n >= t;
+      },
+    });
+  });
+
+  list.push(
+    {
+      id: "ach_up_all",
+      title: "Volle Aufrüstung",
+      desc: `Kaufe alle ${SHOP_UPGRADES_ALL.length} Dauer-Upgrades (PPS + Klick) im Shop.`,
+      check: () => state.economy.boughtUpgrades.length >= SHOP_UPGRADES_ALL.length,
+    },
+    {
+      id: "ach_prestige_once",
+      title: "Neuanfang",
+      desc: "Führe mindestens ein Prestige durch.",
+      check: () => state.meta.prestige >= 1,
+    },
+    {
+      id: "ach_qp",
+      title: "Prestigepunkte-Sammler",
+      desc: "Besitze mindestens 8 Prestigepunkte gleichzeitig.",
+      check: () => state.meta.prestigePoints >= 8,
+    },
+    {
+      id: "ach_pps_high",
+      title: "Durchsatz-Profi",
+      desc: "Erreiche mindestens 100.000 px/s Produktion (Gebäude + flache Boni, ohne zeitliche Booster).",
+      check: () => {
+        let pps = state.economy.ppsBonusFlat || 0;
+        for (const b of BUILDINGS) pps += (state.economy.buildings[b.id] || 0) * b.pps;
+        return pps >= 100000;
+      },
+    },
+    {
+      id: "ach_bank",
+      title: "Volle Kassen",
+      desc: "Halte mindestens 50.000.000 Pixel gleichzeitig auf dem Konto.",
+      check: () => state.economy.pixel >= 50_000_000,
+    },
+  );
+
+  return list;
+}
+
+const ACHIEVEMENTS = buildAchievements();
+if (ACHIEVEMENTS.length !== 100) {
+  console.warn("[Pixel Factory] Erwartet 100 Errungenschaften, ist:", ACHIEVEMENTS.length);
 }
 
 function getComboMult() {
@@ -315,6 +446,8 @@ function missionProgress(m) {
 
 function completeMission(m) {
   m.done = true;
+  state.meta.track = state.meta.track || {};
+  state.meta.track.totalMissionsEver = (state.meta.track.totalMissionsEver || 0) + 1;
   if (m.reward.pixel) addPixels(missionRewardScaled(m.reward.pixel), "Mission");
   if (m.reward.timedProd) addTimed(state, "prod", m.reward.timedProd, 45, "Missions-Boost");
   if (m.reward.timedClick) addTimed(state, "click", m.reward.timedClick, 45, "Missions-Boost");
@@ -482,13 +615,17 @@ async function saveGame(withToast = false, zeigeHinweis = false) {
   if (zeigeHinweis && !res.error) zeigeSpeicherHinweis();
 }
 
-/** Übernimmt ältere Save-Versionen (v3/v4/…) in das aktuelle Schema v5. */
+/** Übernimmt ältere Save-Versionen (v3/v4/v5…) in das aktuelle Schema v6. */
 function migrateSaveToCurrent(raw) {
   const fresh = makeDefaultState();
   const e = raw.economy || {};
   const boughtKnown = Array.isArray(e.boughtUpgrades)
     ? e.boughtUpgrades.filter((id) => SHOP_UPGRADES_ALL.some((u) => u.id === id))
     : [];
+  const achIds = new Set((ACHIEVEMENTS || []).map((a) => a.id));
+  const achRaw = Array.isArray(raw.meta?.achievementsUnlocked) ? raw.meta.achievementsUnlocked : [];
+  const achievementsUnlocked = achRaw.filter((id) => achIds.has(id));
+  const tr = raw.meta?.track || {};
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
     economy: {
@@ -507,6 +644,13 @@ function migrateSaveToCurrent(raw) {
     meta: {
       prestige: Math.max(0, Math.floor(Number(raw.meta?.prestige) || 0)),
       prestigePoints: Math.max(0, Math.floor(Number(raw.meta?.prestigePoints) || 0)),
+      achievementsUnlocked,
+      track: {
+        maxLifetimePixelEver: Math.max(0, Number(tr.maxLifetimePixelEver) || 0),
+        totalClicksEver: Math.max(0, Number(tr.totalClicksEver) || 0),
+        totalMissionsEver: Math.max(0, Number(tr.totalMissionsEver) || 0),
+        maxComboEver: Math.max(0, Number(tr.maxComboEver) || 0),
+      },
     },
     session: {
       ...fresh.session,
@@ -562,6 +706,12 @@ async function loadGame() {
   if (state.session.nextMissionRefreshAt < Date.now()) randomMissionSet();
   recomputeUpgradeBonuses();
   applyOfflineBonus(state.session.lastSaveAt);
+  state.meta.track = { ...makeDefaultState().meta.track, ...state.meta.track };
+  state.meta.track.maxLifetimePixelEver = Math.max(
+    state.meta.track.maxLifetimePixelEver || 0,
+    state.economy.lifetimePixel || 0,
+  );
+  state.meta.track.maxComboEver = Math.max(state.meta.track.maxComboEver || 0, state.session.maxCombo || 0);
 }
 
 function showBanner(txt) {
@@ -668,7 +818,7 @@ function renderMissions() {
 }
 
 function renderShopCards() {
-  ui.shopMain.innerHTML = `<div class="pf-card-grid pf-card-grid--shop">${BUILDINGS.map((b) => {
+  const buildingsHtml = `<div class="pf-card-grid pf-card-grid--shop">${BUILDINGS.map((b) => {
     const discovered = !!state.session.discoveredBuildings[b.id];
     if (!discovered) {
       return `
@@ -695,13 +845,7 @@ function renderShopCards() {
       </button>`;
   }).join("")}</div>`;
 
-  ui.shopMain.querySelectorAll("[data-buy-building]").forEach((btn) => {
-    btn.addEventListener("click", () => buyBuilding(btn.dataset.buyBuilding));
-  });
-}
-
-function renderUpgradeCards() {
-  function cardHtml(u, kind) {
+  function upgradeCardHtml(u, kind) {
     const discovered = !!state.session.discoveredUpgrades[u.id];
     if (!discovered) {
       return `
@@ -728,22 +872,31 @@ function renderUpgradeCards() {
       </button>`;
   }
 
-  const colPps = PPS_SHOP_UPGRADES.map((u) => cardHtml(u, "pps")).join("");
-  const colPpc = PPC_SHOP_UPGRADES.map((u) => cardHtml(u, "ppc")).join("");
+  const colPps = PPS_SHOP_UPGRADES.map((u) => upgradeCardHtml(u, "pps")).join("");
+  const colPpc = PPC_SHOP_UPGRADES.map((u) => upgradeCardHtml(u, "ppc")).join("");
 
-  ui.shopUpgrades.innerHTML = `
-    <div class="pf-upgrade-two-col">
-      <div class="pf-upgrade-col pf-upgrade-col--pps">
-        <h4 class="pf-upgrade-col__title">Pixel pro Sekunde</h4>
-        <div class="pf-card-grid pf-card-grid--upgrades pf-card-grid--upgrades-col">${colPps}</div>
-      </div>
-      <div class="pf-upgrade-col pf-upgrade-col--ppc">
-        <h4 class="pf-upgrade-col__title">Pixel pro Klick</h4>
-        <div class="pf-card-grid pf-card-grid--upgrades pf-card-grid--upgrades-col">${colPpc}</div>
+  const upgradesHtml = `
+    <div class="pf-shop-upgrades-block">
+      <h4 class="pf-shop-upgrades-title">Dauer-Upgrades</h4>
+      <p class="pf-shop-upgrades-sub">Links: Bonus auf Pixel pro Sekunde · Rechts: additiv Pixel pro Klick</p>
+      <div class="pf-upgrade-two-col">
+        <div class="pf-upgrade-col pf-upgrade-col--pps">
+          <h4 class="pf-upgrade-col__title">Pixel pro Sekunde</h4>
+          <div class="pf-card-grid pf-card-grid--upgrades pf-card-grid--upgrades-col">${colPps}</div>
+        </div>
+        <div class="pf-upgrade-col pf-upgrade-col--ppc">
+          <h4 class="pf-upgrade-col__title">Pixel pro Klick</h4>
+          <div class="pf-card-grid pf-card-grid--upgrades pf-card-grid--upgrades-col">${colPpc}</div>
+        </div>
       </div>
     </div>`;
 
-  ui.shopUpgrades.querySelectorAll("[data-buy-upgrade]").forEach((btn) => {
+  ui.shopMain.innerHTML = buildingsHtml + upgradesHtml;
+
+  ui.shopMain.querySelectorAll("[data-buy-building]").forEach((btn) => {
+    btn.addEventListener("click", () => buyBuilding(btn.dataset.buyBuilding));
+  });
+  ui.shopMain.querySelectorAll("[data-buy-upgrade]").forEach((btn) => {
     btn.addEventListener("click", () => buyShopUpgrade(btn.dataset.buyUpgrade));
   });
 }
@@ -752,7 +905,6 @@ function maybeRenderShop() {
   const now = Date.now();
   if (!runtime.forceShopRender && now < runtime.nextShopRenderAt) return;
   renderShopCards();
-  renderUpgradeCards();
   runtime.forceShopRender = false;
   runtime.nextShopRenderAt = now + 900;
 }
@@ -768,7 +920,7 @@ async function renderLeaderboard(mode) {
   }
   const filteredSchema = rows.filter((r) => {
     const v = r.extra_daten?.schemaVersion;
-    return v === SAVE_SCHEMA_VERSION || v === 4 || v === 3;
+    return v === SAVE_SCHEMA_VERSION || v === 5 || v === 4 || v === 3;
   });
   if (rows.length > 0 && filteredSchema.length === 0) {
     console.warn("[Pixel Factory] Rangliste: Keine Einträge mit passendem Schema – zeige alle gespeicherten Zeilen.");
@@ -797,10 +949,56 @@ async function renderLeaderboard(mode) {
 
 function renderErfolgeModal() {
   const grid = document.getElementById("errungenschaftenGrid");
+  const lead = document.getElementById("errungenschaftenLead");
+  const unlocked = new Set(state.meta.achievementsUnlocked || []);
+  const total = ACHIEVEMENTS.length;
+  const done = unlocked.size;
+  if (lead) {
+    lead.textContent = `${done} von ${total} freigeschaltet · Bedingungen siehst du bei jedem Erfolg.`;
+  }
   if (grid) {
-    grid.innerHTML = `<p class="upgrade-text" style="padding:12px;text-align:center;">Sammle Lifetime-Pixel und steigere dein Prestige – Errungenschaften werden hier später ergänzt.</p>`;
+    grid.innerHTML = ACHIEVEMENTS.map((a) => {
+      const ok = unlocked.has(a.id);
+      return `
+        <div class="pf-ach-card ${ok ? "pf-ach-card--done" : "pf-ach-card--locked"}">
+          <div class="pf-ach-card__icon" aria-hidden="true">${ok ? "★" : "○"}</div>
+          <div class="pf-ach-card__body">
+            <div class="pf-ach-card__title">${a.title}</div>
+            <div class="pf-ach-card__desc">${a.desc}</div>
+          </div>
+        </div>`;
+    }).join("");
   }
   document.getElementById("errungenschaftenModal").classList.remove("versteckt");
+}
+
+function persistTrackStats() {
+  state.meta.track = state.meta.track || {};
+  const t = state.meta.track;
+  t.maxLifetimePixelEver = Math.max(t.maxLifetimePixelEver || 0, state.economy.lifetimePixel || 0);
+  t.maxComboEver = Math.max(t.maxComboEver || 0, state.session.maxCombo || 0);
+}
+
+function tickAchievements() {
+  const cur = state.meta.achievementsUnlocked || [];
+  const set = new Set(cur);
+  let neu = false;
+  for (const a of ACHIEVEMENTS) {
+    if (set.has(a.id)) continue;
+    try {
+      if (a.check()) {
+        set.add(a.id);
+        neu = true;
+        toast(`🏅 Erfolg: ${a.title}`);
+      }
+    } catch (err) {
+      console.warn("[Pixel Factory] Erfolg-Check:", a.id, err);
+    }
+  }
+  if (neu) {
+    state.meta.achievementsUnlocked = [...set];
+    saveGame(false, true);
+  }
 }
 
 const SKINS = [
@@ -898,8 +1096,8 @@ function wireAdminPanel() {
   });
 
   document.getElementById("adm-alle-err")?.addEventListener("click", () => {
-    addPixels(1e12, "Admin-Test");
-    toast("+1B Pixel (Test)");
+    state.meta.achievementsUnlocked = ACHIEVEMENTS.map((a) => a.id);
+    toast("Alle Errungenschaften freigeschaltet (Test)");
   });
 
   document.getElementById("adm-toggle")?.addEventListener("click", () => {
@@ -912,6 +1110,8 @@ function wireAdminPanel() {
 function handleClick() {
   addPixels(currentPpk());
   state.session.clicksRun += 1;
+  state.meta.track = state.meta.track || {};
+  state.meta.track.totalClicksEver = (state.meta.track.totalClicksEver || 0) + 1;
   const now = Date.now();
   const win = COMBO_WINDOW_MS + state.economy.comboWindowBonus;
   if (now <= state.session.comboUntil) state.session.comboCount += 1;
@@ -932,8 +1132,8 @@ function maybeRenderTutorial() {
   const skipBtn = document.getElementById("tutSkip");
 
   const steps = [
-    { icon: "🏭", title: "Willkommen", text: "Klicke den Pixelhaufen, kaufe Gebäude und Upgrades. Missionen wechseln zur vollen und halben Stunde." },
-    { icon: "🛒", title: "Shop & Upgrades", text: "Im Tab „Shop“ gibt es Gebäude. Unter „Upgrades“ links Bonus-Pixel pro Sekunde, rechts additiv Pixel pro Klick." },
+    { icon: "🏭", title: "Willkommen", text: "Klicke den Pixelhaufen. Im Shop: Gebäude und darunter Dauer-Upgrades (Pixel/s und Klick). Über „Erfolge“ gibt es 100 Errungenschaften – die Aufgabe steht immer auf der Karte." },
+    { icon: "📋", title: "Missionen", text: "Missionen erneuern sich zur vollen und halben Stunde; Belohnungen unterstützen deinen Fortschritt." },
     { icon: "✦", title: "Prestige", text: "Genug Lifetime-Pixel? Prestige setzt den Run zurück, erhöht dein Prestige-Level und gibt dir Prestigepunkte." },
   ];
   let idx = 0;
@@ -971,7 +1171,6 @@ function bindDom() {
   ui.comboFill = document.getElementById("komboFill");
   ui.comboLabel = document.getElementById("komboLabel");
   ui.shopMain = document.getElementById("shopGebaeude");
-  ui.shopUpgrades = document.getElementById("shopUpgrades");
   ui.offlineBonus = document.getElementById("offlineBonus");
   ui.banner = document.getElementById("ereignisBanner");
   ui.toast = document.getElementById("toastContainer");
@@ -996,20 +1195,6 @@ function setupDynamicUi() {
 }
 
 function bindEvents() {
-  document.querySelector(".shop-tab[data-tab='gebaeude']").textContent = "🛒 Shop";
-
-  document.querySelectorAll(".shop-tab").forEach((t) => {
-    t.addEventListener("click", () => {
-      runtime.tab = t.dataset.tab;
-      document.querySelectorAll(".shop-tab").forEach((x) => x.classList.toggle("aktiv", x === t));
-      ui.shopMain.classList.toggle("versteckt", runtime.tab !== "gebaeude");
-      ui.shopUpgrades.classList.toggle("versteckt", runtime.tab !== "upgrades");
-      const bulk = document.getElementById("bulkLeiste");
-      if (bulk) bulk.classList.toggle("versteckt", runtime.tab !== "gebaeude");
-      runtime.forceShopRender = true;
-    });
-  });
-
   document.querySelectorAll(".bulk-btn").forEach((b) => {
     b.addEventListener("click", () => {
       document.querySelectorAll(".bulk-btn").forEach((x) => x.classList.toggle("aktiv", x === b));
@@ -1068,6 +1253,13 @@ function frame(ts) {
 
   addPixels(currentPps() * dt);
   updateMissions();
+
+  persistTrackStats();
+  runtime.achCheckAcc += dt;
+  if (runtime.achCheckAcc >= 1.25) {
+    runtime.achCheckAcc = 0;
+    tickAchievements();
+  }
 
   runtime.autosave += dt * 1000;
   if (runtime.autosave >= AUTOSAVE_MS) {

@@ -3103,22 +3103,39 @@ body.pf-line-tree-open {
   -webkit-overflow-scrolling: touch;
 }
 
-/* ── Errungenschaften (100 Karten, Bedingung sichtbar) ─ */
+/* ── Errungenschaften: kompakt, voller Text erst beim Aufklappen ─ */
 .pf-modal-achievements {
   max-height: min(92vh, 900px);
   display: flex;
   flex-direction: column;
 }
 .pf-ach-lead {
-  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin: -4px 0 14px;
+  line-height: 1.3;
+}
+.pf-ach-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.pf-ach-lead-hint {
+  font-size: 0.78rem;
   color: var(--text-muted);
-  margin: -4px 0 12px;
-  line-height: 1.4;
 }
 .pf-ach-grid-wrap {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
   overflow-y: auto;
   flex: 1;
   min-height: 200px;
@@ -3128,18 +3145,31 @@ body.pf-line-tree-open {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  padding: 12px 12px;
+  padding: 10px 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--surface);
   text-align: left;
+  width: 100%;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.pf-ach-card:hover {
+  border-color: rgba(79, 110, 248, 0.35);
+  box-shadow: 0 2px 10px rgba(61, 91, 216, 0.08);
+}
+.pf-ach-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 .pf-ach-card--done {
-  border-color: rgba(16, 185, 129, 0.45);
-  background: linear-gradient(135deg, #ecfdf5, #ffffff);
+  border-color: rgba(16, 185, 129, 0.4);
+  background: linear-gradient(145deg, #f0fdf8, #ffffff);
 }
 .pf-ach-card--locked {
-  opacity: 0.92;
+  opacity: 0.97;
 }
 .pf-ach-card__icon {
   flex-shrink: 0;
@@ -3158,14 +3188,61 @@ body.pf-line-tree-open {
   background: rgba(16, 185, 129, 0.2);
   color: #059669;
 }
+.pf-ach-card__body {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pf-ach-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
 .pf-ach-card__title {
   font-weight: 800;
-  font-size: 0.88rem;
-  margin-bottom: 4px;
+  font-size: 0.84rem;
+  line-height: 1.25;
   color: var(--text);
+  text-align: left;
+}
+.pf-ach-card__chev {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  margin-top: 2px;
+}
+.pf-ach-card--open .pf-ach-card__chev {
+  transform: rotate(-180deg);
+}
+.pf-ach-card__status {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.pf-ach-card--done .pf-ach-card__status {
+  color: #059669;
 }
 .pf-ach-card__desc {
-  font-size: 0.78rem;
-  line-height: 1.45;
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.4;
   color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-align: left;
+  transition: color 0.15s ease;
+}
+.pf-ach-card--open .pf-ach-card__desc {
+  -webkit-line-clamp: unset;
+  display: block;
+  overflow: visible;
+  color: var(--text);
 }

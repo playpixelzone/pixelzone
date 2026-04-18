@@ -947,6 +947,14 @@ async function renderLeaderboard(mode) {
   `;
 }
 
+function escapeHtml(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function renderErfolgeModal() {
   const grid = document.getElementById("errungenschaftenGrid");
   const lead = document.getElementById("errungenschaftenLead");
@@ -954,20 +962,35 @@ function renderErfolgeModal() {
   const total = ACHIEVEMENTS.length;
   const done = unlocked.size;
   if (lead) {
-    lead.textContent = `${done} von ${total} freigeschaltet · Bedingungen siehst du bei jedem Erfolg.`;
+    lead.innerHTML = `<span class="pf-ach-pill">${done} / ${total}</span><span class="pf-ach-lead-hint">Karte antippen · volle Aufgabe</span>`;
   }
   if (grid) {
     grid.innerHTML = ACHIEVEMENTS.map((a) => {
       const ok = unlocked.has(a.id);
+      const st = ok ? "Erreicht" : "Offen";
+      const titleE = escapeHtml(a.title);
+      const descE = escapeHtml(a.desc);
+      const labelE = escapeHtml(`${a.title}: ${a.desc}`);
       return `
-        <div class="pf-ach-card ${ok ? "pf-ach-card--done" : "pf-ach-card--locked"}">
+        <button type="button" class="pf-ach-card ${ok ? "pf-ach-card--done" : "pf-ach-card--locked"}" aria-expanded="false" aria-label="${labelE}">
           <div class="pf-ach-card__icon" aria-hidden="true">${ok ? "★" : "○"}</div>
           <div class="pf-ach-card__body">
-            <div class="pf-ach-card__title">${a.title}</div>
-            <div class="pf-ach-card__desc">${a.desc}</div>
+            <div class="pf-ach-card__top">
+              <span class="pf-ach-card__title">${titleE}</span>
+              <span class="pf-ach-card__chev" aria-hidden="true">▾</span>
+            </div>
+            <span class="pf-ach-card__status">${st}</span>
+            <p class="pf-ach-card__desc">${descE}</p>
           </div>
-        </div>`;
+        </button>`;
     }).join("");
+
+    grid.querySelectorAll(".pf-ach-card").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const open = btn.classList.toggle("pf-ach-card--open");
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    });
   }
   document.getElementById("errungenschaftenModal").classList.remove("versteckt");
 }

@@ -428,6 +428,24 @@ main { padding-top: 64px; }
 .t-blockblast  { background: linear-gradient(135deg, #312e81 0%, #6366f1 60%, #a78bfa 100%); }
 .t-pixelphone  { background: linear-gradient(145deg, #eef3ff 0%, #ffe8f0 50%, #e8fff5 100%); }
 .t-pong        { background: linear-gradient(145deg, #e9f2ff 0%, #ffffff 45%, #e9fff6 100%); }
+.t-gamblers    { background: linear-gradient(145deg, #0f172a 0%, #14532d 55%, #0f766e 100%); }
+
+.t-gamblers .thumb-art--letters {
+  font-size: 1.65rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: rgba(167, 243, 208, 0.95);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+.t-gamblers::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 35%, rgba(94, 234, 212, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
 
 /* Dekorative Elemente auf den Thumbnails */
 .t-pixel::before {

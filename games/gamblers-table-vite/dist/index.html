@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Gambler’s Table</title>
+    <script type="module" crossorigin src="./assets/index-C4GSO9CA.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DMnqoyZM.css">
+  </head>
+  <body>
+    <div class="gt-app">
+      <header class="gt-hud" aria-label="Spielstand">
+        <div class="gt-card gt-card--chips">
+          <span class="gt-card__label">Chips</span>
+          <span class="gt-card__value" id="statChips">0</span>
+        </div>
+        <div class="gt-card gt-card--passive">
+          <span class="gt-card__label">Chips/s</span>
+          <span class="gt-card__value" id="statCps">0</span>
+        </div>
+        <div class="gt-card gt-card--click">
+          <span class="gt-card__label">Einsatz</span>
+          <span class="gt-card__value" id="statPpk">0</span>
+        </div>
+      </header>
+
+      <div class="gt-play">
+        <div id="gameMount" class="gt-canvas" role="application" aria-label="Spieltisch"></div>
+        <p class="gt-hint">Tippe das Kartendeck für einen Einsatz</p>
+      </div>
+    </div>
+
+  </body>
+</html>

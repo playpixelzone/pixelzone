@@ -5,6 +5,7 @@
 - **Ordner:** `games/gamblers-table-vite/` — Vite 6, **Phaser 3.87**, TypeScript.
 - **Schritt 1:** `GameState` aus v2-Wirtschaft (Passiv + Klick, Kombo, Prestige-Schwelle, Shop-Upgrade-Boni), Gebäude als **Gambler-Assets** mit IDs `luckyCharm` / `weightedDice` / `cardCounter`; Währung **Chips**; `MainScene` mit dunklem Filz-Tisch, dynamischem Lichtpool, zentralem **Kartendeck** (Klick), Partikel-Feedback.
 - **Start:** `cd games/gamblers-table-vite` → `npm run dev` / `npm run build`.
+- **Hauptseite:** Karte in `index.html`, Infoseite `games/gamblers-table-vite/info.html` → Spiel `dist/index.html`; Vite `base: './'`; Production-Build unter `games/gamblers-table-vite/dist/` wird mit eingecheckt (Ausnahme in Root-`.gitignore`).
 
 ## Session 2026-04-16 — Spielverbesserungen (Pixel Factory, Drop, Jump, Blast, Pong)
 

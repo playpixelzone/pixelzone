@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GameScene } from './GameScene.js';
-import { GameState } from './GameState.js';
+import { GameState, startPassiveLoop } from './GameState.js';
 import { initShopUI } from './ShopUI.js';
 import { initExpeditionSystem } from './ExpeditionSystem.js';
 
@@ -24,8 +24,8 @@ const config = {
 
 new Phaser.Game(config);
 
+startPassiveLoop();
 initShopUI();
 initExpeditionSystem();
 
-/** Für spätere Module / Konsole */
 export { GameState };

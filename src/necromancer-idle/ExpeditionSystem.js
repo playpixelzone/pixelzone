@@ -1,10 +1,11 @@
 import {
   GameState,
   formatGameNumber,
+  getExpeditionDurationSeconds,
   recruitEliteUnit,
   startExpedition,
 } from './GameState.js';
-import { ARTIFACT_DEFS, ELITE_UNITS, EXPEDITION_DURATION_SEC } from './expeditionData.js';
+import { ARTIFACT_DEFS, ELITE_UNITS } from './expeditionData.js';
 
 /** @param {number} secondsLeft */
 function formatCountdownMMSS(secondsLeft) {
@@ -73,15 +74,16 @@ export function initExpeditionSystem() {
   function syncBar() {
     const es = GameState.expeditionState;
     const p = Math.max(0, Math.min(100, es.explorationProgress));
+    const durSec = getExpeditionDurationSeconds();
     if (barFill) barFill.style.width = `${p}%`;
     if (barWrap) barWrap.setAttribute('aria-valuenow', String(Math.round(p)));
     if (statusEl) {
       if (es.running) {
-        const remainingSec = (EXPEDITION_DURATION_SEC * (100 - p)) / 100;
+        const remainingSec = (durSec * (100 - p)) / 100;
         const mmss = formatCountdownMMSS(remainingSec);
         statusEl.textContent = `Plünderung… ${mmss} verbleibend`;
       } else {
-        statusEl.textContent = `Bereit zum Zug. (Dauer pro Plünderung ${formatCountdownMMSS(EXPEDITION_DURATION_SEC)})`;
+        statusEl.textContent = `Bereit zum Zug. (Dauer pro Plünderung ${formatCountdownMMSS(durSec)})`;
       }
     }
   }

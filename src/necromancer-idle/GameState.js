@@ -157,6 +157,29 @@ export function isSkillUnlocked(id) {
   return GameState.unlockedSkills.includes(id);
 }
 
+/** Additive Skill-Boni aus freigeschalteten Knoten (siehe SkillTreeData). */
+function sumUnlockedSkillBonuses() {
+  let clickBonus = 0;
+  let passiveBonus = 0;
+  let expeditionSpeedBonus = 0;
+  for (const n of SKILL_TREE_NODES) {
+    if (!isSkillUnlocked(n.id)) continue;
+    if (typeof n.clickBonus === 'number') clickBonus += n.clickBonus;
+    if (typeof n.passiveBonus === 'number') passiveBonus += n.passiveBonus;
+    if (typeof n.expeditionSpeedBonus === 'number') expeditionSpeedBonus += n.expeditionSpeedBonus;
+  }
+  return { clickBonus, passiveBonus, expeditionSpeedBonus };
+}
+
+/**
+ * Effektive Plünderungs-Dauer in Sekunden (Skill „Eroberer“ / Verbindungen beschleunigen den Balken).
+ */
+export function getExpeditionDurationSeconds() {
+  const { expeditionSpeedBonus } = sumUnlockedSkillBonuses();
+  const speed = 1 + expeditionSpeedBonus;
+  return EXPEDITION_DURATION_SEC / Math.max(0.25, speed);
+}
+
 export function canPurchaseSkill(id) {
   const n = getSkillNodeById(id);
   if (!n || isSkillUnlocked(id)) return false;
@@ -187,7 +210,8 @@ export function tickExpedition(deltaSeconds) {
   const es = GameState.expeditionState;
   if (!es.running || deltaSeconds <= 0) return;
 
-  const progressDelta = (deltaSeconds / EXPEDITION_DURATION_SEC) * 100;
+  const dur = getExpeditionDurationSeconds();
+  const progressDelta = (deltaSeconds / dur) * 100;
   es.explorationProgress = Math.min(100, es.explorationProgress + progressDelta);
 
   if (es.explorationProgress >= 100) {
@@ -267,7 +291,8 @@ function baseBonesPerClick() {
 }
 
 export function getBonesPerSecond() {
-  return baseBonesPerSecond() * GameState.dimensionMultiplier;
+  const { passiveBonus } = sumUnlockedSkillBonuses();
+  return baseBonesPerSecond() * GameState.dimensionMultiplier * (1 + passiveBonus);
 }
 
 export function getArtifactClickMultiplier() {
@@ -291,7 +316,13 @@ export function getCombatPower() {
 }
 
 export function getBonesPerClick() {
-  return baseBonesPerClick() * GameState.dimensionMultiplier * getArtifactClickMultiplier();
+  const { clickBonus } = sumUnlockedSkillBonuses();
+  return (
+    baseBonesPerClick() *
+    GameState.dimensionMultiplier *
+    getArtifactClickMultiplier() *
+    (1 + clickBonus)
+  );
 }
 
 /**

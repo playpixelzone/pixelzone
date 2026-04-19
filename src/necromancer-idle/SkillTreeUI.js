@@ -67,7 +67,10 @@ export function initSkillTreeUI() {
     if (st === 'bought') statusText = 'Freigeschaltet';
     else if (st === 'purchasable') statusText = 'Kaufbar';
     tooltip.hidden = false;
-    tooltip.innerHTML = `<strong>${n.name}</strong><br><span class="skilltree-tip-path">${n.path}</span><br>Welten-Essenz: ${formatGameNumber(n.cost)}<br>Status: ${statusText}`;
+    const effectHtml = n.effect
+      ? `<span class="skilltree-tip-effect">${n.effect}</span><br>`
+      : '';
+    tooltip.innerHTML = `<strong>${n.name}</strong><br><span class="skilltree-tip-path">${n.path}</span><br>${effectHtml}Welten-Essenz: ${formatGameNumber(n.cost)}<br>Status: ${statusText}`;
     const pad = 12;
     let x = e.clientX + pad;
     let y = e.clientY + pad;

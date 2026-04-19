@@ -1,4 +1,6 @@
-telegram-ki-bot/.env
+.env
+.env.local
+.env.*.local
 
 .superpowers/
 docs/superpowers/

@@ -21,6 +21,8 @@ export class GameScene extends Phaser.Scene {
     this._onAltarFx = (e) => this.#handleAltarFx(e);
     /** @type {(e: CustomEvent) => void} */
     this._onState = () => this.#refreshIdleGlowTween();
+    /** @type {(e: CustomEvent) => void} */
+    this._onPrestigeStart = () => this.#playPrestigeSequence();
   }
 
   create() {
@@ -36,11 +38,85 @@ export class GameScene extends Phaser.Scene {
 
     window.addEventListener('necro-altar-fx', this._onAltarFx);
     window.addEventListener('necro-state-changed', this._onState);
+    window.addEventListener('necro-prestige-start', this._onPrestigeStart);
 
     this.events.once('shutdown', () => {
       window.removeEventListener('necro-altar-fx', this._onAltarFx);
       window.removeEventListener('necro-state-changed', this._onState);
+      window.removeEventListener('necro-prestige-start', this._onPrestigeStart);
       if (this.idleGlowTween) this.idleGlowTween.stop();
+    });
+  }
+
+  #playPrestigeSequence() {
+    const { width, height } = this.scale;
+    const cx = width * 0.5;
+    const cy = height * 0.5;
+
+    this.cameras.main.shake(900, 0.014);
+
+    const portal = this.add.container(cx, cy).setDepth(200);
+
+    const outer = this.add.graphics();
+    outer.lineStyle(6, 0x9b59b6, 0.85);
+    outer.strokeEllipse(0, 0, 120, 180);
+    outer.lineStyle(3, 0xff0000, 0.5);
+    outer.strokeEllipse(0, 0, 90, 140);
+
+    const core = this.add.graphics();
+    core.fillStyle(0x0d0d12, 0.92);
+    core.fillCircle(0, 0, 48);
+
+    const label = this.add
+      .text(0, 0, '◈', {
+        fontFamily: 'Georgia, serif',
+        fontSize: '42px',
+        color: '#ff0000',
+      })
+      .setOrigin(0.5);
+
+    portal.add(outer);
+    portal.add(core);
+    portal.add(label);
+    portal.setScale(0.15);
+    portal.setAlpha(0);
+
+    this.tweens.add({
+      targets: portal,
+      scaleX: 1,
+      scaleY: 1,
+      alpha: 1,
+      duration: 520,
+      ease: 'Cubic.easeOut',
+    });
+
+    this.tweens.add({
+      targets: portal,
+      angle: 360,
+      duration: 1400,
+      ease: 'Linear',
+    });
+
+    this.tweens.add({
+      targets: portal,
+      scaleX: 1.35,
+      scaleY: 1.35,
+      delay: 600,
+      duration: 500,
+      yoyo: true,
+      ease: 'Sine.easeInOut',
+    });
+
+    this.time.delayedCall(1450, () => {
+      this.tweens.add({
+        targets: portal,
+        alpha: 0,
+        scaleX: 2.2,
+        scaleY: 2.2,
+        duration: 280,
+        onComplete: () => portal.destroy(),
+      });
+      window.dispatchEvent(new CustomEvent('necro-prestige-animation-end'));
     });
   }
 

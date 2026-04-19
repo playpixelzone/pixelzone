@@ -3,6 +3,7 @@ import {
   addBones,
   buyUpgrade,
   canAffordUpgrade,
+  canPrestigeNow,
   formatGameNumber,
   formatRate,
   getBonesPerClick,
@@ -11,6 +12,7 @@ import {
   getPrestigeProgressPercent,
   getUpgradeCurrentPrice,
   getUpgradeLevel,
+  tryRegisterClick,
 } from './GameState.js';
 import { UPGRADE_DEFINITIONS } from './upgrades.js';
 
@@ -34,6 +36,8 @@ export function initShopUI(audio) {
   const buttons = new Map();
   /** @type {Map<string, HTMLElement>} */
   const rows = new Map();
+  /** @type {Map<string, HTMLElement>} */
+  const badges = new Map();
 
   function positionTooltip(/** @type {MouseEvent} */ e) {
     if (!tooltipEl || tooltipEl.hidden) return;
@@ -62,12 +66,17 @@ export function initShopUI(audio) {
     ppcHost.innerHTML = '';
     rows.clear();
     buttons.clear();
+    badges.clear();
 
     for (const def of UPGRADE_DEFINITIONS) {
       const host = def.type === 'PPS' ? ppsHost : ppcHost;
       const row = document.createElement('div');
       row.className = 'shop-item';
       row.dataset.upgradeId = def.id;
+
+      const badge = document.createElement('span');
+      badge.className = 'shop-level-badge';
+      badge.textContent = 'Lv 0';
 
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -87,11 +96,13 @@ export function initShopUI(audio) {
       meta.appendChild(price);
       btn.appendChild(title);
       btn.appendChild(meta);
+      row.appendChild(badge);
       row.appendChild(btn);
       host.appendChild(row);
 
       buttons.set(def.id, btn);
       rows.set(def.id, row);
+      badges.set(def.id, badge);
 
       btn.addEventListener('click', () => {
         if (buyUpgrade(def.id)) {
@@ -118,14 +129,17 @@ export function initShopUI(audio) {
   function refreshShopButtons() {
     for (const def of UPGRADE_DEFINITIONS) {
       const btn = buttons.get(def.id);
+      const badge = badges.get(def.id);
       if (!btn) continue;
       const lv = getUpgradeLevel(def.id);
       const price = getUpgradeCurrentPrice(def.id);
       const afford = canAffordUpgrade(def.id);
 
+      if (badge) badge.textContent = `Lv ${lv}`;
+
       const priceEl = btn.querySelector('.shop-item-price');
       if (priceEl) {
-        priceEl.textContent = `Lv ${lv} · ${formatGameNumber(price)} 🦴`;
+        priceEl.textContent = `${formatGameNumber(price)} 🦴`;
       }
 
       btn.classList.toggle('disabled', !afford);
@@ -136,8 +150,10 @@ export function initShopUI(audio) {
   function refreshStats() {
     const bonesEl = document.getElementById('stat-bones');
     const bpsEl = document.getElementById('stat-bps');
+    const essEl = document.getElementById('stat-essence');
     if (bonesEl) bonesEl.textContent = formatGameNumber(GameState.bones);
     if (bpsEl) bpsEl.textContent = formatRate(getBonesPerSecond());
+    if (essEl) essEl.textContent = formatGameNumber(GameState.worldEssence);
   }
 
   function refreshPrestigeBar() {
@@ -146,9 +162,16 @@ export function initShopUI(audio) {
     const pct = getPrestigeProgressPercent();
     if (fill) fill.style.width = `${pct}%`;
     if (text) {
-      text.textContent = `${formatGameNumber(GameState.bones)} / ${formatGameNumber(
+      text.textContent = `Dim ${GameState.dimensionsCompleted + 1}: ${formatGameNumber(GameState.bones)} / ${formatGameNumber(
         getPrestigeBoneTarget(),
-      )} 🦴 · nächste Dimension`;
+      )} 🦴`;
+    }
+
+    const btn = document.getElementById('btn-prestige');
+    if (btn) {
+      const ready = canPrestigeNow();
+      btn.disabled = !ready;
+      btn.classList.toggle('btn-prestige--ready', ready);
     }
   }
 
@@ -164,7 +187,16 @@ export function initShopUI(audio) {
   setInterval(refreshAll, 1000);
 
   initAltar(audio);
+  initPrestigeButton();
   refreshAll();
+}
+
+function initPrestigeButton() {
+  const btn = document.getElementById('btn-prestige');
+  btn?.addEventListener('click', () => {
+    if (!canPrestigeNow()) return;
+    document.dispatchEvent(new CustomEvent('necro-prestige-start'));
+  });
 }
 
 /**
@@ -172,6 +204,7 @@ export function initShopUI(audio) {
  */
 function initAltar(audio) {
   const altar = document.getElementById('altar-click');
+  const glyph = altar?.querySelector('.glyph');
   const hint = altar?.querySelector('.hint');
   if (hint) {
     hint.textContent = 'Klicke, um Knochen zu sammeln';
@@ -185,8 +218,22 @@ function initAltar(audio) {
     );
   };
 
+  const warnRateLimit = () => {
+    console.warn('[Necro] Klicklimit: höchstens 15 Klicks pro Sekunde.');
+    altar?.classList.add('altar--rate-warn');
+    glyph?.classList.add('glyph--warn');
+    window.setTimeout(() => {
+      altar?.classList.remove('altar--rate-warn');
+      glyph?.classList.remove('glyph--warn');
+    }, 220);
+  };
+
   const onActivate = (e) => {
     if (e.button != null && e.button !== 0) return;
+    if (!tryRegisterClick()) {
+      warnRateLimit();
+      return;
+    }
     audio.playClickSound();
     const bpc = getBonesPerClick();
     addBones(bpc);
@@ -197,6 +244,10 @@ function initAltar(audio) {
   altar?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
+      if (!tryRegisterClick()) {
+        warnRateLimit();
+        return;
+      }
       audio.playClickSound();
       const bpc = getBonesPerClick();
       addBones(bpc);

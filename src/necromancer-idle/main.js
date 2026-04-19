@@ -1,6 +1,13 @@
 import Phaser from 'phaser';
 import { GameScene } from './GameScene.js';
-import { GameState, loadGame, saveGame, startPassiveLoop } from './GameState.js';
+import {
+  GameState,
+  loadGameAsync,
+  performPrestige,
+  saveGame,
+  startPassiveLoop,
+  canPrestigeNow,
+} from './GameState.js';
 import { initShopUI } from './ShopUI.js';
 import { initExpeditionSystem } from './ExpeditionSystem.js';
 import { AudioManager } from './AudioManager.js';
@@ -9,8 +16,6 @@ const mount = document.getElementById('phaser-mount');
 if (!mount) {
   throw new Error('#phaser-mount fehlt in necromancer-idle.html');
 }
-
-loadGame();
 
 const config = {
   type: Phaser.AUTO,
@@ -25,28 +30,46 @@ const config = {
   scene: [GameScene],
 };
 
-new Phaser.Game(config);
+void (async function bootstrap() {
+  await loadGameAsync();
 
-const audio = new AudioManager();
+  new Phaser.Game(config);
 
-startPassiveLoop();
-initShopUI(audio);
-initExpeditionSystem();
+  const audio = new AudioManager();
 
-let saveToastTimer = 0;
-document.addEventListener('necro-game-saved', () => {
-  const el = document.getElementById('save-toast');
-  if (!el) return;
-  el.textContent = 'Fortschritt gespeichert';
-  el.classList.add('visible');
-  window.clearTimeout(saveToastTimer);
-  saveToastTimer = window.setTimeout(() => {
-    el.classList.remove('visible');
-  }, 2200);
-});
+  startPassiveLoop();
+  initShopUI(audio);
+  initExpeditionSystem();
 
-window.setInterval(() => {
-  saveGame();
-}, 30000);
+  let saveToastTimer = 0;
+  document.addEventListener('necro-game-saved', () => {
+    const el = document.getElementById('save-toast');
+    if (!el) return;
+    el.textContent = 'Fortschritt gespeichert';
+    el.classList.add('visible');
+    window.clearTimeout(saveToastTimer);
+    saveToastTimer = window.setTimeout(() => {
+      el.classList.remove('visible');
+    }, 2200);
+  });
+
+  document.addEventListener('necro-prestige-start', () => {
+    const ov = document.getElementById('prestige-overlay');
+    ov?.classList.add('prestige-overlay--visible');
+  });
+
+  document.addEventListener('necro-prestige-animation-end', async () => {
+    if (canPrestigeNow()) {
+      performPrestige();
+    }
+    await saveGame();
+    const ov = document.getElementById('prestige-overlay');
+    ov?.classList.remove('prestige-overlay--visible');
+  });
+
+  window.setInterval(() => {
+    saveGame();
+  }, 30000);
+})();
 
 export { GameState };

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>Nekromant · Idle (Fundament) – PIXELZONE</title>
+  <title>Schrecken der Krypta – PIXELZONE</title>
   <link rel="stylesheet" href="/src/necromancer-idle/necromancer-idle.css">
 </head>
 <body>
@@ -26,7 +26,6 @@
     <div id="ui-layer">
       <header class="game-header">
         <h1>Schrecken der Krypta</h1>
-        <p class="tagline">Phaser-Hintergrund + DOM-Overlay (Fundament)</p>
         <p class="nav-back"><a href="index.html">← PIXELZONE</a></p>
       </header>
 
@@ -87,6 +86,11 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/auth.js"></script>
+  <script>
+    window.PZ = typeof PZ !== 'undefined' ? PZ : null;
+  </script>
   <script type="module" src="/src/necromancer-idle/main.js"></script>
 </body>
 </html>

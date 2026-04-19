@@ -215,6 +215,18 @@ function dispatchStateChanged() {
   });
 }
 
+/** Admin-Testpanel (`?admin=1`, nur Site-Admin): Ressourcen geben */
+export function cheatGrantResources({ bones = 0, worldEssence = 0 }) {
+  if (worldEssence) {
+    GameState.worldEssence = Math.max(0, GameState.worldEssence + worldEssence);
+  }
+  if (bones) {
+    addBones(bones);
+  } else if (worldEssence) {
+    dispatchStateChanged();
+  }
+}
+
 function applyLoadedState(data) {
   GameState.bones = Math.max(0, Number(data.bones) || 0);
   GameState.graveGoods = Math.max(0, Number(data.grave_goods ?? data.graveGoods) || 0);

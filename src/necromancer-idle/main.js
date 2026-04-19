@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GameScene } from './GameScene.js';
 import {
   GameState,
+  cheatGrantResources,
   loadGameAsync,
   performPrestige,
   saveGame,
@@ -31,6 +32,11 @@ const config = {
 };
 
 void (async function bootstrap() {
+  const PZ = globalThis.PZ;
+  if (PZ && typeof PZ.pruefeSpielStatus === 'function') {
+    await PZ.pruefeSpielStatus('necromancer-idle');
+  }
+
   await loadGameAsync();
 
   new Phaser.Game(config);
@@ -70,6 +76,32 @@ void (async function bootstrap() {
   window.setInterval(() => {
     saveGame();
   }, 30000);
+
+  if (PZ && typeof PZ.adminPanelErstellen === 'function') {
+    await PZ.adminPanelErstellen([
+      {
+        label: '+100.000 Knochen',
+        onClick: () => {
+          cheatGrantResources({ bones: 100000 });
+          void saveGame();
+        },
+      },
+      {
+        label: '+1 Mio. Knochen',
+        onClick: () => {
+          cheatGrantResources({ bones: 1_000_000 });
+          void saveGame();
+        },
+      },
+      {
+        label: '+500 Welten-Essenz',
+        onClick: () => {
+          cheatGrantResources({ worldEssence: 500 });
+          void saveGame();
+        },
+      },
+    ]);
+  }
 })();
 
 export { GameState };

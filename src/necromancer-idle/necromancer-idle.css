@@ -187,12 +187,6 @@ body {
   text-shadow: 0 0 12px rgba(155, 89, 182, 0.35);
 }
 
-.game-header .tagline {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);

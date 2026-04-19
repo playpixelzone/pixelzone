@@ -9,6 +9,7 @@ export const UPGRADE_DEFINITIONS = [
     basePrice: 15,
     type: 'PPS',
     perLevel: 0.1,
+    lore: 'Skelett-Schürfer: Sie graben unermüdlich alte Gräber aus und liefern jeden Knochen, den die Erde hergibt.',
   },
   {
     id: 'ghoul',
@@ -16,6 +17,7 @@ export const UPGRADE_DEFINITIONS = [
     basePrice: 100,
     type: 'PPS',
     perLevel: 0.5,
+    lore: 'Ghule: Ausgehungerte Untote, die über verlassene Schlachtfelder streifen und alles verwerten, was noch Fleisch oder Knochen trägt.',
   },
   {
     id: 'boneGolem',
@@ -23,6 +25,7 @@ export const UPGRADE_DEFINITIONS = [
     basePrice: 500,
     type: 'PPS',
     perLevel: 2,
+    lore: 'Knochen-Golems: Rasselnde Konstrukte aus Rippenbögen und Schädeln — langsam, aber unaufhaltsam in der Knochenproduktion.',
   },
   {
     id: 'boneBlade',
@@ -30,6 +33,7 @@ export const UPGRADE_DEFINITIONS = [
     basePrice: 50,
     type: 'PPC',
     perLevel: 1,
+    lore: 'Knochenklingen: Gesplitterte Schwerter aus Rippe und Obsidian — jeder Schlag des Altars schneidet tiefer ins Reich der Toten.',
   },
   {
     id: 'soulFocus',
@@ -37,6 +41,7 @@ export const UPGRADE_DEFINITIONS = [
     basePrice: 250,
     type: 'PPC',
     perLevel: 2,
+    lore: 'Seelen-Fokus: Ein verdrehter Kristall, der deinen Willen bündelt — ein Klick wird zur konzentrierten Knochenlawine.',
   },
 ];
 

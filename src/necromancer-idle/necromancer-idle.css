@@ -27,10 +27,94 @@ body {
   font-family: Georgia, "Times New Roman", serif;
 }
 
+/* Prestige-Fortschritt (fixiert oben) */
+.prestige-bar-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 25;
+  padding: 0.35rem 0.75rem 0.45rem;
+  background: linear-gradient(180deg, rgba(13, 13, 18, 0.97) 0%, rgba(13, 13, 18, 0.88) 100%);
+  border-bottom: 1px solid var(--border);
+  pointer-events: none;
+}
+
+.prestige-bar-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.prestige-bar-text {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.02em;
+}
+
+.prestige-bar-track {
+  height: 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.prestige-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--violet), var(--gold));
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.25);
+  transition: width 0.35s ease-out;
+}
+
+/* Speicher-Toast */
+.save-toast {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  z-index: 90;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: rgba(18, 16, 28, 0.92);
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.save-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Shop-Tooltip (Lore) */
+.shop-tooltip {
+  position: fixed;
+  z-index: 100;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 0.55rem 0.65rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--text);
+  background: rgba(18, 16, 28, 0.96);
+  border: 1px solid rgba(155, 89, 182, 0.45);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
 #app-root {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
+  padding-top: 3.1rem;
 }
 
 /* Phaser: volle Fläche im Hintergrund */
@@ -285,6 +369,25 @@ body {
   box-shadow: none;
 }
 
+@keyframes shop-item-flash {
+  0% {
+    box-shadow: 0 0 0 rgba(57, 255, 20, 0);
+    filter: brightness(1);
+  }
+  40% {
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.45);
+    filter: brightness(1.2);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(57, 255, 20, 0);
+    filter: brightness(1);
+  }
+}
+
+.shop-item--flash {
+  animation: shop-item-flash 0.45s ease-out;
+}
+
 /* — Rechts: Unterwelt — */
 .col-underworld {
   grid-row: 2;
@@ -326,23 +429,6 @@ body {
 
 .portal-panel h2 {
   color: var(--gold);
-}
-
-.progress-bar {
-  height: 8px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.06);
-  overflow: hidden;
-  margin: 0.5rem 0;
-}
-
-.progress-bar span {
-  display: block;
-  height: 100%;
-  width: 35%;
-  background: linear-gradient(90deg, var(--violet), var(--gold));
-  border-radius: 4px;
-  opacity: 0.85;
 }
 
 .portal-actions {
@@ -387,6 +473,14 @@ body {
 
 /* Schmale Viewports: eine Spalte */
 @media (max-width: 900px) {
+  #app-root {
+    padding-top: 3.5rem;
+  }
+
+  .prestige-bar-text {
+    font-size: 0.65rem;
+  }
+
   #ui-layer {
     grid-template-columns: 1fr;
     grid-template-rows: auto;

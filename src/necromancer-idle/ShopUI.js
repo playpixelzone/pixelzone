@@ -7,6 +7,8 @@ import {
   formatRate,
   getBonesPerClick,
   getBonesPerSecond,
+  getPrestigeBoneTarget,
+  getPrestigeProgressPercent,
   getUpgradeCurrentPrice,
   getUpgradeLevel,
 } from './GameState.js';
@@ -16,11 +18,13 @@ import { UPGRADE_DEFINITIONS } from './upgrades.js';
 export { UPGRADE_DEFINITIONS };
 
 /**
- * Shop-DOM: dynamische Buttons, Preis 1.15^level, Sync via Events.
+ * @param {import('./AudioManager.js').AudioManager} audio
  */
-export function initShopUI() {
+export function initShopUI(audio) {
   const ppsHost = document.getElementById('shop-pps');
   const ppcHost = document.getElementById('shop-ppc');
+  const tooltipEl = document.getElementById('shop-tooltip');
+
   if (!ppsHost || !ppcHost) {
     console.warn('#shop-pps / #shop-ppc fehlt');
     return;
@@ -28,10 +32,36 @@ export function initShopUI() {
 
   /** @type {Map<string, HTMLButtonElement>} */
   const buttons = new Map();
+  /** @type {Map<string, HTMLElement>} */
+  const rows = new Map();
+
+  function positionTooltip(/** @type {MouseEvent} */ e) {
+    if (!tooltipEl || tooltipEl.hidden) return;
+    const pad = 14;
+    let x = e.clientX + pad;
+    let y = e.clientY + pad;
+    const rect = tooltipEl.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth - 8) x = e.clientX - rect.width - pad;
+    if (y + rect.height > window.innerHeight - 8) y = e.clientY - rect.height - pad;
+    tooltipEl.style.left = `${Math.max(8, x)}px`;
+    tooltipEl.style.top = `${Math.max(8, y)}px`;
+  }
+
+  function flashRow(id) {
+    const row = rows.get(id);
+    if (!row) return;
+    row.classList.remove('shop-item--flash');
+    void row.offsetWidth;
+    row.classList.add('shop-item--flash');
+    const done = () => row.classList.remove('shop-item--flash');
+    row.addEventListener('animationend', done, { once: true });
+  }
 
   function buildShop() {
     ppsHost.innerHTML = '';
     ppcHost.innerHTML = '';
+    rows.clear();
+    buttons.clear();
 
     for (const def of UPGRADE_DEFINITIONS) {
       const host = def.type === 'PPS' ? ppsHost : ppcHost;
@@ -61,10 +91,27 @@ export function initShopUI() {
       host.appendChild(row);
 
       buttons.set(def.id, btn);
+      rows.set(def.id, row);
 
       btn.addEventListener('click', () => {
-        buyUpgrade(def.id);
+        if (buyUpgrade(def.id)) {
+          audio.playBuySound();
+          flashRow(def.id);
+        }
       });
+
+      const lore = def.lore ?? '';
+      if (tooltipEl && lore) {
+        row.addEventListener('mouseenter', (e) => {
+          tooltipEl.hidden = false;
+          tooltipEl.textContent = lore;
+          positionTooltip(e);
+        });
+        row.addEventListener('mousemove', positionTooltip);
+        row.addEventListener('mouseleave', () => {
+          tooltipEl.hidden = true;
+        });
+      }
     }
   }
 
@@ -93,9 +140,22 @@ export function initShopUI() {
     if (bpsEl) bpsEl.textContent = formatRate(getBonesPerSecond());
   }
 
+  function refreshPrestigeBar() {
+    const fill = document.getElementById('prestige-bar-fill');
+    const text = document.getElementById('prestige-bar-text');
+    const pct = getPrestigeProgressPercent();
+    if (fill) fill.style.width = `${pct}%`;
+    if (text) {
+      text.textContent = `${formatGameNumber(GameState.bones)} / ${formatGameNumber(
+        getPrestigeBoneTarget(),
+      )} 🦴 · nächste Dimension`;
+    }
+  }
+
   function refreshAll() {
     refreshStats();
     refreshShopButtons();
+    refreshPrestigeBar();
   }
 
   buildShop();
@@ -103,11 +163,14 @@ export function initShopUI() {
   document.addEventListener('necro-state-changed', refreshAll);
   setInterval(refreshAll, 1000);
 
-  initAltar();
+  initAltar(audio);
   refreshAll();
 }
 
-function initAltar() {
+/**
+ * @param {import('./AudioManager.js').AudioManager} audio
+ */
+function initAltar(audio) {
   const altar = document.getElementById('altar-click');
   const hint = altar?.querySelector('.hint');
   if (hint) {
@@ -124,6 +187,7 @@ function initAltar() {
 
   const onActivate = (e) => {
     if (e.button != null && e.button !== 0) return;
+    audio.playClickSound();
     const bpc = getBonesPerClick();
     addBones(bpc);
     fireFx(e.clientX, e.clientY, `+${formatGameNumber(bpc)}`);
@@ -133,6 +197,7 @@ function initAltar() {
   altar?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
+      audio.playClickSound();
       const bpc = getBonesPerClick();
       addBones(bpc);
       const r = altar.getBoundingClientRect();

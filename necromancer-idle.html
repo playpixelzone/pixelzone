@@ -8,6 +8,17 @@
   <link rel="stylesheet" href="/src/necromancer-idle/necromancer-idle.css">
 </head>
 <body>
+  <div id="prestige-bar-wrap" class="prestige-bar-wrap" aria-label="Fortschritt zur nächsten Dimension">
+    <div class="prestige-bar-inner">
+      <span id="prestige-bar-text" class="prestige-bar-text"></span>
+      <div class="prestige-bar-track">
+        <div id="prestige-bar-fill" class="prestige-bar-fill"></div>
+      </div>
+    </div>
+  </div>
+  <div id="save-toast" class="save-toast" role="status" aria-live="polite"></div>
+  <div id="shop-tooltip" class="shop-tooltip" hidden></div>
+
   <div id="app-root">
     <div id="phaser-mount" aria-hidden="true"></div>
 
@@ -64,9 +75,8 @@
         <div class="panel portal-panel">
           <h2>Dimensions-Portal</h2>
           <p style="margin:0 0 0.35rem;font-size:0.8rem;color:var(--muted);">
-            Fortschritt zur nächsten Welt (Platzhalter)
+            Fortschritt siehe Balken oben. Opfer genug Knochen, um die Dimension zu verschlingen (demnächst).
           </p>
-          <div class="progress-bar" aria-hidden="true"><span></span></div>
           <div class="portal-actions">
             <span style="font-size:0.75rem;color:var(--muted);">🌌 Welten-Essenz: <strong id="stat-essence">0</strong></span>
             <button type="button" class="btn-prestige" disabled>Dimension verschlingen</button>

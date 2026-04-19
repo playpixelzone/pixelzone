@@ -1,6 +1,8 @@
 import { UPGRADE_DEFINITIONS, getDefinitionById, priceAtLevel } from './upgrades.js';
 
 const BASE_BONES_PER_CLICK = 1;
+const SAVE_KEY = 'necromancer-idle-save-v1';
+const SAVE_VERSION = 1;
 
 const initialUpgrades = () => {
   /** @type {Record<string, number>} */
@@ -26,7 +28,7 @@ let passiveRemainder = 0;
 
 /** @type {ReturnType<typeof createNumberFormatter>} */
 let bonesFormatter;
-/** @type {ReturnType<typeof createNumberFormatter>} */
+/** @type {ReturnType<typeof createRateFormatter>} */
 let rateFormatter;
 
 function createNumberFormatter() {
@@ -85,6 +87,21 @@ export function getBonesPerClick() {
 }
 
 /**
+ * Knochen-Schwelle für den nächsten Dimensions-Prestige (skaliert mit Welten-Essenz).
+ */
+export function getPrestigeBoneTarget() {
+  const base = 100000;
+  return Math.floor(base * Math.pow(1.85, GameState.worldEssence));
+}
+
+/** Fortschritt 0–100 zur nächsten Dimension */
+export function getPrestigeProgressPercent() {
+  const target = getPrestigeBoneTarget();
+  if (target <= 0) return 0;
+  return Math.min(100, (GameState.bones / target) * 100);
+}
+
+/**
  * Roh-Menge Knochen addieren (Klicks, passives Tick, Cheats).
  * Für Klicks: addBones(getBonesPerClick()) aufrufen.
  */
@@ -128,6 +145,7 @@ export function buyUpgrade(id) {
   GameState.bones -= price;
   GameState.upgrades[id] = getUpgradeLevel(id) + 1;
   dispatchStateChanged();
+  document.dispatchEvent(new CustomEvent('necro-upgrade-bought', { detail: { id } }));
   return true;
 }
 
@@ -148,6 +166,51 @@ function dispatchStateChanged() {
       }),
     );
   });
+}
+
+export function saveGame() {
+  try {
+    const data = {
+      v: SAVE_VERSION,
+      bones: GameState.bones,
+      upgrades: { ...GameState.upgrades },
+      graveGoods: GameState.graveGoods,
+      worldEssence: GameState.worldEssence,
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    document.dispatchEvent(new CustomEvent('necro-game-saved'));
+    return true;
+  } catch (e) {
+    console.warn('saveGame', e);
+    return false;
+  }
+}
+
+export function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data.v !== SAVE_VERSION || typeof data.upgrades !== 'object') return false;
+
+    GameState.bones = Math.max(0, Number(data.bones) || 0);
+    GameState.graveGoods = Math.max(0, Number(data.graveGoods) || 0);
+    GameState.worldEssence = Math.max(0, Math.floor(Number(data.worldEssence) || 0));
+
+    const next = initialUpgrades();
+    for (const id of Object.keys(next)) {
+      const lv = data.upgrades[id];
+      next[id] = Math.max(0, Math.floor(Number(lv) || 0));
+    }
+    GameState.upgrades = next;
+
+    passiveRemainder = 0;
+    dispatchStateChanged();
+    return true;
+  } catch (e) {
+    console.warn('loadGame', e);
+    return false;
+  }
 }
 
 /** UI & Shop: regelmäßiger Sync (zusätzlich zu Events) */

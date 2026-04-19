@@ -25,6 +25,7 @@ export default defineConfig({
         login: resolve(__dirname, 'login.html'),
         admin: resolve(__dirname, 'admin.html'),
         phaserSandbox: resolve(__dirname, 'phaser-sandbox.html'),
+        necromancerIdle: resolve(__dirname, 'necromancer-idle.html'),
       },
     },
     chunkSizeWarningLimit: 1600,

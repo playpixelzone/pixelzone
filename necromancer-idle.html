@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Nekromant · Idle (Fundament) – PIXELZONE</title>
+  <link rel="stylesheet" href="/src/necromancer-idle/necromancer-idle.css">
+</head>
+<body>
+  <div id="app-root">
+    <div id="phaser-mount" aria-hidden="true"></div>
+
+    <div id="ui-layer">
+      <header class="game-header">
+        <h1>Schrecken der Krypta</h1>
+        <p class="tagline">Phaser-Hintergrund + DOM-Overlay (Fundament)</p>
+        <p class="nav-back"><a href="index.html">← PIXELZONE</a></p>
+      </header>
+
+      <aside class="col-crypta panel" aria-labelledby="crypta-heading">
+        <h2 id="crypta-heading">Die Krypta</h2>
+        <div class="stats-row">
+          <div>
+            <div class="label">🦴 Knochen</div>
+            <strong id="stat-bones">0</strong>
+          </div>
+          <div>
+            <div class="label">BpS</div>
+            <strong class="necro" id="stat-bps">0</strong>
+          </div>
+        </div>
+        <div class="altar" id="altar-click" role="button" tabindex="0" aria-label="Beschwörungs-Altar">
+          <div class="altar-inner">
+            <div class="glyph" aria-hidden="true">⛧</div>
+            <p class="title">Beschwörungs-Altar</p>
+            <p class="hint">Platzhalter – Klick-Logik folgt</p>
+          </div>
+        </div>
+      </aside>
+
+      <section class="col-shop panel" aria-labelledby="shop-heading">
+        <h2 id="shop-heading">Der Friedhof</h2>
+        <div class="shop-grid">
+          <div class="shop-col">
+            <h3>Generatoren</h3>
+            <div class="card-placeholder">Skelett-Schürfer · Platzhalter</div>
+            <div class="card-placeholder">Ghule · Platzhalter</div>
+            <div class="card-placeholder">Knochen-Golems · Platzhalter</div>
+          </div>
+          <div class="shop-col">
+            <h3>Klick-Upgrades</h3>
+            <div class="card-placeholder">Knochenklingen · Platzhalter</div>
+            <div class="card-placeholder">Seelen-Fokus · Platzhalter</div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="col-underworld" aria-labelledby="expedition-heading">
+        <div class="panel expedition-panel">
+          <h2 id="expedition-heading">Expedition</h2>
+          <div class="expedition-slot" id="expedition-phaser-host">
+            <span class="label-mini">Auto-Battler</span>
+            <span class="sub">Hier später Mini-Phaser oder eingebettete Szene</span>
+          </div>
+        </div>
+        <div class="panel portal-panel">
+          <h2>Dimensions-Portal</h2>
+          <p style="margin:0 0 0.35rem;font-size:0.8rem;color:var(--muted);">
+            Fortschritt zur nächsten Welt (Platzhalter)
+          </p>
+          <div class="progress-bar" aria-hidden="true"><span></span></div>
+          <div class="portal-actions">
+            <span style="font-size:0.75rem;color:var(--muted);">🌌 Welten-Essenz: <strong id="stat-essence">0</strong></span>
+            <button type="button" class="btn-prestige" disabled>Dimension verschlingen</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script type="module" src="/src/necromancer-idle/main.js"></script>
+</body>
+</html>

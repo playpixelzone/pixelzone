@@ -1,0 +1,356 @@
+/* Temporäres Layout – Gothic Idle, 3-Spalten-Grid über Phaser */
+
+:root {
+  --bg-deep: #0d0d12;
+  --blood: #8b0000;
+  --necro: #39ff14;
+  --gold: #d4af37;
+  --violet: #9b59b6;
+  --text: #e8e6f2;
+  --muted: #7a7788;
+  --panel: rgba(18, 16, 28, 0.82);
+  --border: rgba(139, 0, 0, 0.35);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+#app-root {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Phaser: volle Fläche im Hintergrund */
+#phaser-mount {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#phaser-mount canvas {
+  display: block;
+}
+
+/* DOM-UI darüber */
+#ui-layer {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 0.75rem 1rem 1.25rem;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.4fr) minmax(240px, 1fr);
+  grid-template-rows: auto 1fr;
+  gap: 0.75rem;
+  align-items: stretch;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+#ui-layer > * {
+  pointer-events: auto;
+}
+
+.game-header {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.25rem;
+}
+
+.game-header h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(155, 89, 182, 0.35);
+}
+
+.game-header .tagline {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+}
+
+.panel h2 {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--necro);
+  text-transform: uppercase;
+}
+
+/* — Linke Spalte: Krypta — */
+.col-crypta {
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.stats-row .label {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stats-row strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-row .necro {
+  color: var(--necro);
+}
+
+.altar {
+  flex: 1;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--blood);
+  border-radius: 12px;
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    rgba(139, 0, 0, 0.25) 0%,
+    rgba(13, 13, 18, 0.9) 65%
+  );
+  cursor: pointer;
+  user-select: none;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.altar:hover {
+  box-shadow: 0 0 24px rgba(139, 0, 0, 0.45);
+}
+
+.altar:active {
+  transform: scale(0.98);
+}
+
+.altar-inner {
+  text-align: center;
+}
+
+.altar-inner .glyph {
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(139, 0, 0, 0.6));
+}
+
+.altar-inner .title {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--blood);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.altar-inner .hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* — Mitte: Friedhof / Shop — */
+.col-shop {
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 200px;
+}
+
+.shop-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.shop-col h3 {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.card-placeholder {
+  flex: 1;
+  min-height: 64px;
+  padding: 0.5rem 0.6rem;
+  border: 1px dashed rgba(57, 255, 20, 0.25);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: rgba(13, 13, 18, 0.5);
+}
+
+/* — Rechts: Unterwelt — */
+.col-underworld {
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.expedition-slot {
+  flex: 1;
+  min-height: 160px;
+  border: 1px solid rgba(155, 89, 182, 0.35);
+  border-radius: 10px;
+  background: rgba(13, 13, 18, 0.65);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.75rem;
+}
+
+.expedition-slot .label-mini {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--violet);
+}
+
+.expedition-slot .sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.portal-panel {
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.portal-panel h2 {
+  color: var(--gold);
+}
+
+.progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.progress-bar span {
+  display: block;
+  height: 100%;
+  width: 35%;
+  background: linear-gradient(90deg, var(--violet), var(--gold));
+  border-radius: 4px;
+  opacity: 0.85;
+}
+
+.portal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-prestige {
+  padding: 0.45rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bg-deep);
+  background: linear-gradient(180deg, var(--gold), #a08020);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(212, 175, 55, 0.35);
+}
+
+.btn-prestige:hover {
+  filter: brightness(1.08);
+}
+
+.nav-back {
+  font-size: 0.8rem;
+}
+
+.nav-back a {
+  color: var(--necro);
+  text-decoration: none;
+}
+
+.nav-back a:hover {
+  text-decoration: underline;
+}
+
+/* Schmale Viewports: eine Spalte */
+@media (max-width: 900px) {
+  #ui-layer {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    padding: 0.5rem;
+  }
+
+  .col-crypta,
+  .col-shop,
+  .col-underworld {
+    grid-row: auto;
+  }
+
+  .game-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

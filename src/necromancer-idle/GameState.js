@@ -8,7 +8,7 @@ import {
   getEliteUnitById,
 } from './expeditionData.js';
 import { rollExpeditionLoot } from './lootData.js';
-import { getSkillNodeById } from './SkillTreeData.js';
+import { getSkillNodeById, SKILL_TREE_NODES } from './SkillTreeData.js';
 import {
   fetchUserProgress,
   getCurrentUserId,
@@ -16,8 +16,8 @@ import {
 } from './necroSupabase.js';
 
 const BASE_BONES_PER_CLICK = 1;
-const SAVE_KEY = 'necromancer-idle-save-v4';
-const SAVE_VERSION = 4;
+const SAVE_KEY = 'necromancer-idle-save-v5';
+const SAVE_VERSION = 5;
 
 const MAX_CLICKS_PER_SEC = 15;
 
@@ -58,9 +58,9 @@ export const GameState = {
   /** Artefakt-Id → Anzahl (permanente Buffs) */
   /** @type {Record<string, number>} */
   artifactsOwned: {},
-  /** Freigeschaltete Skilltree-Knoten (Welten-Essenz) */
+  /** Freigeschaltete Skilltree-Knoten (Welten-Essenz); „center“ muss gekauft werden */
   /** @type {string[]} */
-  unlockedSkills: ['center_node'],
+  unlockedSkills: [],
 };
 
 let passiveRemainder = 0;
@@ -217,6 +217,18 @@ export function getUpgradeLevel(id) {
   return GameState.upgrades[id] ?? 0;
 }
 
+/**
+ * Shop „Fog of War“: erstes Gebäude pro Typ immer sichtbar; nächstes erst, wenn das vorige mind. Lv 1 hat.
+ */
+export function isUpgradeDiscovered(id) {
+  const def = getDefinitionById(id);
+  if (!def) return false;
+  const chain = UPGRADE_DEFINITIONS.filter((u) => u.type === def.type);
+  const idx = chain.findIndex((u) => u.id === id);
+  if (idx <= 0) return true;
+  return getUpgradeLevel(chain[idx - 1].id) >= 1;
+}
+
 function baseBonesPerSecond() {
   let total = 0;
   for (const def of UPGRADE_DEFINITIONS) {
@@ -284,12 +296,12 @@ export function canPrestigeNow() {
 }
 
 /**
- * Welten-Essenz aus dieser Runde (gesammelte Knochen gesamt).
+ * Welten-Essenz beim Prestige: skaliert mit Knochen zum Zeitpunkt des Verschlingens.
+ * Bei 100.000 Knochen → 5 Essenz; bei 1.000.000 → 15 Essenz (Zielgrößenordnung).
  */
 function calcPrestigeEssenceReward() {
-  const L = GameState.lifetimeBonesThisRun;
-  if (L <= 0) return 1;
-  return Math.max(1, Math.floor(Math.pow(L, 0.55) / 18));
+  const bones = Math.max(0, GameState.bones);
+  return Math.floor(Math.pow(bones / 100000, 0.5)) * 5;
 }
 
 /**
@@ -350,12 +362,14 @@ export function getUpgradeCurrentPrice(id) {
 }
 
 export function canAffordUpgrade(id) {
+  if (!isUpgradeDiscovered(id)) return false;
   return GameState.bones >= getUpgradeCurrentPrice(id);
 }
 
 export function buyUpgrade(id) {
   const def = getDefinitionById(id);
   if (!def) return false;
+  if (!isUpgradeDiscovered(id)) return false;
   const price = getUpgradeCurrentPrice(id);
   if (GameState.bones < price) return false;
   GameState.bones -= price;
@@ -396,10 +410,18 @@ export function cheatGrantResources({ bones = 0, worldEssence = 0 }) {
   }
 }
 
-function applyLoadedState(data) {
+/**
+ * @param {object} data
+ * @param {{ resetWorldEssenceBalance?: boolean }} [opts]
+ */
+function applyLoadedState(data, opts = {}) {
   GameState.bones = Math.max(0, Number(data.bones) || 0);
   GameState.graveGoods = Math.max(0, Number(data.grave_goods ?? data.graveGoods) || 0);
-  GameState.worldEssence = Math.max(0, Math.floor(Number(data.world_essence ?? data.worldEssence) || 0));
+  let essence = Math.max(0, Math.floor(Number(data.world_essence ?? data.worldEssence) || 0));
+  if (opts.resetWorldEssenceBalance) {
+    essence = 0;
+  }
+  GameState.worldEssence = essence;
   GameState.dimensionsCompleted = Math.max(
     0,
     Math.floor(Number(data.dimensions_completed ?? data.dimensionsCompleted) || 0),
@@ -477,14 +499,14 @@ function applyLoadedState(data) {
   }
 
   const rawSkills = data.unlocked_skills ?? data.unlockedSkills;
+  const knownIds = new Set(SKILL_TREE_NODES.map((n) => n.id));
+  /** @type {string[]} */
+  let skills = [];
   if (Array.isArray(rawSkills) && rawSkills.length > 0) {
-    GameState.unlockedSkills = [...new Set(rawSkills.map((s) => String(s)))];
-    if (!GameState.unlockedSkills.includes('center_node')) {
-      GameState.unlockedSkills.unshift('center_node');
-    }
-  } else {
-    GameState.unlockedSkills = ['center_node'];
+    skills = [...new Set(rawSkills.map((s) => String(s)))];
   }
+  skills = skills.map((s) => (s === 'center_node' ? 'center' : s)).filter((s) => knownIds.has(s));
+  GameState.unlockedSkills = skills;
 
   dispatchStateChanged();
 }
@@ -521,6 +543,7 @@ function buildPersistPayload() {
     },
     artifacts_owned: { ...GameState.artifactsOwned },
     unlocked_skills: [...GameState.unlockedSkills],
+    save_version: SAVE_VERSION,
   };
 }
 
@@ -587,67 +610,98 @@ export async function saveGame() {
 
 const SAVE_KEY_LEGACY = 'necromancer-idle-save-v2';
 const SAVE_KEY_LEGACY_V3 = 'necromancer-idle-save-v3';
+const SAVE_KEY_LEGACY_V4 = 'necromancer-idle-save-v4';
 
 export function loadGameLocal() {
   try {
     let raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY_V4);
     if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY_V3);
     if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY);
     if (!raw) return false;
     const data = JSON.parse(raw);
     if (typeof data.upgrades !== 'object') return false;
 
+    const payloadV5 = {
+      bones: data.bones,
+      grave_goods: data.graveGoods,
+      world_essence: data.worldEssence,
+      dimensions_completed: data.dimensionsCompleted,
+      dimension_multiplier: data.dimensionMultiplier,
+      lifetime_bones_this_run: data.lifetimeBonesThisRun,
+      upgrades: data.upgrades,
+      expedition_state: data.expeditionState,
+      artifacts_owned: data.artifactsOwned,
+      unlocked_skills: data.unlockedSkills,
+    };
+
     if (data.v === SAVE_VERSION) {
-      applyLoadedState({
-        bones: data.bones,
-        grave_goods: data.graveGoods,
-        world_essence: data.worldEssence,
-        dimensions_completed: data.dimensionsCompleted,
-        dimension_multiplier: data.dimensionMultiplier,
-        lifetime_bones_this_run: data.lifetimeBonesThisRun,
-        upgrades: data.upgrades,
-        expedition_state: data.expeditionState,
-        artifacts_owned: data.artifactsOwned,
-        unlocked_skills: data.unlockedSkills,
-      });
+      applyLoadedState(payloadV5);
+      return true;
+    }
+
+    /** Einmaliges Balancing: Welten-Essenz auf 0 bei Saves älter als v5 */
+    const legacyOpts = { resetWorldEssenceBalance: true };
+
+    if (data.v === 4) {
+      applyLoadedState(payloadV5, legacyOpts);
+      saveGameLocal();
+      try {
+        localStorage.removeItem(SAVE_KEY_LEGACY_V4);
+      } catch (_) {
+        /* ignore */
+      }
       return true;
     }
     if (data.v === 3) {
-      applyLoadedState({
-        bones: data.bones,
-        grave_goods: data.graveGoods,
-        world_essence: data.worldEssence,
-        dimensions_completed: data.dimensionsCompleted,
-        dimension_multiplier: data.dimensionMultiplier,
-        lifetime_bones_this_run: data.lifetimeBonesThisRun,
-        upgrades: data.upgrades,
-        expedition_state: data.expeditionState,
-        artifacts_owned: data.artifactsOwned,
-      });
+      applyLoadedState(
+        {
+          bones: data.bones,
+          grave_goods: data.graveGoods,
+          world_essence: data.worldEssence,
+          dimensions_completed: data.dimensionsCompleted,
+          dimension_multiplier: data.dimensionMultiplier,
+          lifetime_bones_this_run: data.lifetimeBonesThisRun,
+          upgrades: data.upgrades,
+          expedition_state: data.expeditionState,
+          artifacts_owned: data.artifactsOwned,
+          unlocked_skills: data.unlockedSkills,
+        },
+        legacyOpts,
+      );
+      saveGameLocal();
       return true;
     }
     if (data.v === 2) {
-      applyLoadedState({
-        bones: data.bones,
-        grave_goods: data.graveGoods,
-        world_essence: data.worldEssence,
-        dimensions_completed: data.dimensionsCompleted,
-        dimension_multiplier: data.dimensionMultiplier,
-        lifetime_bones_this_run: data.lifetimeBonesThisRun,
-        upgrades: data.upgrades,
-      });
+      applyLoadedState(
+        {
+          bones: data.bones,
+          grave_goods: data.graveGoods,
+          world_essence: data.worldEssence,
+          dimensions_completed: data.dimensionsCompleted,
+          dimension_multiplier: data.dimensionMultiplier,
+          lifetime_bones_this_run: data.lifetimeBonesThisRun,
+          upgrades: data.upgrades,
+        },
+        legacyOpts,
+      );
+      saveGameLocal();
       return true;
     }
     if (data.v === 1) {
-      applyLoadedState({
-        bones: data.bones,
-        grave_goods: data.graveGoods,
-        world_essence: data.worldEssence,
-        dimensions_completed: 0,
-        dimension_multiplier: 1,
-        lifetime_bones_this_run: 0,
-        upgrades: data.upgrades,
-      });
+      applyLoadedState(
+        {
+          bones: data.bones,
+          grave_goods: data.graveGoods,
+          world_essence: data.worldEssence,
+          dimensions_completed: 0,
+          dimension_multiplier: 1,
+          lifetime_bones_this_run: 0,
+          upgrades: data.upgrades,
+        },
+        legacyOpts,
+      );
+      saveGameLocal();
       return true;
     }
     return false;
@@ -662,18 +716,40 @@ export async function loadFromSupabase() {
   if (!auth) return false;
   const row = await fetchUserProgress(auth.userId);
   if (!row) return false;
-  applyLoadedState({
-    bones: row.bones,
-    grave_goods: row.grave_goods,
-    world_essence: row.world_essence,
-    dimensions_completed: row.dimensions_completed,
-    dimension_multiplier: row.dimension_multiplier,
-    lifetime_bones_this_run: row.lifetime_bones_this_run,
-    upgrades: row.upgrades,
-    expedition_state: row.expedition_state,
-    artifacts_owned: row.artifacts_owned,
-    unlocked_skills: row.unlocked_skills,
-  });
+
+  /** Einmaliges Balancing (v5): auch wenn `save_version` in der DB noch fehlt (siehe scripts). */
+  const flagKey = `necro-v5-essence-balanced-${auth.userId}`;
+  const rawSv = row.save_version ?? row.saveVersion;
+  const parsedSv =
+    rawSv !== undefined && rawSv !== null && rawSv !== '' ? Number(rawSv) : NaN;
+  const versionForReset = Number.isFinite(parsedSv) ? parsedSv : 1;
+  const alreadyBalanced = localStorage.getItem(flagKey) === '1';
+  const needsEssenceReset = !alreadyBalanced && versionForReset < SAVE_VERSION;
+
+  applyLoadedState(
+    {
+      bones: row.bones,
+      grave_goods: row.grave_goods,
+      world_essence: row.world_essence,
+      dimensions_completed: row.dimensions_completed,
+      dimension_multiplier: row.dimension_multiplier,
+      lifetime_bones_this_run: row.lifetime_bones_this_run,
+      upgrades: row.upgrades,
+      expedition_state: row.expedition_state,
+      artifacts_owned: row.artifacts_owned,
+      unlocked_skills: row.unlocked_skills,
+    },
+    { resetWorldEssenceBalance: needsEssenceReset },
+  );
+
+  if (needsEssenceReset) {
+    localStorage.setItem(flagKey, '1');
+    try {
+      await saveToSupabase();
+    } catch (e) {
+      console.warn('[Necro] save after v5 essence migration', e);
+    }
+  }
   return true;
 }
 

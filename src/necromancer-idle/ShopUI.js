@@ -12,12 +12,27 @@ import {
   getPrestigeProgressPercent,
   getUpgradeCurrentPrice,
   getUpgradeLevel,
+  isUpgradeDiscovered,
   tryRegisterClick,
 } from './GameState.js';
 import { UPGRADE_DEFINITIONS } from './upgrades.js';
 
 /** Shop-Definitionen (Re-Export, Daten liegen in upgrades.js). */
 export { UPGRADE_DEFINITIONS };
+
+const MYSTERY_SHOP_TOOLTIP =
+  'Klicke ein anderes Gebäude, um dieses Geheimnis zu lüften.';
+
+/**
+ * Statischer Basiswert aus den Daten (ohne Dimensionen, Skills, Artefakte).
+ * @param {import('./upgrades.js').UpgradeDef} def
+ */
+function basePerLevelLine(def) {
+  if (def.type === 'PPS') {
+    return `+${formatRate(def.perLevel)} BpS pro Stufe (Basis)`;
+  }
+  return `+${formatRate(def.perLevel)} Knochen pro Klick pro Stufe (Basis)`;
+}
 
 /**
  * @param {import('./AudioManager.js').AudioManager} audio
@@ -38,6 +53,14 @@ export function initShopUI(audio) {
   const rows = new Map();
   /** @type {Map<string, HTMLElement>} */
   const badges = new Map();
+  /** @type {Map<string, HTMLElement>} */
+  const titleEls = new Map();
+  /** @type {Map<string, HTMLElement>} */
+  const baseEls = new Map();
+  /** @type {Map<string, HTMLElement>} */
+  const priceEls = new Map();
+  /** @type {Map<string, HTMLElement>} */
+  const iconEls = new Map();
 
   function positionTooltip(/** @type {MouseEvent} */ e) {
     if (!tooltipEl || tooltipEl.hidden) return;
@@ -67,6 +90,10 @@ export function initShopUI(audio) {
     rows.clear();
     buttons.clear();
     badges.clear();
+    titleEls.clear();
+    baseEls.clear();
+    priceEls.clear();
+    iconEls.clear();
 
     for (const def of UPGRADE_DEFINITIONS) {
       const host = def.type === 'PPS' ? ppsHost : ppcHost;
@@ -83,6 +110,13 @@ export function initShopUI(audio) {
       btn.className = 'shop-buy-btn';
       btn.dataset.upgradeId = def.id;
 
+      const icon = document.createElement('span');
+      icon.className = 'shop-item-icon';
+      icon.setAttribute('aria-hidden', 'true');
+
+      const col = document.createElement('div');
+      col.className = 'shop-buy-btn__col';
+
       const title = document.createElement('span');
       title.className = 'shop-item-title';
       title.textContent = def.name;
@@ -90,12 +124,19 @@ export function initShopUI(audio) {
       const meta = document.createElement('span');
       meta.className = 'shop-item-meta';
 
+      const base = document.createElement('span');
+      base.className = 'shop-item-base';
+      base.textContent = basePerLevelLine(def);
+
       const price = document.createElement('span');
       price.className = 'shop-item-price';
 
+      meta.appendChild(base);
       meta.appendChild(price);
-      btn.appendChild(title);
-      btn.appendChild(meta);
+      col.appendChild(title);
+      col.appendChild(meta);
+      btn.appendChild(icon);
+      btn.appendChild(col);
       row.appendChild(badge);
       row.appendChild(btn);
       host.appendChild(row);
@@ -103,6 +144,10 @@ export function initShopUI(audio) {
       buttons.set(def.id, btn);
       rows.set(def.id, row);
       badges.set(def.id, badge);
+      titleEls.set(def.id, title);
+      baseEls.set(def.id, base);
+      priceEls.set(def.id, price);
+      iconEls.set(def.id, icon);
 
       btn.addEventListener('click', () => {
         if (buyUpgrade(def.id)) {
@@ -111,18 +156,28 @@ export function initShopUI(audio) {
         }
       });
 
-      const lore = def.lore ?? '';
-      if (tooltipEl && lore) {
-        row.addEventListener('mouseenter', (e) => {
+      row.addEventListener('mouseenter', (e) => {
+        if (!tooltipEl) return;
+        const discovered = isUpgradeDiscovered(def.id);
+        if (!discovered) {
           tooltipEl.hidden = false;
-          tooltipEl.textContent = lore;
+          tooltipEl.textContent = MYSTERY_SHOP_TOOLTIP;
           positionTooltip(e);
-        });
-        row.addEventListener('mousemove', positionTooltip);
-        row.addEventListener('mouseleave', () => {
+          return;
+        }
+        const lore = def.lore ?? '';
+        if (!lore) {
           tooltipEl.hidden = true;
-        });
-      }
+          return;
+        }
+        tooltipEl.hidden = false;
+        tooltipEl.textContent = lore;
+        positionTooltip(e);
+      });
+      row.addEventListener('mousemove', positionTooltip);
+      row.addEventListener('mouseleave', () => {
+        if (tooltipEl) tooltipEl.hidden = true;
+      });
     }
   }
 
@@ -130,17 +185,27 @@ export function initShopUI(audio) {
     for (const def of UPGRADE_DEFINITIONS) {
       const btn = buttons.get(def.id);
       const badge = badges.get(def.id);
+      const row = rows.get(def.id);
+      const titleEl = titleEls.get(def.id);
+      const baseEl = baseEls.get(def.id);
+      const priceEl = priceEls.get(def.id);
+      const iconEl = iconEls.get(def.id);
       if (!btn) continue;
+
+      const discovered = isUpgradeDiscovered(def.id);
       const lv = getUpgradeLevel(def.id);
       const price = getUpgradeCurrentPrice(def.id);
       const afford = canAffordUpgrade(def.id);
 
+      if (row) row.classList.toggle('shop-item--undiscovered', !discovered);
       if (badge) badge.textContent = `Lv ${lv}`;
 
-      const priceEl = btn.querySelector('.shop-item-price');
+      if (titleEl) titleEl.textContent = discovered ? def.name : '???';
+      if (baseEl) baseEl.textContent = discovered ? basePerLevelLine(def) : '???';
       if (priceEl) {
-        priceEl.textContent = `${formatGameNumber(price)} 🦴`;
+        priceEl.textContent = discovered ? `${formatGameNumber(price)} 🦴` : '???';
       }
+      if (iconEl) iconEl.textContent = discovered ? '◆' : '?';
 
       btn.classList.toggle('disabled', !afford);
       btn.disabled = !afford;

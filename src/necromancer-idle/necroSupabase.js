@@ -69,6 +69,19 @@ export async function upsertUserProgress(userId, row) {
   const { error } = await sb.from('user_progress').upsert(payload, {
     onConflict: 'user_id',
   });
+  if (error && row && typeof row === 'object' && 'save_version' in row) {
+    const msg = String(error.message || '');
+    if (/save_version|schema cache|column/i.test(msg)) {
+      const { save_version: _sv, ...rest } = row;
+      const { error: err2 } = await sb
+        .from('user_progress')
+        .upsert(
+          { user_id: userId, ...rest, updated_at: new Date().toISOString() },
+          { onConflict: 'user_id' },
+        );
+      if (!err2) return true;
+    }
+  }
   if (error) {
     console.warn('[Necro] Supabase upsert user_progress', error.message);
     return false;

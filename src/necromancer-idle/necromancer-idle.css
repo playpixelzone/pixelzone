@@ -448,6 +448,24 @@ body {
   width: 100%;
 }
 
+.shop-item--undiscovered .shop-buy-btn {
+  opacity: 0.72;
+  background: rgba(8, 8, 12, 0.72);
+  border-color: rgba(80, 75, 95, 0.45);
+}
+
+.shop-item--undiscovered .shop-item-title,
+.shop-item--undiscovered .shop-item-base,
+.shop-item--undiscovered .shop-item-price {
+  color: #5a5668;
+  letter-spacing: 0.08em;
+}
+
+.shop-item--undiscovered .shop-item-icon {
+  color: #4a4658;
+  opacity: 0.65;
+}
+
 .shop-level-badge {
   position: absolute;
   top: 0.32rem;
@@ -468,9 +486,9 @@ body {
 .shop-buy-btn {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.25rem;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.45rem;
   padding: 1.05rem 0.55rem 0.5rem;
   text-align: left;
   font-family: inherit;
@@ -486,6 +504,30 @@ body {
     opacity 0.15s ease;
 }
 
+.shop-item-icon {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--muted);
+  border-radius: 6px;
+  border: 1px solid rgba(57, 255, 20, 0.18);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.shop-buy-btn__col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+}
+
 .shop-buy-btn:hover:not(:disabled) {
   border-color: rgba(57, 255, 20, 0.55);
   box-shadow: 0 0 12px rgba(57, 255, 20, 0.12);
@@ -499,6 +541,14 @@ body {
 .shop-item-meta {
   font-size: 0.72rem;
   color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.shop-item-base {
+  font-variant-numeric: tabular-nums;
+  color: #9a93a8;
 }
 
 .shop-item-price {
@@ -709,6 +759,7 @@ body {
 .skilltree-svg {
   position: absolute;
   inset: 0;
+  z-index: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
@@ -747,6 +798,7 @@ body {
 .skilltree-nodes {
   position: absolute;
   inset: 0;
+  z-index: 1;
   pointer-events: none;
 }
 

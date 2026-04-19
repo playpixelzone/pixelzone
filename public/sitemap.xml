@@ -14,6 +14,12 @@
   </url>
 
   <url>
+    <loc>https://playpixelzone.github.io/pixelzone/necromancer-idle.html</loc>
+    <priority>0.85</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <url>
     <loc>https://playpixelzone.github.io/pixelzone/games/pixel-jump/</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>

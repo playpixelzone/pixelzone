@@ -45,60 +45,74 @@
           <div class="altar-inner">
             <div class="glyph" aria-hidden="true">⛧</div>
             <p class="title">Beschwörungs-Altar</p>
-            <p class="hint">Platzhalter – Klick-Logik folgt</p>
+            <p class="hint">Klicke, um Knochen zu sammeln</p>
           </div>
         </div>
       </aside>
 
-      <section class="col-shop panel" aria-labelledby="shop-heading">
-        <h2 id="shop-heading">Der Friedhof</h2>
-        <div class="shop-grid">
-          <div class="shop-col">
-            <h3>Generatoren</h3>
-            <div id="shop-pps" class="shop-list"></div>
-          </div>
-          <div class="shop-col">
-            <h3>Klick-Upgrades</h3>
-            <div id="shop-ppc" class="shop-list"></div>
+      <section class="col-main-tabs panel" aria-label="Spielbereiche">
+        <div class="tab-bar" role="tablist" aria-label="Navigation">
+          <button type="button" class="tab-btn tab-btn--active" role="tab" id="tab-friedhof" aria-selected="true" aria-controls="panel-friedhof" tabindex="0">Der Friedhof</button>
+          <button type="button" class="tab-btn" role="tab" id="tab-expedition" aria-selected="false" aria-controls="panel-expedition" tabindex="-1">Expeditionen</button>
+          <button type="button" class="tab-btn" role="tab" id="tab-unterwelt" aria-selected="false" aria-controls="panel-unterwelt" tabindex="-1">Unterwelt</button>
+        </div>
+
+        <div id="panel-friedhof" class="tab-panel" role="tabpanel" aria-labelledby="tab-friedhof" data-tab-panel="friedhof">
+          <h2 id="shop-heading" class="tab-panel-title">Der Friedhof</h2>
+          <div class="shop-grid">
+            <div class="shop-col">
+              <h3>Generatoren</h3>
+              <div id="shop-pps" class="shop-list"></div>
+            </div>
+            <div class="shop-col">
+              <h3>Klick-Upgrades</h3>
+              <div id="shop-ppc" class="shop-list"></div>
+            </div>
           </div>
         </div>
-      </section>
 
-      <aside class="col-underworld" aria-labelledby="expedition-heading">
-        <div class="panel expedition-panel">
-          <h2 id="expedition-heading">Expedition</h2>
-          <p class="expedition-map-line" id="expedition-map-line">Karte: <strong>Menschendorf</strong></p>
-          <div class="expedition-slot" id="expedition-phaser-host" aria-label="Expeditions-Szene"></div>
-          <div class="expedition-run">
-            <div class="expedition-status" id="expedition-status-text">Bereit — Menschendorf</div>
-            <div class="expedition-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="expedition-bar-wrap">
-              <div id="expedition-bar-fill" class="expedition-bar-fill"></div>
-            </div>
-            <div class="expedition-stats">
-              <span>Kampfkraft: <strong id="expedition-kp">0</strong></span>
-              <span id="expedition-unit-count">Skelett-Krieger: 0</span>
-            </div>
-            <div class="expedition-actions">
-              <button type="button" class="btn-elite" id="btn-recruit-elite">Skelett-Krieger — 400 🦴</button>
-              <button type="button" class="btn-expedition-start" id="btn-expedition-start">Plünderung starten</button>
-            </div>
+        <div id="panel-expedition" class="tab-panel tab-panel--hidden" role="tabpanel" aria-labelledby="tab-expedition" hidden data-tab-panel="expedition">
+          <h2 id="expedition-heading" class="tab-panel-title">Kriegslager</h2>
+          <p class="expedition-intro">Beutezug nach <strong>Menschendorf</strong>. Die Toten verheeren die Lebenden.</p>
+
+          <div class="expedition-dd expedition-dd--camp">
+            <h3 class="expedition-dd__title">Armee-Lager</h3>
+            <p class="expedition-dd__stat">Skelett-Krieger im Lager: <strong id="expedition-army-count">0</strong></p>
+            <button type="button" class="btn-dd" id="btn-recruit-elite">Skelett-Krieger rekrutieren (Kosten: 400 Knochen)</button>
           </div>
-          <div class="artifact-panel">
+
+          <div class="expedition-dd expedition-dd--battlefield">
+            <h3 class="expedition-dd__title">Das Schlachtfeld</h3>
+            <button type="button" class="btn-dd btn-dd--raid" id="btn-expedition-start">Plünderung starten</button>
+            <div class="expedition-raid-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="expedition-bar-wrap">
+              <div id="expedition-bar-fill" class="expedition-raid-fill"></div>
+            </div>
+            <p class="expedition-raid-hint" id="expedition-raid-status">Bereit zum Zug.</p>
+          </div>
+
+          <div class="expedition-dd expedition-dd--log">
+            <h3 class="expedition-dd__title">Kampf-Log &amp; Beute</h3>
+            <pre class="expedition-log" id="expedition-log" aria-live="polite"></pre>
+          </div>
+
+          <div class="artifact-panel expedition-artifacts">
             <h3 class="artifact-heading">Artefakte</h3>
             <ul class="artifact-list" id="artifact-list"></ul>
           </div>
         </div>
-        <div class="panel portal-panel">
-          <h2>Dimensions-Portal</h2>
-          <p style="margin:0 0 0.35rem;font-size:0.8rem;color:var(--muted);">
-            Fortschritt siehe Balken oben. Opfer genug Knochen, um die Dimension zu verschlingen (demnächst).
+
+        <div id="panel-unterwelt" class="tab-panel tab-panel--hidden" role="tabpanel" aria-labelledby="tab-unterwelt" hidden data-tab-panel="unterwelt">
+          <h2 class="tab-panel-title">Dimensions-Portal</h2>
+          <p class="portal-lead">
+            Wenn die Knochenschwelle oben voll ist, kannst du diese Dimension verschlingen und Welten-Essenz gewinnen.
           </p>
           <div class="portal-actions">
-            <span style="font-size:0.75rem;color:var(--muted);">🌌 Welten-Essenz: <strong id="stat-essence">0</strong></span>
+            <span class="portal-essence">🌌 Welten-Essenz: <strong id="stat-essence">0</strong></span>
             <button type="button" id="btn-prestige" class="btn-prestige" disabled>Dimension verschlingen</button>
           </div>
+          <p class="portal-placeholder">Hier folgt später der Welten-Essenz-Skilltree.</p>
         </div>
-      </aside>
+      </section>
     </div>
   </div>
 

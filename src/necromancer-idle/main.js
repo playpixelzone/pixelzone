@@ -13,6 +13,30 @@ import { initShopUI } from './ShopUI.js';
 import { initExpeditionSystem } from './ExpeditionSystem.js';
 import { AudioManager } from './AudioManager.js';
 
+function initTabNavigation() {
+  const tabs = [
+    { btn: document.getElementById('tab-friedhof'), panel: document.getElementById('panel-friedhof') },
+    { btn: document.getElementById('tab-expedition'), panel: document.getElementById('panel-expedition') },
+    { btn: document.getElementById('tab-unterwelt'), panel: document.getElementById('panel-unterwelt') },
+  ];
+
+  const activate = (index) => {
+    tabs.forEach((t, i) => {
+      const on = i === index;
+      if (!t.btn || !t.panel) return;
+      t.btn.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.btn.classList.toggle('tab-btn--active', on);
+      t.btn.tabIndex = on ? 0 : -1;
+      t.panel.hidden = !on;
+      t.panel.classList.toggle('tab-panel--hidden', !on);
+    });
+  };
+
+  tabs.forEach((t, i) => {
+    t.btn?.addEventListener('click', () => activate(i));
+  });
+}
+
 const mount = document.getElementById('phaser-mount');
 if (!mount) {
   throw new Error('#phaser-mount fehlt in necromancer-idle.html');
@@ -46,6 +70,7 @@ void (async function bootstrap() {
   startPassiveLoop();
   initShopUI(audio);
   initExpeditionSystem();
+  initTabNavigation();
 
   let saveToastTimer = 0;
   document.addEventListener('necro-game-saved', () => {
@@ -59,18 +84,36 @@ void (async function bootstrap() {
     }, 2200);
   });
 
+  let prestigeBusy = false;
   document.addEventListener('necro-prestige-start', () => {
+    if (prestigeBusy || !canPrestigeNow()) return;
+    prestigeBusy = true;
     const ov = document.getElementById('prestige-overlay');
+    document.body.style.transition = 'opacity 0.55s ease, filter 0.55s ease';
+    document.body.style.filter = 'brightness(0.08)';
     ov?.classList.add('prestige-overlay--visible');
-  });
 
-  document.addEventListener('necro-prestige-animation-end', async () => {
-    if (canPrestigeNow()) {
-      performPrestige();
-    }
-    await saveGame();
-    const ov = document.getElementById('prestige-overlay');
-    ov?.classList.remove('prestige-overlay--visible');
+    window.setTimeout(() => {
+      void (async () => {
+        try {
+          if (canPrestigeNow()) {
+            performPrestige();
+          }
+        } catch (err) {
+          console.error('[Necro] performPrestige', err);
+        }
+        try {
+          await saveGame();
+        } catch (err) {
+          console.error('[Necro] saveGame', err);
+        } finally {
+          document.body.style.filter = '';
+          document.body.style.transition = '';
+          ov?.classList.remove('prestige-overlay--visible');
+          prestigeBusy = false;
+        }
+      })();
+    }, 780);
   });
 
   window.setInterval(() => {

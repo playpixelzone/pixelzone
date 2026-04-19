@@ -3,10 +3,9 @@ import {
   ARTIFACT_DEFS,
   ARTIFACT_DROP_CHANCE,
   ELITE_UNITS,
-  ENCOUNTER_INTERVAL_SEC,
   EXPEDITION_DURATION_SEC,
-  EXPEDITION_MAPS,
-  VILLAGER_BASE_HP,
+  PLUNDER_LOSS_MAX,
+  PLUNDER_LOSS_MIN,
   getArtifactDefById,
   getEliteUnitById,
 } from './expeditionData.js';
@@ -53,8 +52,8 @@ export const GameState = {
     activeUnits: { skeletonWarrior: 0 },
     explorationProgress: 0,
     running: false,
-    encounterCooldown: ENCOUNTER_INTERVAL_SEC,
-    lastEncounterWon: true,
+    /** Während Plünderung: entsandte Skelette */
+    deployedThisRun: 0,
   },
   /** Artefakt-Id → Anzahl (permanente Buffs) */
   /** @type {Record<string, number>} */
@@ -62,54 +61,6 @@ export const GameState = {
 };
 
 let passiveRemainder = 0;
-let expeditionSyncAccum = 0;
-
-function getCurrentMapDef() {
-  const id = GameState.expeditionState.currentMap;
-  return EXPEDITION_MAPS.find((m) => m.id === id) ?? EXPEDITION_MAPS[0];
-}
-
-function dispatchExpeditionSync(extra = {}) {
-  document.dispatchEvent(
-    new CustomEvent('necro-expedition-sync', {
-      detail: {
-        running: GameState.expeditionState.running,
-        progress: GameState.expeditionState.explorationProgress,
-        combatPower: getCombatPower(),
-        mapName: getCurrentMapDef().name,
-        ...extra,
-      },
-    }),
-  );
-}
-
-/** Nach Laden oder UI-Init: Mini-Phaser & Balken synchronisieren. */
-export function emitExpeditionSyncNow(extra = {}) {
-  dispatchExpeditionSync(extra);
-}
-
-function rollArtifactDrop() {
-  const def = ARTIFACT_DEFS[0];
-  if (!def) return;
-  if (Math.random() >= ARTIFACT_DROP_CHANCE) return;
-  GameState.artifactsOwned[def.id] = (GameState.artifactsOwned[def.id] ?? 0) + 1;
-  dispatchExpeditionSync({ artifactDrop: def.id });
-}
-
-function resolveEncounter() {
-  const map = getCurrentMapDef();
-  const villagerHp = VILLAGER_BASE_HP * map.villagerHpScale;
-  const kp = getCombatPower();
-  const won = kp >= villagerHp;
-  GameState.expeditionState.lastEncounterWon = won;
-  dispatchExpeditionSync({
-    encounter: { won, villagerHp, kp },
-  });
-  if (won) {
-    rollArtifactDrop();
-    dispatchStateChanged();
-  }
-}
 
 /**
  * Elite-Krieger anwerben (Knochen).
@@ -118,27 +69,73 @@ function resolveEncounter() {
 export function recruitEliteUnit(unitId) {
   const u = getEliteUnitById(unitId);
   if (!u) return false;
+  if (GameState.expeditionState.running) return false;
   if (GameState.bones < u.boneCost) return false;
   GameState.bones -= u.boneCost;
   GameState.expeditionState.activeUnits[unitId] =
     Math.max(0, Math.floor(GameState.expeditionState.activeUnits[unitId] ?? 0)) + 1;
   dispatchStateChanged();
-  dispatchExpeditionSync();
   return true;
 }
 
-/** Expedition starten (läuft bis Fortschritt 100 %). */
+/**
+ * Plünderung starten: gesamte Armee zieht ins Dorf (Lager leer bis zum Ende).
+ */
 export function startExpedition() {
   const es = GameState.expeditionState;
   if (es.running) return false;
-  if (getCombatPower() <= 0) return false;
+  const n = Math.max(0, Math.floor(es.activeUnits.skeletonWarrior ?? 0));
+  if (n <= 0) return false;
+  es.deployedThisRun = n;
+  es.activeUnits.skeletonWarrior = 0;
   es.running = true;
   es.explorationProgress = 0;
-  es.encounterCooldown = Math.min(2, ENCOUNTER_INTERVAL_SEC);
-  es.lastEncounterWon = true;
   dispatchStateChanged();
-  dispatchExpeditionSync({ started: true });
   return true;
+}
+
+/**
+ * Nach abgeschlossenem Balken: Verluste, Beute, Überlebende kehren zurück.
+ * @returns {null | { lost: number; survived: number; deployed: number; artifactName: string | null; artifactDropped: boolean }}
+ */
+export function finishExpeditionPlunder() {
+  const es = GameState.expeditionState;
+  if (!es.running) return null;
+
+  const deployed = Math.max(0, Math.floor(es.deployedThisRun ?? 0));
+  es.running = false;
+  es.explorationProgress = 0;
+  es.deployedThisRun = 0;
+
+  let lost = 0;
+  let survived = 0;
+  if (deployed > 0) {
+    const lossPct = PLUNDER_LOSS_MIN + Math.random() * (PLUNDER_LOSS_MAX - PLUNDER_LOSS_MIN);
+    lost = Math.max(0, Math.floor(deployed * lossPct));
+    survived = Math.max(0, deployed - lost);
+  }
+
+  es.activeUnits.skeletonWarrior = survived;
+
+  let artifactName = null;
+  if (deployed > 0 && Math.random() < ARTIFACT_DROP_CHANCE) {
+    const def = ARTIFACT_DEFS[0];
+    if (def) {
+      GameState.artifactsOwned[def.id] = (GameState.artifactsOwned[def.id] ?? 0) + 1;
+      artifactName = def.name;
+    }
+  }
+
+  const result = {
+    lost,
+    survived,
+    deployed,
+    artifactName,
+    artifactDropped: artifactName != null,
+  };
+  dispatchStateChanged();
+  document.dispatchEvent(new CustomEvent('necro-expedition-complete', { detail: result }));
+  return result;
 }
 
 export function tickExpedition(deltaSeconds) {
@@ -149,24 +146,7 @@ export function tickExpedition(deltaSeconds) {
   es.explorationProgress = Math.min(100, es.explorationProgress + progressDelta);
 
   if (es.explorationProgress >= 100) {
-    es.running = false;
-    es.explorationProgress = 0;
-    es.encounterCooldown = ENCOUNTER_INTERVAL_SEC;
-    dispatchExpeditionSync({ completed: true });
-    dispatchStateChanged();
-    return;
-  }
-
-  es.encounterCooldown -= deltaSeconds;
-  if (es.encounterCooldown <= 0) {
-    resolveEncounter();
-    es.encounterCooldown = ENCOUNTER_INTERVAL_SEC;
-  }
-
-  expeditionSyncAccum += deltaSeconds;
-  if (expeditionSyncAccum >= 0.08) {
-    expeditionSyncAccum = 0;
-    dispatchExpeditionSync();
+    finishExpeditionPlunder();
   }
 }
 
@@ -305,8 +285,7 @@ export function performPrestige() {
     activeUnits: { skeletonWarrior: 0 },
     explorationProgress: 0,
     running: false,
-    encounterCooldown: ENCOUNTER_INTERVAL_SEC,
-    lastEncounterWon: true,
+    deployedThisRun: 0,
   };
 
   dispatchStateChanged();
@@ -416,15 +395,13 @@ function applyLoadedState(data) {
   }
   GameState.upgrades = next;
   passiveRemainder = 0;
-  expeditionSyncAccum = 0;
 
   const defExp = {
     currentMap: 'menschendorf',
     activeUnits: { skeletonWarrior: 0 },
     explorationProgress: 0,
     running: false,
-    encounterCooldown: ENCOUNTER_INTERVAL_SEC,
-    lastEncounterWon: true,
+    deployedThisRun: 0,
   };
   const ex = data.expedition_state ?? data.expeditionState;
   if (ex && typeof ex === 'object') {
@@ -450,11 +427,10 @@ function applyLoadedState(data) {
         Math.min(100, Number(ex.exploration_progress ?? ex.explorationProgress) || 0),
       ),
       running: Boolean(ex.running),
-      encounterCooldown: Number(ex.encounter_cooldown ?? ex.encounterCooldown) || ENCOUNTER_INTERVAL_SEC,
-      lastEncounterWon:
-        ex.last_encounter_won !== undefined
-          ? Boolean(ex.last_encounter_won)
-          : Boolean(ex.lastEncounterWon ?? true),
+      deployedThisRun: Math.max(
+        0,
+        Math.floor(Number(ex.deployed_this_run ?? ex.deployedThisRun) || 0),
+      ),
     };
   } else {
     GameState.expeditionState = { ...defExp };
@@ -503,17 +479,21 @@ function buildPersistPayload() {
       active_units: { ...GameState.expeditionState.activeUnits },
       exploration_progress: GameState.expeditionState.explorationProgress,
       running: GameState.expeditionState.running,
-      encounter_cooldown: GameState.expeditionState.encounterCooldown,
-      last_encounter_won: GameState.expeditionState.lastEncounterWon,
+      deployed_this_run: GameState.expeditionState.deployedThisRun,
     },
     artifacts_owned: { ...GameState.artifactsOwned },
   };
 }
 
 export async function saveToSupabase() {
-  const auth = await getCurrentUserId();
-  if (!auth) return false;
-  return upsertUserProgress(auth.userId, buildPersistPayload());
+  try {
+    const auth = await getCurrentUserId();
+    if (!auth) return false;
+    return await upsertUserProgress(auth.userId, buildPersistPayload());
+  } catch (e) {
+    console.error('[Necro] saveToSupabase', e);
+    return false;
+  }
 }
 
 export function saveGameLocal() {
@@ -532,8 +512,7 @@ export function saveGameLocal() {
         activeUnits: { ...GameState.expeditionState.activeUnits },
         explorationProgress: GameState.expeditionState.explorationProgress,
         running: GameState.expeditionState.running,
-        encounterCooldown: GameState.expeditionState.encounterCooldown,
-        lastEncounterWon: GameState.expeditionState.lastEncounterWon,
+        deployedThisRun: GameState.expeditionState.deployedThisRun,
       },
       artifactsOwned: { ...GameState.artifactsOwned },
     };
@@ -547,13 +526,23 @@ export function saveGameLocal() {
 }
 
 export async function saveGame() {
-  const cloud = await saveToSupabase();
-  if (!cloud) {
-    saveGameLocal();
-  } else {
-    document.dispatchEvent(new CustomEvent('necro-game-saved'));
+  try {
+    const cloud = await saveToSupabase();
+    if (!cloud) {
+      saveGameLocal();
+    } else {
+      document.dispatchEvent(new CustomEvent('necro-game-saved'));
+    }
+    return true;
+  } catch (e) {
+    console.error('[Necro] saveGame', e);
+    try {
+      saveGameLocal();
+    } catch (e2) {
+      console.error('[Necro] saveGameLocal fallback', e2);
+    }
+    return false;
   }
-  return true;
 }
 
 const SAVE_KEY_LEGACY = 'necromancer-idle-save-v2';

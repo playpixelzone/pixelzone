@@ -37,7 +37,11 @@ export function getArtifactDefById(id) {
   return ARTIFACT_DEFS.find((a) => a.id === id);
 }
 
-export const EXPEDITION_DURATION_SEC = 48;
-export const ENCOUNTER_INTERVAL_SEC = 4;
-export const VILLAGER_BASE_HP = 14;
+/** Dauer einer Plünderung (Fortschrittsbalken) */
+export const EXPEDITION_DURATION_SEC = 10;
+
 export const ARTIFACT_DROP_CHANCE = 0.05;
+
+/** Verlustquote der entsandten Armee nach Abschluss: 20 % bis 50 % */
+export const PLUNDER_LOSS_MIN = 0.2;
+export const PLUNDER_LOSS_MAX = 0.5;

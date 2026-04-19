@@ -1,13 +1,10 @@
 import {
   GameState,
-  emitExpeditionSyncNow,
   formatGameNumber,
-  getCombatPower,
   recruitEliteUnit,
   startExpedition,
 } from './GameState.js';
-import { ARTIFACT_DEFS, ELITE_UNITS } from './expeditionData.js';
-import { createExpeditionPhaserGame } from './expeditionPhaser.js';
+import { ARTIFACT_DEFS, ELITE_UNITS, EXPEDITION_DURATION_SEC } from './expeditionData.js';
 
 function renderArtifacts(listEl) {
   if (!listEl) return;
@@ -31,85 +28,101 @@ function renderArtifacts(listEl) {
   }
 }
 
-function refreshExpeditionUi({
-  mapLineEl,
-  statusEl,
-  barFill,
-  barWrap,
-  kpEl,
-  unitCountEl,
-  btnRecruit,
-  btnStart,
-}) {
-  const mapName =
-    GameState.expeditionState.currentMap === 'menschendorf' ? 'Menschendorf' : GameState.expeditionState.currentMap;
-  const running = GameState.expeditionState.running;
-  const p = Math.max(0, Math.min(100, GameState.expeditionState.explorationProgress));
-  const u = ELITE_UNITS[0];
-  const count = Math.max(0, Math.floor(GameState.expeditionState.activeUnits[u.id] ?? 0));
-  const kp = getCombatPower();
+/**
+ * Expedition: HTML/CSS (Darkest-Dungeon-Anmutung), kein Phaser.
+ */
+export function initExpeditionSystem() {
+  const armyEl = document.getElementById('expedition-army-count');
+  const btnRecruit = document.getElementById('btn-recruit-elite');
+  const btnStart = document.getElementById('btn-expedition-start');
+  const barFill = document.getElementById('expedition-bar-fill');
+  const barWrap = document.getElementById('expedition-bar-wrap');
+  const statusEl = document.getElementById('expedition-raid-status');
+  const logEl = document.getElementById('expedition-log');
+  const listEl = document.getElementById('artifact-list');
 
-  if (mapLineEl) {
-    const strong = mapLineEl.querySelector('strong');
-    if (strong) strong.textContent = mapName;
-  }
-  if (barWrap) {
-    barWrap.setAttribute('aria-valuenow', String(Math.round(p)));
-  }
-  if (barFill) barFill.style.width = `${p}%`;
-  if (kpEl) kpEl.textContent = String(kp);
-  if (unitCountEl) unitCountEl.textContent = `${u.name}: ${count}`;
+  /** @type {number | undefined} */
+  let rafId;
 
-  if (statusEl) {
-    if (running) {
-      statusEl.textContent = `Plünderung des Dorfes (${mapName})… ${p.toFixed(0)} %`;
-    } else {
-      statusEl.textContent = `Bereit — ${mapName}`;
+  function appendLog(line) {
+    if (!logEl) return;
+    const t = logEl.textContent?.trim() ?? '';
+    logEl.textContent = t ? `${t}\n${line}` : line;
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function syncBar() {
+    const es = GameState.expeditionState;
+    const p = Math.max(0, Math.min(100, es.explorationProgress));
+    if (barFill) barFill.style.width = `${p}%`;
+    if (barWrap) barWrap.setAttribute('aria-valuenow', String(Math.round(p)));
+    if (statusEl) {
+      if (es.running) {
+        statusEl.textContent = `Plünderung… ${p.toFixed(0)} % (${EXPEDITION_DURATION_SEC}s)`;
+      } else {
+        statusEl.textContent = 'Bereit zum Zug.';
+      }
     }
   }
 
-  if (btnRecruit) {
-    const afford = GameState.bones >= u.boneCost;
-    btnRecruit.disabled = !afford;
-    btnRecruit.textContent = `${u.name} — ${formatGameNumber(u.boneCost)} 🦴`;
-  }
-  if (btnStart) {
-    btnStart.disabled = running || kp <= 0;
-    btnStart.textContent = running ? 'Expedition läuft…' : 'Plünderung starten';
-  }
-}
-
-/**
- * Expedition / Auto-Battler UI + Mini-Phaser.
- */
-export function initExpeditionSystem() {
-  const host = document.getElementById('expedition-phaser-host');
-  const mapLineEl = document.getElementById('expedition-map-line');
-  const statusEl = document.getElementById('expedition-status-text');
-  const barFill = document.getElementById('expedition-bar-fill');
-  const barWrap = document.getElementById('expedition-bar-wrap');
-  const kpEl = document.getElementById('expedition-kp');
-  const unitCountEl = document.getElementById('expedition-unit-count');
-  const btnRecruit = document.getElementById('btn-recruit-elite');
-  const btnStart = document.getElementById('btn-expedition-start');
-  const listEl = document.getElementById('artifact-list');
-
-  if (host) {
-    void createExpeditionPhaserGame(host);
+  function loopBar() {
+    syncBar();
+    if (GameState.expeditionState.running) {
+      rafId = requestAnimationFrame(loopBar);
+    }
   }
 
-  const els = { mapLineEl, statusEl, barFill, barWrap, kpEl, unitCountEl, btnRecruit, btnStart };
+  function refresh() {
+    const u = ELITE_UNITS[0];
+    const count = Math.max(0, Math.floor(GameState.expeditionState.activeUnits[u.id] ?? 0));
+    const running = GameState.expeditionState.running;
 
-  const sync = () => {
-    refreshExpeditionUi(els);
+    if (armyEl) armyEl.textContent = String(count);
+
+    if (btnRecruit) {
+      const afford = GameState.bones >= u.boneCost && !running;
+      btnRecruit.disabled = !afford;
+      btnRecruit.textContent = `Skelett-Krieger rekrutieren (Kosten: ${formatGameNumber(u.boneCost)} Knochen)`;
+    }
+
+    if (btnStart) {
+      btnStart.disabled = running || count <= 0;
+      btnStart.textContent = running ? 'Plünderung läuft…' : 'Plünderung starten';
+    }
+
+    syncBar();
+    if (running && rafId == null) {
+      rafId = requestAnimationFrame(() => {
+        rafId = undefined;
+        loopBar();
+      });
+    }
+    if (!running && rafId != null) {
+      cancelAnimationFrame(rafId);
+      rafId = undefined;
+    }
+
     renderArtifacts(listEl);
-  };
+  }
 
-  sync();
-  emitExpeditionSyncNow();
+  refresh();
 
-  document.addEventListener('necro-state-changed', sync);
-  document.addEventListener('necro-expedition-sync', sync);
+  document.addEventListener('necro-state-changed', refresh);
+
+  document.addEventListener('necro-expedition-complete', (e) => {
+    const d = /** @type {CustomEvent} */ (e).detail;
+    if (!d) return;
+    const { lost, artifactName } = d;
+    if (artifactName) {
+      appendLog(
+        `Erfolg! Du hast ein [${artifactName}] gefunden. ${lost} Skelette sind zu Staub zerfallen.`,
+      );
+    } else if (lost > 0) {
+      appendLog(`Die Plünderung endet. ${lost} Skelette sind zu Staub zerfallen, ${d.survived} kehren ins Lager zurück.`);
+    } else {
+      appendLog(`Die Plünderung endet. ${d.survived} Skelette kehren wohlbehalten zurück.`);
+    }
+  });
 
   btnRecruit?.addEventListener('click', () => {
     const u = ELITE_UNITS[0];
@@ -117,6 +130,8 @@ export function initExpeditionSystem() {
   });
 
   btnStart?.addEventListener('click', () => {
-    startExpedition();
+    if (!startExpedition()) return;
+    appendLog('> Skelette betreten das Dorf…');
+    window.setTimeout(() => appendLog('> Kampf beginnt!'), 450);
   });
 }

@@ -428,6 +428,16 @@ export function cheatGrantResources({ bones = 0, worldEssence = 0 }) {
 }
 
 /**
+ * Admin-Testpanel: laufende Plünderung sofort beenden (Verluste & Loot wie beim normalen Ende).
+ * @returns {boolean} true, wenn eine Expedition aktiv war und beendet wurde
+ */
+export function adminFinishExpeditionNow() {
+  if (!GameState.expeditionState.running) return false;
+  finishExpeditionPlunder();
+  return true;
+}
+
+/**
  * @param {object} data
  * @param {{ resetWorldEssenceBalance?: boolean }} [opts]
  */

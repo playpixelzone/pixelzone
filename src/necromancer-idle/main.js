@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GameScene } from './GameScene.js';
 import {
   GameState,
+  adminFinishExpeditionNow,
   cheatGrantResources,
   loadGameAsync,
   performPrestige,
@@ -148,6 +149,13 @@ void (async function bootstrap() {
         label: '+500 Welten-Essenz',
         onClick: () => {
           cheatGrantResources({ worldEssence: 500 });
+          void saveGame();
+        },
+      },
+      {
+        label: 'Expedition sofort beenden',
+        onClick: () => {
+          adminFinishExpeditionNow();
           void saveGame();
         },
       },

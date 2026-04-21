@@ -33,6 +33,7 @@
   font-family: 'VT323', monospace !important;
   -webkit-font-smoothing: none !important;
   font-smooth: never !important;
+  touch-action: manipulation;
 }
 
 html {
@@ -51,6 +52,7 @@ body {
   font-family: 'VT323', monospace !important;
   -webkit-font-smoothing: none !important;
   font-smooth: never !important;
+  touch-action: manipulation;
 }
 
 /* Global: Steinwand direkt auf body (Pfad relativ zu dieser CSS-Datei in src/) */
@@ -388,6 +390,8 @@ button:active:not(:disabled) {
   outline: none;
   text-align: center;
   flex-shrink: 0;
+  touch-action: none;
+  -webkit-touch-callout: none;
 }
 
 /* Legacy-Klassen aus Referenz-HTML: ebenfalls „frei“ halten */

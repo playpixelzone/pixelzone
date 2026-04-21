@@ -18,7 +18,12 @@
   --r:         14px;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  touch-action: manipulation;
+}
 html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
@@ -26,6 +31,7 @@ body {
   font-family: 'Nunito', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
+  touch-action: manipulation;
 }
 
 /* ═══════════════════════════════════
@@ -840,12 +846,16 @@ footer {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+  touch-action: none;
+  -webkit-touch-callout: none;
 }
 
 .altar-stone {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+  touch-action: none;
+  -webkit-touch-callout: none;
 }
 
 .pentagram-symbol {

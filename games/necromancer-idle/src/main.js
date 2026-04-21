@@ -1,5 +1,3 @@
-import Phaser from 'phaser';
-import { GameScene } from './GameScene.js';
 import {
   GameState,
   cheatGrantResources,
@@ -85,24 +83,6 @@ function initTabNavigation() {
   });
 }
 
-const mount = document.getElementById('phaser-mount');
-if (!mount) {
-  throw new Error('#phaser-mount fehlt in games/necromancer-idle/index.html');
-}
-
-const config = {
-  type: Phaser.AUTO,
-  parent: mount,
-  backgroundColor: '#0d0d12',
-  scale: {
-    mode: Phaser.Scale.RESIZE,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: '100%',
-    height: '100%',
-  },
-  scene: [GameScene],
-};
-
 void (async function bootstrap() {
   const adminTest =
     typeof URLSearchParams !== 'undefined' && new URLSearchParams(window.location.search).has('admin');
@@ -114,8 +94,6 @@ void (async function bootstrap() {
   }
 
   await loadGameAsync();
-
-  new Phaser.Game(config);
 
   const audio = new AudioManager();
 

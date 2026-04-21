@@ -239,19 +239,6 @@ button:active:not(:disabled) {
   padding-top: 3.4rem;
 }
 
-#phaser-mount {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-#phaser-mount canvas {
-  display: block;
-  filter: brightness(0.35) contrast(1.05) saturate(0.85);
-  opacity: 0.85;
-}
-
 #ui-layer {
   position: relative;
   z-index: 1;
@@ -491,18 +478,15 @@ button:active:not(:disabled) {
   overflow: hidden;
 }
 
-/* Tab-Header-Grafik nur hier — nicht auf .tab-panel / Body */
+/* Tab-Leiste: kein Hintergrundbild (verhindert wildes Kacheln); Textur nur auf Buttons */
 .tab-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 0;
   align-items: flex-end;
-  border-bottom: 2px solid var(--px-border);
-  background-color: var(--px-bg);
-  background-image: url('assets/ui-tab-header.png');
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
+  border-bottom: 2px solid #5e3a2c;
+  background: transparent;
+  background-image: none;
   padding: 0;
   margin: 0;
   flex-shrink: 0;
@@ -522,16 +506,21 @@ button:active:not(:disabled) {
   border-bottom: none;
   cursor: pointer;
   color: var(--px-muted);
-  background: transparent;
+  background-color: #291d1d;
+  background-image: url('assets/ui-tab-header.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
   box-shadow: none;
   transition:
     color 0.15s ease,
-    background 0.15s ease;
+    background-color 0.15s ease,
+    filter 0.15s ease;
 }
 
 .tab-btn:hover {
   color: var(--px-text);
-  background: rgba(94, 58, 44, 0.25);
+  filter: brightness(1.08);
 }
 
 .tab-btn:active:not(:disabled) {
@@ -541,10 +530,15 @@ button:active:not(:disabled) {
 
 .tab-btn--active {
   color: var(--px-text);
-  background: var(--px-card);
+  background-color: var(--px-card);
+  background-image: url('assets/ui-tab-header.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
   border-color: var(--px-border);
   border-bottom: 2px solid var(--px-card);
   margin-bottom: -2px;
+  filter: none;
   box-shadow:
     4px 4px 0px #0a0707,
     inset -3px -3px 0px rgba(0, 0, 0, 0.5),

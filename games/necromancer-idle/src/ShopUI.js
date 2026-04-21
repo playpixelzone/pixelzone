@@ -340,7 +340,11 @@ export function initShopUI(audio) {
     refreshPrestigeBar();
   }
 
-  buildShop();
+  try {
+    buildShop();
+  } catch (err) {
+    console.error('[Necro] buildShop fehlgeschlagen', err);
+  }
 
   document.addEventListener('necro-state-changed', refreshAll);
   document.addEventListener('necro-milestone-reached', (e) => {
@@ -360,7 +364,8 @@ export function initShopUI(audio) {
 
 function initPrestigeButton() {
   const btn = document.getElementById('btn-prestige');
-  btn?.addEventListener('click', () => {
+  if (!btn) return;
+  btn.addEventListener('click', () => {
     if (!canPrestigeNow()) return;
     document.dispatchEvent(new CustomEvent('necro-prestige-start'));
   });
@@ -371,8 +376,12 @@ function initPrestigeButton() {
  */
 function initAltar(audio) {
   const altar = document.getElementById('altar-click');
-  const glyph = altar?.querySelector('.glyph');
-  const hint = altar?.querySelector('.hint');
+  if (!altar) {
+    console.warn('[Necro] #altar-click fehlt — Klick-Altar deaktiviert');
+    return;
+  }
+  const glyph = altar.querySelector('.glyph');
+  const hint = altar.querySelector('.hint');
   if (hint) {
     hint.textContent = 'Klicke, um Knochen zu sammeln';
   }
@@ -387,10 +396,10 @@ function initAltar(audio) {
 
   const warnRateLimit = () => {
     console.warn('[Necro] Klicklimit: höchstens 15 Klicks pro Sekunde.');
-    altar?.classList.add('altar--rate-warn');
+    altar.classList.add('altar--rate-warn');
     glyph?.classList.add('glyph--warn');
     window.setTimeout(() => {
-      altar?.classList.remove('altar--rate-warn');
+      altar.classList.remove('altar--rate-warn');
       glyph?.classList.remove('glyph--warn');
     }, 220);
   };
@@ -410,8 +419,8 @@ function initAltar(audio) {
     fireFx(e.clientX, e.clientY, label);
   };
 
-  altar?.addEventListener('click', onActivate);
-  altar?.addEventListener('keydown', (e) => {
+  altar.addEventListener('click', onActivate);
+  altar.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       if (!tryRegisterClick()) {

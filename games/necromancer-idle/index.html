@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Schrecken der Krypta – PIXELZONE</title>
+  <link rel="stylesheet" href="src/necromancer-idle.css">
+</head>
+<body>
+  <div id="prestige-bar-wrap" class="prestige-bar-wrap" aria-label="Fortschritt zur nächsten Dimension">
+    <div class="prestige-bar-inner">
+      <span id="prestige-bar-text" class="prestige-bar-text"></span>
+      <div class="prestige-bar-track">
+        <div id="prestige-bar-fill" class="prestige-bar-fill"></div>
+      </div>
+    </div>
+  </div>
+  <div id="save-toast" class="save-toast" role="status" aria-live="polite"></div>
+
+  <div id="offline-modal" class="offline-modal" hidden>
+    <div class="offline-modal__backdrop"></div>
+    <div class="offline-modal__card" role="dialog" aria-modal="true" aria-labelledby="offline-modal-title">
+      <h2 id="offline-modal-title">Willkommen zurück, Meister</h2>
+      <p id="offline-modal-text">
+        Eure Armee hat in eurer Abwesenheit geschuftet und <strong id="offline-modal-bones">0</strong> Knochen gesammelt.
+      </p>
+      <button type="button" id="offline-modal-collect" class="offline-modal__btn">Einsammeln</button>
+    </div>
+  </div>
+
+  <div id="shop-tooltip" class="shop-tooltip" hidden></div>
+  <div id="skilltree-tooltip" class="skilltree-tooltip" hidden></div>
+  <div id="prestige-overlay" class="prestige-overlay" aria-hidden="true"></div>
+
+  <div id="app-root">
+    <div id="phaser-mount" aria-hidden="true"></div>
+
+    <div id="ui-layer">
+      <header class="game-header">
+        <h1 class="sr-only">Schrecken der Krypta</h1>
+        <p class="nav-back"><a href="../../index.html">← PIXELZONE</a></p>
+      </header>
+
+      <aside id="die-krypta" class="col-crypta panel" aria-labelledby="crypta-heading">
+        <h2 id="crypta-heading">Die Krypta</h2>
+        <div class="stats-row">
+          <div>
+            <div class="label label--bones">
+              <img class="stat-bone-icon" src="icon_bone.png" width="16" height="16" alt="" aria-hidden="true" decoding="async" />
+              Knochen
+            </div>
+            <strong id="stat-bones">0</strong>
+          </div>
+          <div>
+            <div class="label">BpS</div>
+            <strong class="necro" id="stat-bps">0</strong>
+          </div>
+          <div>
+            <div class="label">Klick-Kraft</div>
+            <strong class="necro" id="stat-bpc">0</strong>
+          </div>
+        </div>
+        <div id="altar-click" class="click-altar altar" role="button" tabindex="0" aria-label="Beschwörungs-Altar">
+          <img
+            class="altar-scene"
+            src="altar.png"
+            width="512"
+            height="512"
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+          />
+          <span class="pentagram-symbol glyph" aria-hidden="true">⛧</span>
+          <h2 class="altar-title">BESCHWÖRUNGS-ALTAR</h2>
+          <p class="altar-subtitle hint">Klicke, um Knochen zu sammeln</p>
+        </div>
+      </aside>
+
+      <section class="col-main-tabs panel" aria-label="Spielbereiche">
+        <div class="tab-bar" role="tablist" aria-label="Navigation">
+          <button type="button" class="tab-btn tab-btn--active" role="tab" id="tab-friedhof" aria-selected="true" aria-controls="panel-friedhof" tabindex="0">Der Friedhof</button>
+          <button type="button" class="tab-btn" role="tab" id="tab-expedition" aria-selected="false" aria-controls="panel-expedition" tabindex="-1">Expeditionen</button>
+          <button type="button" class="tab-btn" role="tab" id="tab-unterwelt" aria-selected="false" aria-controls="panel-unterwelt" tabindex="-1">Unterwelt</button>
+        </div>
+
+        <div id="panel-friedhof" class="tab-panel" role="tabpanel" aria-labelledby="tab-friedhof" data-tab-panel="friedhof">
+          <h2 id="shop-heading" class="tab-panel-title">Der Friedhof</h2>
+          <div class="shop-grid">
+            <div class="shop-col">
+              <h3>Generatoren</h3>
+              <div id="shop-pps" class="shop-list"></div>
+            </div>
+            <div class="shop-col">
+              <h3>Klick-Upgrades</h3>
+              <div id="shop-ppc" class="shop-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="panel-expedition" class="tab-panel tab-panel--hidden" role="tabpanel" aria-labelledby="tab-expedition" hidden data-tab-panel="expedition">
+          <h2 id="expedition-heading" class="tab-panel-title">Kriegslager</h2>
+          <p class="expedition-intro">Beutezug nach <strong>Menschendorf</strong>. Die Toten verheeren die Lebenden.</p>
+
+          <div class="expedition-dd expedition-dd--camp">
+            <h3 class="expedition-dd__title">Armee-Lager</h3>
+            <p class="expedition-dd__stat">Skelett-Krieger im Lager: <strong id="expedition-army-count">0</strong></p>
+            <button type="button" class="btn-dd" id="btn-recruit-elite">Skelett-Krieger rekrutieren (Kosten: 400 Knochen)</button>
+          </div>
+
+          <div class="expedition-dd expedition-dd--battlefield">
+            <h3 class="expedition-dd__title">Das Schlachtfeld</h3>
+            <button type="button" class="btn-dd btn-dd--raid" id="btn-expedition-start">Plünderung starten</button>
+            <div class="expedition-raid-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="expedition-bar-wrap">
+              <div id="expedition-bar-fill" class="expedition-raid-fill"></div>
+            </div>
+            <p class="expedition-raid-hint" id="expedition-raid-status">Bereit zum Zug.</p>
+          </div>
+
+          <div class="expedition-dd expedition-dd--log">
+            <h3 class="expedition-dd__title">Kampf-Log &amp; Beute</h3>
+            <div class="expedition-log" id="expedition-log" aria-live="polite"></div>
+          </div>
+
+          <div class="artifact-panel expedition-artifacts">
+            <h3 class="artifact-heading">Artefakte</h3>
+            <ul class="artifact-list" id="artifact-list"></ul>
+          </div>
+
+          <div class="relic-fundus" id="relic-fundus" aria-label="Relikt-Fundus">
+            <h3 class="relic-fundus-heading">Relikt-Fundus</h3>
+            <p class="relic-fundus-lead">Kleine Relikte aus jeder abgeschlossenen Plünderung — permanente, kleine Boni fürs Klick-Idle.</p>
+            <p class="relic-fundus-summary" id="relic-fundus-summary"></p>
+            <div class="relic-fundus-list" id="relic-fundus-list"></div>
+          </div>
+        </div>
+
+        <div id="panel-unterwelt" class="tab-panel tab-panel--hidden" role="tabpanel" aria-labelledby="tab-unterwelt" hidden data-tab-panel="unterwelt">
+          <h2 class="tab-panel-title">Dimensions-Portal</h2>
+          <p class="portal-lead">
+            Wenn die Knochenschwelle oben voll ist, kannst du diese Dimension verschlingen und Welten-Essenz gewinnen.
+          </p>
+          <div class="portal-actions">
+            <span class="portal-essence">🌌 Welten-Essenz: <strong id="stat-essence">0</strong></span>
+            <button type="button" id="btn-prestige" class="btn-prestige" disabled>Dimension verschlingen</button>
+          </div>
+          <h3 class="skilltree-heading">Welten-Essenz — Skilltree</h3>
+          <p class="skilltree-lead">Kaufe Knoten mit Welten-Essenz. Pfade: Blut (Klicks), Schatten (Passiv), Eroberer (Beute).</p>
+          <div class="skilltree-viewport" id="skilltree-viewport">
+            <div class="skilltree-canvas" id="skilltree-canvas">
+              <svg
+                class="skilltree-svg"
+                id="skilltree-svg"
+                viewBox="0 0 200 200"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <g id="skilltree-lines"></g>
+              </svg>
+              <div class="skilltree-nodes" id="skilltree-nodes"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../../auth.js"></script>
+  <script>
+    window.PZ = typeof PZ !== 'undefined' ? PZ : null;
+  </script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

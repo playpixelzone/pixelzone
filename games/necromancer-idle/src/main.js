@@ -87,7 +87,7 @@ function initTabNavigation() {
 
 const mount = document.getElementById('phaser-mount');
 if (!mount) {
-  throw new Error('#phaser-mount fehlt in necromancer-idle.html');
+  throw new Error('#phaser-mount fehlt in games/necromancer-idle/index.html');
 }
 
 const config = {

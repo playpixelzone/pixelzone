@@ -282,7 +282,7 @@ const PZ = {
             <a href="${base}games/memory-match/?admin=1" class="pz-admin-btn">🃏 Memory Match</a>
             <a href="${base}games/pixel-drop/?admin=1" class="pz-admin-btn">⬇ Pixel Drop</a>
             <a href="${base}games/pong/?admin=1" class="pz-admin-btn">🏓 Pong</a>
-            <a href="${base}necromancer-idle.html?admin=1" class="pz-admin-btn">🦴 Schrecken der Krypta</a>
+            <a href="${base}games/necromancer-idle/?admin=1" class="pz-admin-btn">🦴 Schrecken der Krypta</a>
           </div>
           <button class="pz-admin-schliessen" id="pzAdminSchliessen">Schließen</button>
         </div>`;

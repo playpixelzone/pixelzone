@@ -778,8 +778,11 @@ footer {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Necromancer-Idle — Gothic Pixel Art (Spiel: necromancer-idle.html +
-   src/necromancer-idle/necromancer-idle.css; hier nur Referenz-Duplikat)
+   Necromancer-Idle — Gothic Pixel Art
+   Globaler Steinwand-body, Tab-Bereich, Krypta, Shop-Farben: NUR in
+   games/necromancer-idle/src/necromancer-idle.css (nicht hier body setzen,
+   sonst PIXELZONE-Startseite mit falscher Steinwand).
+   Unten nur Referenz-Duplikat für Karten/Altar.
 ═══════════════════════════════════════════════════════════ */
 
 /* Klobige 3D-Stein-Blöcke — gleiche Werte wie necromancer-idle.css */

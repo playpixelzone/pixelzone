@@ -1,7 +1,7 @@
 import { UPGRADE_DEFINITIONS } from './upgrades.js';
 
-/** Ordner `assets/` relativ zu dieser Datei — funktioniert auch unter GitHub-Pages-Subpfaden */
-export const SHOP_ASSET_BASE = new URL('./assets/', import.meta.url).href;
+/** Spiel-Root (`games/necromancer-idle/`) — Icons als `./icon_skeleton.png` o. ä. */
+export const SHOP_ASSET_BASE = new URL('../', import.meta.url).href;
 
 /** Fallback, falls neue Upgrades ohne Eintrag hinzukommen */
 const PPS_FALLBACK_POOL = [

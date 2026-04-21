@@ -778,82 +778,70 @@ footer {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Necromancer-Idle — gemeinsame Pixel-Blöcke (optional importierbar)
+   Necromancer-Idle — Gothic Pixel Art (Spiel: necromancer-idle.html +
+   src/necromancer-idle/necromancer-idle.css; hier nur Referenz-Duplikat)
 ═══════════════════════════════════════════════════════════ */
 
-/* Klobige 3D-Stein-Blöcke für die Karten */
+/* Klobige 3D-Stein-Blöcke — gleiche Werte wie necromancer-idle.css */
 .generator-card,
 .upgrade-card {
   background-color: #291d1d;
   margin-bottom: 16px;
   padding: 12px;
   position: relative;
-  /* Der Pixel-Art Border Trick: Harte Schatten, keine runden Linien */
   border: 2px solid #5e3a2c;
   box-shadow:
-    4px 4px 0px #110d0d,
-    /* Äußerer harter Schlagschatten */
-    inset -4px -4px 0px rgba(0, 0, 0, 0.4),
-    /* Innerer dunkler Rand (3D Effekt unten rechts) */
-    inset 4px 4px 0px rgba(255, 255, 255, 0.05); /* Innerer heller Rand (3D Effekt oben links) */
+    4px 4px 0px #0a0707,
+    inset -3px -3px 0px rgba(0, 0, 0, 0.5),
+    inset 2px 2px 0px rgba(255, 255, 255, 0.05);
   transition: transform 0.1s;
 }
 
 .generator-card:hover,
 .upgrade-card:hover {
   background-color: #332424;
-  transform: translate(-2px, -2px); /* Bewegt sich beim Hovern leicht nach oben */
+  transform: translate(-2px, -2px);
   box-shadow:
-    6px 6px 0px #110d0d,
-    inset -4px -4px 0px rgba(0, 0, 0, 0.4),
-    inset 4px 4px 0px rgba(255, 255, 255, 0.05);
+    6px 6px 0px #0a0707,
+    inset -3px -3px 0px rgba(0, 0, 0, 0.5),
+    inset 2px 2px 0px rgba(255, 255, 255, 0.05);
 }
 
-/* Der massive Altar-Block */
-.pixel-altar-container {
+#altar-click.click-altar {
+  width: 250px;
+  height: 250px;
+  margin: 0 auto;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  padding: 20px;
-}
-
-.altar-stone {
   background-color: #1e1515;
   border: 4px solid #5e3a2c;
-  padding: 40px;
-  text-align: center;
-  cursor: pointer;
   box-shadow:
     8px 8px 0px #0a0707,
-    inset -6px -6px 0px rgba(0, 0, 0, 0.6);
-  user-select: none;
-}
-
-.altar-stone:active {
-  transform: translate(4px, 4px);
-  box-shadow:
-    4px 4px 0px #0a0707,
     inset -6px -6px 0px rgba(0, 0, 0, 0.6);
 }
 
 .pentagram-symbol {
-  font-size: 120px;
+  font-size: 100px;
   color: #d92e2e;
   text-shadow: 0 0 15px #d92e2e, 0 0 30px #d92e2e;
-  display: block;
-  margin-bottom: 20px;
+  transition: transform 0.1s;
+}
+
+.pentagram-symbol:active {
+  transform: scale(0.9);
 }
 
 .altar-title {
   color: #d8caca;
-  font-size: 28px;
+  font-size: 0.95rem;
   margin: 0;
-  letter-spacing: 2px;
+  letter-spacing: 0.12em;
 }
 
 .altar-subtitle {
-  color: #8c7373;
-  font-size: 18px;
-  margin-top: 10px;
+  color: #9a8f8f;
+  font-size: 0.82rem;
+  margin-top: 0.35rem;
 }

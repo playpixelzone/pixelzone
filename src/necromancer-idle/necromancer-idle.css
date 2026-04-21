@@ -621,8 +621,7 @@ button:active:not(:disabled) {
   position: relative;
 }
 
-/* Klobige 3D-Stein-Blöcke für die Karten (+ echte Shop-Buttons) */
-.shop-buy-btn,
+/* Klobige 3D-Stein-Blöcke (Generator/Upgrade außerhalb Shop) */
 .generator-card,
 .upgrade-card {
   background-color: #291d1d;
@@ -630,6 +629,35 @@ button:active:not(:disabled) {
   padding: 12px;
   position: relative;
   border: 2px solid #5e3a2c;
+  box-shadow:
+    4px 4px 0px #0a0707,
+    inset -3px -3px 0px rgba(0, 0, 0, 0.5),
+    inset 2px 2px 0px rgba(255, 255, 255, 0.05);
+  transition: transform 0.1s;
+}
+
+/* Shop-Zeilen: Eisen-Rahmen-Asset (228×308, Ecken per slice) */
+.shop-buy-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 16px;
+  padding: 0.85rem 0.95rem 0.85rem;
+  padding-top: 1.95rem;
+  position: relative;
+  text-align: left;
+  font-family: inherit !important;
+  font-size: 0.82rem;
+  color: var(--px-text);
+  cursor: pointer;
+  background-color: #291d1d;
+  background-image: linear-gradient(180deg, rgba(41, 29, 29, 0.97) 0%, rgba(41, 29, 29, 0.93) 100%),
+    url('assets/runestone-texture.png');
+  background-size: auto, 160px;
+  border: 18px solid transparent;
+  border-image: url('assets/ui-card-frame.png') 68 fill / 18px / 0 stretch;
   box-shadow:
     4px 4px 0px #0a0707,
     inset -3px -3px 0px rgba(0, 0, 0, 0.5),
@@ -652,6 +680,7 @@ button:active:not(:disabled) {
   background-image: linear-gradient(180deg, rgba(51, 36, 36, 0.98) 0%, rgba(51, 36, 36, 0.94) 100%),
     url('assets/runestone-texture.png');
   background-size: auto, 160px;
+  border-image: url('assets/ui-card-frame.png') 68 fill / 18px / 0 stretch;
   transform: translate(-2px, -2px);
   box-shadow:
     6px 6px 0px #0a0707,
@@ -661,8 +690,8 @@ button:active:not(:disabled) {
 
 .shop-level-badge {
   position: absolute;
-  top: 0.35rem;
-  right: 0.4rem;
+  top: 0.45rem;
+  right: 0.5rem;
   z-index: 2;
   padding: 0.12rem 0.45rem;
   font-size: 0.72rem;
@@ -675,25 +704,9 @@ button:active:not(:disabled) {
   pointer-events: none;
 }
 
-.shop-buy-btn {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding-top: 1.85rem;
-  text-align: left;
-  font-family: inherit !important;
-  font-size: 0.82rem;
-  color: var(--px-text);
-  cursor: pointer;
-  background-image: linear-gradient(180deg, rgba(41, 29, 29, 0.97) 0%, rgba(41, 29, 29, 0.93) 100%),
-    url('assets/runestone-texture.png');
-  background-size: auto, 160px;
-}
-
 .shop-buy-btn:active:not(:disabled) {
   transform: translateY(2px);
+  border-image: url('assets/ui-card-frame.png') 68 fill / 18px / 0 stretch;
   box-shadow:
     2px 2px 0px #0a0707,
     inset -2px -2px 0px rgba(0, 0, 0, 0.55),

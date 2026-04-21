@@ -1513,3 +1513,26 @@ button:active:not(:disabled) {
 .offline-modal__btn:active {
   transform: translateY(2px);
 }
+
+.floating-number {
+  position: absolute;
+  color: #d92e2e;
+  font-family: 'VT323', monospace !important;
+  font-size: 28px;
+  text-shadow: 0 0 8px rgba(217, 46, 46, 0.8), 2px 2px 0px #0a0707;
+  pointer-events: none;
+  z-index: 9999;
+  user-select: none;
+  animation: floatUpFade 1s ease-out forwards;
+}
+
+@keyframes floatUpFade {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(1.3);
+  }
+}

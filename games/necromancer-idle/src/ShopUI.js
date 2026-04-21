@@ -372,6 +372,23 @@ function initPrestigeButton() {
 }
 
 /**
+ * @param {{ clientX: number; clientY: number }} e
+ * @param {number} amount — Knochen dieses Klicks (nach Raserei-Multiplikator)
+ */
+function createFloatingNumber(e, amount) {
+  const ox = Math.round(Math.random() * 30 - 15);
+  const oy = Math.round(Math.random() * 30 - 15);
+  const el = document.createElement('div');
+  el.className = 'floating-number';
+  el.textContent = `+${formatGameNumber(amount)}`;
+  el.style.position = 'fixed';
+  el.style.left = `${e.clientX + ox}px`;
+  el.style.top = `${e.clientY + oy}px`;
+  document.body.appendChild(el);
+  window.setTimeout(() => el.remove(), 1000);
+}
+
+/**
  * @param {import('./AudioManager.js').AudioManager} audio
  */
 function initAltar(audio) {
@@ -410,10 +427,11 @@ function initAltar(audio) {
       warnRateLimit();
       return;
     }
-    audio.playClickSound();
     const bpc = getBonesPerClick();
     const rMult = getNextRasereiPayoutMult();
     const gained = bpc * rMult;
+    createFloatingNumber(e, gained);
+    audio.playClickSound();
     addBones(gained);
     const label = rMult >= 2 ? `+${formatGameNumber(gained)} (Raserei×2!)` : `+${formatGameNumber(gained)}`;
     fireFx(e.clientX, e.clientY, label);
@@ -427,12 +445,14 @@ function initAltar(audio) {
         warnRateLimit();
         return;
       }
-      audio.playClickSound();
       const bpc = getBonesPerClick();
       const rMult = getNextRasereiPayoutMult();
       const gained = bpc * rMult;
-      addBones(gained);
       const r = altar.getBoundingClientRect();
+      const pointer = { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
+      createFloatingNumber(pointer, gained);
+      audio.playClickSound();
+      addBones(gained);
       const label = rMult >= 2 ? `+${formatGameNumber(gained)} (×2)` : `+${formatGameNumber(gained)}`;
       fireFx(r.left + r.width / 2, r.top + r.height / 2, label);
     }

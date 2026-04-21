@@ -1,30 +1,34 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-/**
- * Supabase-Client (Vite: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY).
- * Fallback: gleiche Werte wie public/auth.js für lokale Builds ohne .env
- * CDN-ESM: funktioniert auch ohne Bundler-Auflösung für @supabase/supabase-js.
- */
-const url =
-  import.meta.env.VITE_SUPABASE_URL || 'https://mgvcxszzhxrvftqnizjm.supabase.co';
-const anonKey =
-  import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ndmN4c3p6aHhydmZ0cW5pemptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NjYzMjIsImV4cCI6MjA5MDM0MjMyMn0.ccuwZQxMyuJC69i4rzFE2FyxvhcHQdAC5T9w0HhD2bg';
+let supabaseUrl = '';
+let supabaseAnonKey = '';
+
+if (typeof import.meta !== 'undefined' && import.meta.env) {
+  supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+  supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+}
+
+/* Ohne gesetzte VITE_* (z. B. nur statische HTML-Datei): gleiche Defaults wie public/auth.js */
+if (!supabaseUrl) supabaseUrl = 'https://mgvcxszzhxrvftqnizjm.supabase.co';
+if (!supabaseAnonKey) {
+  supabaseAnonKey =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ndmN4c3p6aHhydmZ0cW5pemptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NjYzMjIsImV4cCI6MjA5MDM0MjMyMn0.ccuwZQxMyuJC69i4rzFE2FyxvhcHQdAC5T9w0HhD2bg';
+}
 
 /** @type {import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm').SupabaseClient | null} */
-let client = null;
+export const supabase =
+  supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      })
+    : null;
 
 export function getSupabaseClient() {
-  if (!client) {
-    client = createClient(url, anonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    });
-  }
-  return client;
+  return supabase;
 }
 
 /**
@@ -33,7 +37,10 @@ export function getSupabaseClient() {
  */
 export async function getCurrentUserId() {
   const sb = getSupabaseClient();
-  const { data: { session } } = await sb.auth.getSession();
+  if (!sb) return null;
+  const {
+    data: { session },
+  } = await sb.auth.getSession();
   return session?.user?.id ? { userId: session.user.id } : null;
 }
 
@@ -43,6 +50,7 @@ export async function getCurrentUserId() {
  */
 export async function fetchUserProgress(userId) {
   const sb = getSupabaseClient();
+  if (!sb) return null;
   const { data, error } = await sb
     .from('user_progress')
     .select('*')
@@ -62,6 +70,7 @@ export async function fetchUserProgress(userId) {
  */
 export async function upsertUserProgress(userId, row) {
   const sb = getSupabaseClient();
+  if (!sb) return false;
   const payload = {
     user_id: userId,
     ...row,

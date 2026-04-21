@@ -13,6 +13,7 @@ import { EXPEDITION_RELIC_DEFS, rollRandomExpeditionRelic } from './relicData.js
 import {
   fetchUserProgress,
   getCurrentUserId,
+  getSupabaseClient,
   upsertUserProgress,
 } from './necroSupabase.js';
 
@@ -795,6 +796,10 @@ function buildPersistPayload() {
 
 export async function saveToSupabase() {
   if (necromancerAdminSandbox) return false;
+  if (!getSupabaseClient()) {
+    console.warn('[Necro] Offline-Modus: Supabase nicht verbunden.');
+    return false;
+  }
   try {
     const auth = await getCurrentUserId();
     if (!auth) return false;
@@ -1073,6 +1078,10 @@ export function loadGameLocal() {
 
 export async function loadFromSupabase() {
   if (necromancerAdminSandbox) return false;
+  if (!getSupabaseClient()) {
+    console.warn('[Necro] Offline-Modus: Supabase nicht verbunden.');
+    return false;
+  }
   const auth = await getCurrentUserId();
   if (!auth) return false;
   const row = await fetchUserProgress(auth.userId);

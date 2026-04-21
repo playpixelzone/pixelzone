@@ -1,5 +1,4 @@
 import {
-  GameState,
   buySkillNode,
   canPurchaseSkill,
   formatGameNumber,
@@ -8,7 +7,7 @@ import {
 import { SKILL_TREE_NODES, getSkillTreeEdges } from './SkillTreeData.js';
 
 /**
- * SVG + DOM-Skilltree im Tab „Unterwelt“.
+ * SVG + DOM-Skilltree, Tab „Unterwelt“ (viewBox 0..200, kurze Labels, Voll-Infos per CSS-:hover).
  */
 export function initSkillTreeUI() {
   const viewport = document.getElementById('skilltree-viewport');
@@ -16,11 +15,14 @@ export function initSkillTreeUI() {
   const svg = document.getElementById('skilltree-svg');
   const linesG = document.getElementById('skilltree-lines');
   const nodesHost = document.getElementById('skilltree-nodes');
-  const tooltip = document.getElementById('skilltree-tooltip');
 
   if (!viewport || !canvas || !svg || !linesG || !nodesHost) {
     console.warn('[Skilltree] DOM fehlt');
     return;
+  }
+
+  if (svg) {
+    svg.setAttribute('viewBox', '0 0 200 200');
   }
 
   const edges = getSkillTreeEdges();
@@ -58,33 +60,6 @@ export function initSkillTreeUI() {
     return 'locked';
   }
 
-  function showTooltip(/** @type {MouseEvent} */ e, id) {
-    if (!tooltip) return;
-    const n = SKILL_TREE_NODES.find((x) => x.id === id);
-    if (!n) return;
-    const st = nodeStatus(id);
-    let statusText = 'Gesperrt';
-    if (st === 'bought') statusText = 'Freigeschaltet';
-    else if (st === 'purchasable') statusText = 'Kaufbar';
-    tooltip.hidden = false;
-    const effectHtml = n.effect
-      ? `<span class="skilltree-tip-effect">${n.effect}</span><br>`
-      : '';
-    tooltip.innerHTML = `<strong>${n.name}</strong><br><span class="skilltree-tip-path">${n.path}</span><br>${effectHtml}Welten-Essenz: ${formatGameNumber(n.cost)}<br>Status: ${statusText}`;
-    const pad = 12;
-    let x = e.clientX + pad;
-    let y = e.clientY + pad;
-    const tr = tooltip.getBoundingClientRect();
-    if (x + tr.width > window.innerWidth - 8) x = e.clientX - tr.width - pad;
-    if (y + tr.height > window.innerHeight - 8) y = e.clientY - tr.height - pad;
-    tooltip.style.left = `${Math.max(8, x)}px`;
-    tooltip.style.top = `${Math.max(8, y)}px`;
-  }
-
-  function hideTooltip() {
-    if (tooltip) tooltip.hidden = true;
-  }
-
   function renderNodes() {
     nodesHost.replaceChildren();
     for (const n of SKILL_TREE_NODES) {
@@ -93,17 +68,23 @@ export function initSkillTreeUI() {
       btn.type = 'button';
       btn.className = `skilltree-node skilltree-node--${st}`;
       btn.dataset.nodeId = n.id;
-      btn.style.left = `${n.x}%`;
-      btn.style.top = `${n.y}%`;
-      btn.setAttribute('aria-label', `${n.name}, ${n.path}`);
+      btn.style.left = `${(n.x / 200) * 100}%`;
+      btn.style.top = `${(n.y / 200) * 100}%`;
+      const shortLabel = n.labelShort || n.name;
       const inner = document.createElement('span');
       inner.className = 'skilltree-node__inner';
-      inner.textContent = n.name.length > 14 ? `${n.name.slice(0, 12)}…` : n.name;
-      btn.appendChild(inner);
+      inner.textContent = shortLabel;
 
-      btn.addEventListener('mouseenter', (ev) => showTooltip(ev, n.id));
-      btn.addEventListener('mousemove', (ev) => showTooltip(ev, n.id));
-      btn.addEventListener('mouseleave', hideTooltip);
+      const tip = document.createElement('span');
+      tip.className = 'skilltree-node__hovertip';
+      tip.setAttribute('role', 'tooltip');
+      tip.innerHTML = `<span class="skilltree-node__hovertip-name">${n.name}</span><span class="skilltree-node__hovertip-path">${n.path} · ${formatGameNumber(
+        n.cost,
+      )} Essenz</span><span class="skilltree-node__hovertip-fx">${n.effect || ''}</span>`;
+
+      btn.setAttribute('aria-label', `${n.name}, ${n.path}, ${n.cost} Essenz`);
+      btn.appendChild(inner);
+      btn.appendChild(tip);
 
       btn.addEventListener('click', () => {
         if (canPurchaseSkill(n.id)) {

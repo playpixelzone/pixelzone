@@ -9,6 +9,7 @@ import {
 } from './expeditionData.js';
 import { rollExpeditionLoot } from './lootData.js';
 import { getSkillNodeById, SKILL_TREE_NODES } from './SkillTreeData.js';
+import { EXPEDITION_RELIC_DEFS, rollRandomExpeditionRelic } from './relicData.js';
 import {
   fetchUserProgress,
   getCurrentUserId,
@@ -93,10 +94,33 @@ export const GameState = {
   /** Freigeschaltete Skilltree-Knoten (Welten-Essenz); „center“ muss gekauft werden */
   /** @type {string[]} */
   unlockedSkills: [],
+  /** Kleine Relikte (Expedition) → Id → Stückzahl, permanent */
+  /** @type {Record<string, number>} */
+  relicsOwned: {},
   necroBaseStats: initialNecroBaseStats(),
 };
 
 let passiveRemainder = 0;
+
+let rasereiClickCount = 0;
+
+/** Summe Skill-Bonuses inkl. Ghul-Modifikator, seltene Relikt-Würfe, Raserei */
+function sumUnlockedSkillBonuses() {
+  let clickBonus = 0;
+  let passiveBonus = 0;
+  let expeditionSpeedBonus = 0;
+  let ghoulPpsMult = 0;
+  let rareRelicDropBonus = 0;
+  for (const n of SKILL_TREE_NODES) {
+    if (!isSkillUnlocked(n.id)) continue;
+    if (typeof n.clickBonus === 'number') clickBonus += n.clickBonus;
+    if (typeof n.passiveBonus === 'number') passiveBonus += n.passiveBonus;
+    if (typeof n.expeditionSpeedBonus === 'number') expeditionSpeedBonus += n.expeditionSpeedBonus;
+    if (typeof n.ghoulPpsMult === 'number') ghoulPpsMult += n.ghoulPpsMult;
+    if (typeof n.rareRelicDropBonus === 'number') rareRelicDropBonus += n.rareRelicDropBonus;
+  }
+  return { clickBonus, passiveBonus, expeditionSpeedBonus, ghoulPpsMult, rareRelicDropBonus };
+}
 
 /**
  * Elite-Krieger anwerben (Knochen).
@@ -154,8 +178,16 @@ export function finishExpeditionPlunder() {
 
   /** @type {ReturnType<typeof rollExpeditionLoot> | null} */
   let loot = null;
+  /** Garantiertes Kleines Relikt (bei entsandter Armee) */
+  /** @type {{ id: string; name: string; shortName: string } | null} */
+  let smallRelic = null;
   if (deployed > 0) {
-    loot = rollExpeditionLoot();
+    const { rareRelicDropBonus } = sumUnlockedSkillBonuses();
+    loot = rollExpeditionLoot({ lootQualityBias: rareRelicDropBonus });
+    const pick = rollRandomExpeditionRelic();
+    const prevR = Math.max(0, Math.floor(GameState.relicsOwned[pick.id] ?? 0));
+    GameState.relicsOwned[pick.id] = prevR + 1;
+    smallRelic = { id: pick.id, name: pick.name, shortName: pick.shortName };
   }
 
   const result = {
@@ -163,6 +195,7 @@ export function finishExpeditionPlunder() {
     survived,
     deployed,
     loot,
+    smallRelic,
   };
   dispatchStateChanged();
   document.dispatchEvent(new CustomEvent('necro-expedition-complete', { detail: result }));
@@ -171,20 +204,6 @@ export function finishExpeditionPlunder() {
 
 export function isSkillUnlocked(id) {
   return GameState.unlockedSkills.includes(id);
-}
-
-/** Additive Skill-Boni aus freigeschalteten Knoten (siehe SkillTreeData). */
-function sumUnlockedSkillBonuses() {
-  let clickBonus = 0;
-  let passiveBonus = 0;
-  let expeditionSpeedBonus = 0;
-  for (const n of SKILL_TREE_NODES) {
-    if (!isSkillUnlocked(n.id)) continue;
-    if (typeof n.clickBonus === 'number') clickBonus += n.clickBonus;
-    if (typeof n.passiveBonus === 'number') passiveBonus += n.passiveBonus;
-    if (typeof n.expeditionSpeedBonus === 'number') expeditionSpeedBonus += n.expeditionSpeedBonus;
-  }
-  return { clickBonus, passiveBonus, expeditionSpeedBonus };
 }
 
 /**
@@ -298,7 +317,12 @@ function baseBonesPerClick() {
 
 export function getBonesPerSecond() {
   const { passiveBonus } = sumUnlockedSkillBonuses();
-  return calculateTotalBPS() * GameState.dimensionMultiplier * (1 + passiveBonus);
+  return (
+    calculateTotalBPS() *
+    getRelicBpsFactor() *
+    GameState.dimensionMultiplier *
+    (1 + passiveBonus)
+  );
 }
 
 export function getArtifactClickMultiplier() {
@@ -324,11 +348,83 @@ export function getCombatPower() {
 export function getBonesPerClick() {
   const { clickBonus } = sumUnlockedSkillBonuses();
   return (
-    baseBonesPerClick() *
+    (baseBonesPerClick() + getRelicBaseClickAdd()) *
     GameState.dimensionMultiplier *
     getArtifactClickMultiplier() *
     (1 + clickBonus)
   );
+}
+
+/**
+ * Dauerhafte Relikt-BpS: additiv gedeckelt, multiplikativ auf reine Gebäude-BpS.
+ */
+function getRelicBpsFactor() {
+  let add = 0;
+  for (const d of EXPEDITION_RELIC_DEFS) {
+    const c = Math.max(0, Math.floor(GameState.relicsOwned[d.id] ?? 0));
+    add += c * d.bpsAddPerStack;
+  }
+  return 1 + Math.min(0.5, add);
+}
+
+/**
+ * +Basis-Klichwert (additiv, vor globalem Multi) aus Relikten
+ */
+function getRelicBaseClickAdd() {
+  let t = 0;
+  for (const d of EXPEDITION_RELIC_DEFS) {
+    const c = Math.max(0, Math.floor(GameState.relicsOwned[d.id] ?? 0));
+    t += c * d.baseClickAddPerStack;
+  }
+  return t;
+}
+
+/**
+ * 1 - Rabatt, min. 50 % Kosten; Relikt "Alte Münze" stapelt, max. 20 % Rabatt.
+ */
+function getRelicBuildingPriceMult() {
+  let relief = 0;
+  for (const d of EXPEDITION_RELIC_DEFS) {
+    if (d.buildingCostReliefPerStack <= 0) continue;
+    const c = Math.max(0, Math.floor(GameState.relicsOwned[d.id] ?? 0));
+    relief += c * d.buildingCostReliefPerStack;
+  }
+  return Math.max(0.5, 1 - Math.min(0.2, relief));
+}
+
+/**
+ * @returns {{ bpsAdd: number; baseClick: number; costRelief: number; lines: { label: string; text: string }[] }}
+ */
+export function getRelicPanelSummary() {
+  const s = { bpsAdd: 0, baseClick: 0, costRelief: 0, lines: /** @type {{ label: string; text: string }[]} */ ([]) };
+  for (const d of EXPEDITION_RELIC_DEFS) {
+    const c = Math.max(0, Math.floor(GameState.relicsOwned[d.id] ?? 0));
+    if (c <= 0) continue;
+    s.bpsAdd += c * d.bpsAddPerStack;
+    s.baseClick += c * d.baseClickAddPerStack;
+    s.costRelief += c * d.buildingCostReliefPerStack;
+    s.lines.push({
+      label: `${c}× ${d.shortName}`,
+      text: d.name,
+    });
+  }
+  s.bpsAdd = Math.min(0.5, s.bpsAdd);
+  s.costRelief = Math.min(0.2, s.costRelief);
+  return s;
+}
+
+/**
+ * Jeder-10-Klick (Skill Raserei): aktuell Zähler & Auszahlung.
+ * @returns {1 | 2}
+ */
+export function getNextRasereiPayoutMult() {
+  for (const n of SKILL_TREE_NODES) {
+    if (n.rasereiEveryTenth && isSkillUnlocked(n.id)) {
+      rasereiClickCount += 1;
+      return rasereiClickCount % 10 === 0 ? 2 : 1;
+    }
+  }
+  return 1;
 }
 
 export function getNecroBaseStat(statId) {
@@ -442,7 +538,7 @@ export function getUpgradeCurrentPrice(id) {
   const def = getDefinitionById(id);
   if (!def) return Infinity;
   const lv = getUpgradeLevel(id);
-  return priceAtLevel(def.basePrice, lv);
+  return Math.ceil(priceAtLevel(def.basePrice, lv) * getRelicBuildingPriceMult());
 }
 
 export function canAffordUpgrade(id) {
@@ -609,6 +705,18 @@ function applyLoadedState(data, opts = {}) {
     GameState.artifactsOwned = {};
   }
 
+  const relic = data.relics_owned ?? data.relicsOwned;
+  if (relic && typeof relic === 'object') {
+    /** @type {Record<string, number>} */
+    const nextRel = {};
+    for (const [k, v] of Object.entries(relic)) {
+      nextRel[k] = Math.max(0, Math.floor(Number(v) || 0));
+    }
+    GameState.relicsOwned = nextRel;
+  } else {
+    GameState.relicsOwned = {};
+  }
+
   const rawSkills = data.unlocked_skills ?? data.unlockedSkills;
   const knownIds = new Set(SKILL_TREE_NODES.map((n) => n.id));
   /** @type {string[]} */
@@ -677,6 +785,7 @@ function buildPersistPayload() {
       deployed_this_run: GameState.expeditionState.deployedThisRun,
     },
     artifacts_owned: { ...GameState.artifactsOwned },
+    relics_owned: { ...GameState.relicsOwned },
     unlocked_skills: [...GameState.unlockedSkills],
     necro_base_stats: { ...GameState.necroBaseStats },
     last_saved_time: lastSavedTime,
@@ -717,6 +826,7 @@ export function saveGameLocal() {
         deployedThisRun: GameState.expeditionState.deployedThisRun,
       },
       artifactsOwned: { ...GameState.artifactsOwned },
+      relicsOwned: { ...GameState.relicsOwned },
       unlockedSkills: [...GameState.unlockedSkills],
       necroBaseStats: { ...GameState.necroBaseStats },
       lastSavedTime,
@@ -811,12 +921,18 @@ export function getUpgradeBpsMultiplier(id) {
 }
 
 export function calculateTotalBPS() {
+  const { ghoulPpsMult } = sumUnlockedSkillBonuses();
+  const ghoulFactor = 1 + (Number.isFinite(ghoulPpsMult) ? ghoulPpsMult : 0);
   let total = 0;
   for (const def of UPGRADE_DEFINITIONS) {
     if (def.type !== 'PPS') continue;
     const lv = getUpgradeLevel(def.id);
     if (lv <= 0) continue;
-    total += lv * def.perLevel * getUpgradeBpsMultiplier(def.id);
+    let line = lv * def.perLevel * getUpgradeBpsMultiplier(def.id);
+    if (def.id === 'ghoul') {
+      line *= ghoulFactor;
+    }
+    total += line;
   }
   return total;
 }
@@ -859,6 +975,7 @@ export function loadGameLocal() {
       upgrades: data.upgrades,
       expedition_state: data.expeditionState,
       artifacts_owned: data.artifactsOwned,
+      relics_owned: data.relicsOwned,
       unlocked_skills: data.unlockedSkills,
       necro_base_stats: data.necroBaseStats,
       last_saved_time: data.lastSavedTime,
@@ -982,6 +1099,7 @@ export async function loadFromSupabase() {
       upgrades: row.upgrades,
       expedition_state: row.expedition_state,
       artifacts_owned: row.artifacts_owned,
+      relics_owned: row.relics_owned,
       unlocked_skills: row.unlocked_skills,
       necro_base_stats: row.necro_base_stats,
       last_saved_time: row.last_saved_time,

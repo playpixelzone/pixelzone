@@ -2,6 +2,7 @@ import {
   GameState,
   formatGameNumber,
   getExpeditionDurationSeconds,
+  getRelicPanelSummary,
   recruitEliteUnit,
   startExpedition,
 } from './GameState.js';
@@ -49,6 +50,8 @@ export function initExpeditionSystem() {
   const statusEl = document.getElementById('expedition-raid-status');
   const logEl = document.getElementById('expedition-log');
   const listEl = document.getElementById('artifact-list');
+  const fundusList = document.getElementById('relic-fundus-list');
+  const fundusSummary = document.getElementById('relic-fundus-summary');
 
   /** @type {number | undefined} */
   let rafId;
@@ -95,6 +98,28 @@ export function initExpeditionSystem() {
     }
   }
 
+  function renderRelicFundus() {
+    if (!fundusList || !fundusSummary) return;
+    const s = getRelicPanelSummary();
+    fundusList.replaceChildren();
+    if (s.lines.length === 0) {
+      const p = document.createElement('p');
+      p.className = 'relic-fundus-empty';
+      p.textContent = 'Noch keine Relikte. Schließt eine Plünderung ab — jedes Mal gibt es ein kleines Relikt.';
+      fundusList.appendChild(p);
+    } else {
+      for (const line of s.lines) {
+        const item = document.createElement('div');
+        item.className = 'relic-fundus-item';
+        item.innerHTML = `<span class="relic-fundus-name">${line.label}</span><span class="relic-fundus-desc">${line.text}</span>`;
+        fundusList.appendChild(item);
+      }
+    }
+    const bpsP = s.bpsAdd * 100;
+    const costP = s.costRelief * 100;
+    fundusSummary.textContent = `Gesamteffekt: +${bpsP.toFixed(1)} % BpS · +${s.baseClick.toFixed(0)} Basis-Klichwert · ${costP.toFixed(1)} % niedrigere Gebäude-Kosten`;
+  }
+
   function refresh() {
     const u = ELITE_UNITS[0];
     const count = Math.max(0, Math.floor(GameState.expeditionState.activeUnits[u.id] ?? 0));
@@ -126,6 +151,7 @@ export function initExpeditionSystem() {
     }
 
     renderArtifacts(listEl);
+    renderRelicFundus();
   }
 
   refresh();
@@ -135,7 +161,12 @@ export function initExpeditionSystem() {
   document.addEventListener('necro-expedition-complete', (e) => {
     const d = /** @type {CustomEvent} */ (e).detail;
     if (!d) return;
-    const { lost, survived, loot } = d;
+    const { lost, survived, loot, smallRelic } = d;
+    if (smallRelic) {
+      appendLogLootHtml(
+        `Relikt: <span class="loot-tag" style="color:#c0a8ff">[Kleines Relikt]</span> <span class="loot-name" style="color:#e0d0ff"><strong>${smallRelic.name}</strong> (${smallRelic.shortName})</span>`,
+      );
+    }
     if (loot && loot.itemName) {
       appendLogLootHtml(
         `Beute: <span class="loot-tag" style="color:${loot.color}">[${loot.label}]</span> <span class="loot-name" style="color:${loot.color}">${loot.itemName}</span>`,

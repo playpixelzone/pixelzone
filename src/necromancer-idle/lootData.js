@@ -53,10 +53,14 @@ export const LOOT_PLACEHOLDER_NAMES = {
 
 /**
  * Eine Plünderung = ein Loot-Wurf (Verteilung in %).
+ * @param {{ lootQualityBias?: number }} [opts] — Skill „Spürsinn“: bis ~0,15 → seltenere Stufen leicht wahrscheinlicher
  * @returns {{ rarityKey: LootRarityKey; itemName: string; color: string; label: string }}
  */
-export function rollExpeditionLoot() {
-  const r = Math.random() * 100;
+export function rollExpeditionLoot(/** @type {{ lootQualityBias?: number }} */ opts = {}) {
+  const bias = Math.max(0, Math.min(0.25, Number(opts.lootQualityBias) || 0));
+  let r = Math.random() * 100;
+  r += bias * 35;
+  r = Math.min(99.99, Math.max(0, r));
   /** @type {LootRarityKey} */
   let rarityKey;
   if (r < 60) rarityKey = 'common';

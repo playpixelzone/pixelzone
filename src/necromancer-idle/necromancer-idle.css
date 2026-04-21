@@ -691,7 +691,7 @@ body {
 .skilltree-viewport {
   position: relative;
   width: 100%;
-  height: 600px;
+  height: 1200px;
   overflow: auto;
   background: #0a0a0f;
   border: 1px solid rgba(80, 60, 100, 0.45);
@@ -701,9 +701,9 @@ body {
 
 .skilltree-canvas {
   position: relative;
-  min-height: 600px;
+  min-height: 1200px;
   width: 100%;
-  min-width: 520px;
+  min-width: 1040px;
 }
 
 .skilltree-svg {
@@ -715,7 +715,7 @@ body {
 }
 
 .skilltree-line {
-  stroke-width: 0.42;
+  stroke-width: 0.95;
   fill: none;
   vector-effect: non-scaling-stroke;
 }
@@ -753,9 +753,9 @@ body {
 .skilltree-node {
   pointer-events: auto;
   position: absolute;
-  min-width: 4.5rem;
-  max-width: 8rem;
-  padding: 0.28rem 0.4rem;
+  min-width: 3.2rem;
+  max-width: 5.2rem;
+  padding: 0.2rem 0.32rem;
   font-family: inherit;
   font-size: 0.58rem;
   line-height: 1.2;
@@ -768,6 +768,61 @@ body {
     box-shadow 0.2s ease,
     border-color 0.2s ease,
     opacity 0.2s ease;
+}
+
+/* CSS-Tooltip: voller Text bei Hover (Knoten-Label bleibt kurz) */
+.skilltree-node__hovertip {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  margin-bottom: 0.4rem;
+  transform: translateX(-50%) translateY(4px);
+  min-width: 11rem;
+  max-width: 16rem;
+  padding: 0.45rem 0.5rem;
+  font-size: 0.7rem;
+  line-height: 1.3;
+  text-align: left;
+  color: #ececf4;
+  background: rgba(10, 8, 18, 0.97);
+  border: 1px solid rgba(155, 89, 182, 0.55);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0.18s;
+}
+
+.skilltree-node__hovertip-name {
+  display: block;
+  font-weight: 700;
+  color: #d4af37;
+  margin-bottom: 0.2rem;
+}
+
+.skilltree-node__hovertip-path {
+  display: block;
+  font-size: 0.65rem;
+  color: #9b9baa;
+  margin-bottom: 0.3rem;
+}
+
+.skilltree-node__hovertip-fx {
+  display: block;
+  font-size: 0.66rem;
+  color: #c8c8d8;
+}
+
+.skilltree-node:hover .skilltree-node__hovertip,
+.skilltree-node:focus-visible .skilltree-node__hovertip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
 }
 
 .skilltree-node__inner {
@@ -829,6 +884,75 @@ body {
 .skilltree-tip-path {
   color: var(--muted);
   font-size: 0.68rem;
+}
+
+.relic-fundus {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.75rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(139, 0, 0, 0.35);
+  background: linear-gradient(180deg, rgba(24, 12, 16, 0.65), rgba(12, 10, 16, 0.88));
+}
+
+.relic-fundus-heading {
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d4af37;
+}
+
+.relic-fundus-lead {
+  margin: 0 0 0.45rem;
+  font-size: 0.7rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.relic-fundus-summary {
+  margin: 0 0 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #39ff14;
+  line-height: 1.35;
+}
+
+.relic-fundus-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.relic-fundus-item {
+  display: grid;
+  grid-template-columns: minmax(4rem, auto) 1fr;
+  gap: 0.35rem 0.6rem;
+  align-items: start;
+  padding: 0.35rem 0.4rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(57, 255, 20, 0.15);
+  font-size: 0.7rem;
+}
+
+.relic-fundus-name {
+  font-weight: 800;
+  color: #e0c896;
+}
+
+.relic-fundus-desc {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.relic-fundus-empty {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-style: italic;
 }
 
 .artifact-panel {

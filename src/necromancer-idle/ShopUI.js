@@ -16,6 +16,7 @@ import {
   getUpgradeLevel,
   isUpgradeDiscovered,
   tryRegisterClick,
+  getNextRasereiPayoutMult,
 } from './GameState.js';
 import { UPGRADE_DEFINITIONS } from './upgrades.js';
 
@@ -383,8 +384,11 @@ function initAltar(audio) {
     }
     audio.playClickSound();
     const bpc = getBonesPerClick();
-    addBones(bpc);
-    fireFx(e.clientX, e.clientY, `+${formatGameNumber(bpc)}`);
+    const rMult = getNextRasereiPayoutMult();
+    const gained = bpc * rMult;
+    addBones(gained);
+    const label = rMult >= 2 ? `+${formatGameNumber(gained)} (Raserei×2!)` : `+${formatGameNumber(gained)}`;
+    fireFx(e.clientX, e.clientY, label);
   };
 
   altar?.addEventListener('click', onActivate);
@@ -397,9 +401,12 @@ function initAltar(audio) {
       }
       audio.playClickSound();
       const bpc = getBonesPerClick();
-      addBones(bpc);
+      const rMult = getNextRasereiPayoutMult();
+      const gained = bpc * rMult;
+      addBones(gained);
       const r = altar.getBoundingClientRect();
-      fireFx(r.left + r.width / 2, r.top + r.height / 2, `+${formatGameNumber(bpc)}`);
+      const label = rMult >= 2 ? `+${formatGameNumber(gained)} (×2)` : `+${formatGameNumber(gained)}`;
+      fireFx(r.left + r.width / 2, r.top + r.height / 2, label);
     }
   });
 }

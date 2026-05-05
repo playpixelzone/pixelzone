@@ -439,6 +439,7 @@ main { padding-top: 64px; }
 .t-golforbit    { background: linear-gradient(145deg, #ecfccb 0%, #bae6fd 55%, #fef08a 100%); }
 .t-fruitmerge   { background: linear-gradient(145deg, #fef9c3 0%, #fed7aa 45%, #fecaca 100%); }
 .t-mahjongclassic { background: linear-gradient(145deg, #ecfdf5 0%, #fef3c7 40%, #fecaca 100%); }
+.t-chessonline    { background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 35%, #bbf7d0 100%); }
 
 /* Dekorative Elemente auf den Thumbnails */
 .t-pixel::before {

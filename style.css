@@ -435,6 +435,7 @@ main { padding-top: 64px; }
 .t-blockblast  { background: linear-gradient(135deg, #312e81 0%, #6366f1 60%, #a78bfa 100%); }
 .t-pixelphone  { background: linear-gradient(145deg, #eef3ff 0%, #ffe8f0 50%, #e8fff5 100%); }
 .t-pong        { background: linear-gradient(145deg, #e9f2ff 0%, #ffffff 45%, #e9fff6 100%); }
+.t-arcadecenter { background: linear-gradient(145deg, #ede9fe 0%, #fce7f3 50%, #faf5ff 100%); }
 
 /* Dekorative Elemente auf den Thumbnails */
 .t-pixel::before {

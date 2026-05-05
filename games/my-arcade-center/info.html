@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Arcade Center – Kostenlos online spielen | PIXELZONE</title>
+<meta name="description" content="My Arcade Center kostenlos online spielen – Idle-Arcade-Tycoon auf Playgama. Maschinen platzieren, Kunden bedienen, expandieren. Von PIXELZONE aus starten.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://playpixelzone.github.io/pixelzone/games/my-arcade-center/info.html">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent:       #7c3aed;
+  --accent-light: #ede9fe;
+  --accent-dark:  #5b21b6;
+  --thumb-from:   #a855f7;
+  --thumb-to:     #db2777;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #f0f7ff;
+  color: #1a1a2e;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.25rem; height: 56px;
+  background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  position: sticky; top: 0; z-index: 10;
+}
+.logo {
+  display: flex; align-items: center; gap: .5rem;
+  text-decoration: none; color: #1a1a2e; font-weight: 800; font-size: 1.1rem;
+}
+.logo-mark { font-size: 1.4rem; }
+.nav-login-btn {
+  padding: .45rem 1rem; background: #3a86ff; color: #fff;
+  border-radius: 8px; text-decoration: none; font-weight: 700; font-size: .9rem;
+}
+.nav-user { display: flex; align-items: center; gap: .6rem; font-size: .9rem; }
+.nav-avatar { font-size: 1.2rem; }
+.nav-username { font-weight: 700; }
+.nav-logout-btn {
+  padding: .35rem .8rem; background: #fee; color: #c0392b;
+  border: none; border-radius: 6px; font-family: 'Nunito', sans-serif;
+  font-weight: 700; font-size: .85rem; cursor: pointer;
+}
+
+main {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; padding: 2.5rem 1rem 3rem;
+  gap: 1.75rem; max-width: 680px; margin: 0 auto; width: 100%;
+}
+
+.breadcrumb {
+  align-self: flex-start;
+  font-size: .82rem; font-weight: 700; color: #888;
+}
+.breadcrumb a { color: #888; text-decoration: none; }
+.breadcrumb a:hover { color: var(--accent); }
+.breadcrumb span { margin: 0 .35rem; }
+
+.info-hero {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 1rem; text-align: center; width: 100%;
+}
+.info-thumb {
+  width: 110px; height: 110px; border-radius: 22px;
+  background: linear-gradient(135deg, var(--thumb-from), var(--thumb-to));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3.2rem;
+  box-shadow: 0 8px 28px rgba(124,58,237,.28);
+}
+h1.info-title { font-size: 2rem; font-weight: 900; letter-spacing: -.03em; }
+.info-tags { display: flex; gap: .45rem; flex-wrap: wrap; justify-content: center; }
+.info-tag {
+  padding: .25rem .8rem; border-radius: 20px;
+  font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+  background: var(--accent-light); color: var(--accent-dark);
+}
+.info-sub { font-size: .88rem; color: #777; font-weight: 600; }
+.info-external {
+  font-size: .82rem; color: #64748b; font-weight: 600; max-width: 28rem; line-height: 1.5;
+}
+.play-btn {
+  display: inline-block; padding: .85rem 2.75rem;
+  background: var(--accent); color: #fff; border-radius: 14px;
+  text-decoration: none; font-weight: 900; font-size: 1.1rem;
+  box-shadow: 0 4px 18px rgba(124,58,237,.32);
+  transition: opacity .15s, transform .15s;
+}
+.play-btn:hover { opacity: .88; transform: translateY(-2px); }
+
+.info-card {
+  background: #fff; border-radius: 16px; padding: 1.5rem 1.5rem 1.75rem;
+  width: 100%; box-shadow: 0 2px 14px rgba(0,0,0,.06);
+}
+.info-card h2 {
+  font-size: .78rem; font-weight: 900; text-transform: uppercase;
+  letter-spacing: .1em; color: #aaa; margin-bottom: .85rem;
+}
+.info-card p {
+  font-size: .95rem; line-height: 1.75; color: #333; font-weight: 500;
+}
+
+footer {
+  padding: 22px 28px; border-top: 1px solid #e4eaf5;
+  background: #fff; display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.footer-brand { display: flex; align-items: center; gap: 8px; font-size: .95rem; font-weight: 900; }
+.footer-text { font-size: .8rem; color: #999; font-weight: 600; }
+
+@media (min-width: 480px) {
+  h1.info-title { font-size: 2.4rem; }
+  .info-thumb { width: 130px; height: 130px; font-size: 3.8rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="../../index.html" class="logo">
+    <div class="logo-mark">🕹</div>
+    <span>PIXELZONE</span>
+  </a>
+  <div id="navAuth"><a href="../../login.html" class="nav-login-btn">Anmelden</a></div>
+</header>
+
+<main>
+
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="../../index.html">PIXELZONE</a>
+    <span>›</span>
+    My Arcade Center
+  </nav>
+
+  <div class="info-hero">
+    <div class="info-thumb">🕹</div>
+    <h1 class="info-title">My Arcade Center</h1>
+    <div class="info-tags">
+      <span class="info-tag">Idle</span>
+      <span class="info-tag">Simulation</span>
+      <span class="info-tag">Partner</span>
+    </div>
+    <p class="info-sub">Kein Download · Läuft auf Playgama</p>
+    <p class="info-external">Du wirst auf eine Partner-Seite weitergeleitet. Spielstände werden dort bzw. im Spiel gespeichert, nicht auf PIXELZONE.</p>
+    <a href="https://playgama.com/export/game/my-arcade-center" class="play-btn" target="_blank" rel="noopener noreferrer">▶ Jetzt spielen</a>
+  </div>
+
+  <div class="info-card">
+    <h2>Über das Spiel</h2>
+    <p>My Arcade Center ist ein Idle-Arcade-Tycoon von GamesMrkt: Baue deine Spielhalle aus, platziere Automaten, sammle Münzen und expandiere über mehrere Karten. Tagsüber verdienst du Geld, nachts rüstest du auf — mit Personal, Coin-Bots und Upgrades. Entwickelt von GamesMrkt, erhältlich über Playgama.</p>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-brand">🕹 PIXELZONE</div>
+  <div class="footer-text">extern über Playgama · Im Browser</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../auth.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => { PZ.updateNavbar(); });</script>
+
+</body>
+</html>

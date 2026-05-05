@@ -67,4 +67,10 @@
     <changefreq>monthly</changefreq>
   </url>
 
+  <url>
+    <loc>https://playpixelzone.github.io/pixelzone/games/fruit-merge/info.html</loc>
+    <priority>0.75</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
 </urlset>

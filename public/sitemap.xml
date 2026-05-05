@@ -73,4 +73,10 @@
     <changefreq>monthly</changefreq>
   </url>
 
+  <url>
+    <loc>https://playpixelzone.github.io/pixelzone/games/mahjong-classic/info.html</loc>
+    <priority>0.75</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
 </urlset>

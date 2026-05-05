@@ -436,6 +436,7 @@ main { padding-top: 64px; }
 .t-pixelphone  { background: linear-gradient(145deg, #eef3ff 0%, #ffe8f0 50%, #e8fff5 100%); }
 .t-pong        { background: linear-gradient(145deg, #e9f2ff 0%, #ffffff 45%, #e9fff6 100%); }
 .t-arcadecenter { background: linear-gradient(145deg, #ede9fe 0%, #fce7f3 50%, #faf5ff 100%); }
+.t-golforbit    { background: linear-gradient(145deg, #ecfccb 0%, #bae6fd 55%, #fef08a 100%); }
 
 /* Dekorative Elemente auf den Thumbnails */
 .t-pixel::before {

@@ -428,13 +428,8 @@ main { padding-top: 64px; }
 .t-memory  { background: linear-gradient(145deg, #f0e6ff 0%, #e2d0ff 100%); }
 .t-wordle  { background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 100%); }
 .t-minesweeper { background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); }
-.t-pixeldrop { background: linear-gradient(135deg, #3b82f6 0%, #f97316 100%); }
-.t-factory   { background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%); }
 .t-necro     { background: linear-gradient(145deg, #0d0d12 0%, #2a1018 45%, #1a1528 100%); }
 .t-pixelfall   { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0ea5e9 100%); }
-.t-blockblast  { background: linear-gradient(135deg, #312e81 0%, #6366f1 60%, #a78bfa 100%); }
-.t-pixelphone  { background: linear-gradient(145deg, #eef3ff 0%, #ffe8f0 50%, #e8fff5 100%); }
-.t-pong        { background: linear-gradient(145deg, #e9f2ff 0%, #ffffff 45%, #e9fff6 100%); }
 .t-arcadecenter { background: linear-gradient(145deg, #ede9fe 0%, #fce7f3 50%, #faf5ff 100%); }
 .t-golforbit    { background: linear-gradient(145deg, #ecfccb 0%, #bae6fd 55%, #fef08a 100%); }
 .t-fruitmerge   { background: linear-gradient(145deg, #fef9c3 0%, #fed7aa 45%, #fecaca 100%); }

@@ -274,14 +274,11 @@ const PZ = {
           <h2>⚙ Admin-Panel</h2>
           <p class="pz-admin-hint">Spiel im Test-Modus öffnen (kein echtes Speichern):</p>
           <div class="pz-admin-games">
-            <a href="${base}games/pixel-factory/?admin=1" class="pz-admin-btn">🏭 Pixel Factory</a>
             <a href="${base}games/pixel-jump/?admin=1" class="pz-admin-btn">🐸 Pixel Jump</a>
             <a href="${base}games/space-blaster/?admin=1" class="pz-admin-btn">🚀 Space Blaster</a>
             <a href="${base}games/minesweeper/?admin=1" class="pz-admin-btn">💣 Minesweeper</a>
             <a href="${base}games/wordle/?admin=1" class="pz-admin-btn">📝 Wordle</a>
             <a href="${base}games/memory-match/?admin=1" class="pz-admin-btn">🃏 Memory Match</a>
-            <a href="${base}games/pixel-drop/?admin=1" class="pz-admin-btn">⬇ Pixel Drop</a>
-            <a href="${base}games/pong/?admin=1" class="pz-admin-btn">🏓 Pong</a>
             <a href="${base}games/necromancer-idle/?admin=1" class="pz-admin-btn">🦴 Schrecken der Krypta</a>
           </div>
           <button class="pz-admin-schliessen" id="pzAdminSchliessen">Schließen</button>
